@@ -1,0 +1,46 @@
+# Pattern-based classification rules
+# These regex patterns are matched against messages for intent classification
+
+# Request patterns - phrases that indicate seeking help
+request_patterns:
+  looking_for:
+    pattern: "looking\\s+for"
+    confidence: 0.8
+    description: "Looking for pattern indicates seeking services"
+
+  can_anyone:
+    pattern: "can\\s+anyone"
+    confidence: 0.7
+    description: "Asking community for help"
+
+  does_anyone:
+    pattern: "does\\s+anyone"
+    confidence: 0.7
+    description: "Asking community for recommendations"
+
+  need_help:
+    pattern: "need\\s+(help|assistance)"
+    confidence: 0.9
+    description: "Direct request for help"
+
+# Recommendation patterns - phrases that indicate endorsing services
+recommendation_patterns:
+  highly_recommend:
+    pattern: "highly\\s+recommend"
+    confidence: 0.9
+    description: "Strong recommendation phrase"
+
+  would_recommend:
+    pattern: "would\\s+recommend"
+    confidence: 0.8
+    description: "Conditional recommendation"
+
+  past_positive:
+    pattern: "(did|was)\\s+(great|excellent|amazing|fantastic)"
+    confidence: 0.8
+    description: "Past positive experience"
+
+  contact_sharing:
+    pattern: "\\b\\d{10,11}\\b"
+    confidence: 0.7
+    description: "Sharing contact information"

@@ -1,0 +1,10 @@
+{
+  "projects": {
+    "default": "neighbour-approved-dev",
+    "dev": "neighbour-approved-dev",
+    "staging": "neighbour-approved-staging",
+    "prod": "neighbour-approved-prod"
+  },
+  "targets": {},
+  "etags": {}
+}

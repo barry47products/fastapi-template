@@ -1,0 +1,33 @@
+# Keyword-based classification rules
+# These keywords are matched against messages to identify requests vs recommendations
+
+# Request keywords - indicate someone is seeking help or services
+request_keywords:
+  need: 0.9
+  help: 0.8
+  looking: 0.7
+  emergency: 0.9
+  urgent: 0.8
+  require: 0.8
+  want: 0.7
+  find: 0.6
+  search: 0.7
+  can: 0.4
+  anyone: 0.4
+  seeking: 0.8
+  asking: 0.6
+
+# Recommendation keywords - indicate someone is endorsing a service
+recommendation_keywords:
+  recommend: 0.9
+  excellent: 0.8
+  great: 0.7
+  amazing: 0.8
+  fantastic: 0.8
+  brilliant: 0.8
+  professional: 0.7
+  reliable: 0.7
+  trustworthy: 0.8
+  quality: 0.6
+  good: 0.6
+  highly: 0.5  # Only meaningful with "recommend"

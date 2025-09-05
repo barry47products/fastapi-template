@@ -1,0 +1,127 @@
+# Dependabot configuration for Neighbour Approved
+# Automated dependency updates for security and maintenance
+
+version: 2
+updates:
+  # Python dependencies via Poetry (using pip ecosystem for pyproject.toml)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Africa/Johannesburg"
+    open-pull-requests-limit: 5
+    assignees:
+      - "barry47products"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "python"
+    # Group related updates together
+    groups:
+      fastapi-ecosystem:
+        patterns:
+          - "fastapi*"
+          - "uvicorn*"
+          - "starlette*"
+          - "pydantic*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      testing-frameworks:
+        patterns:
+          - "pytest*"
+          - "coverage*"
+          - "hypothesis*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      linting-tools:
+        patterns:
+          - "ruff*"
+          - "black*"
+          - "mypy*"
+          - "pre-commit*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      observability:
+        patterns:
+          - "structlog*"
+          - "prometheus*"
+          - "opentelemetry*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      google-cloud:
+        patterns:
+          - "google-*"
+          - "firebase-*"
+        update-types:
+          - "minor"
+          - "patch"
+    
+    # Ignore specific packages or versions if needed
+    ignore:
+      # Ignore major version updates for stable dependencies
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major"]
+      # Example: ignore specific problematic versions
+      # - dependency-name: "some-package"
+      #   versions: ["1.2.3", "1.2.4"]
+
+  # GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+      timezone: "Africa/Johannesburg"
+    open-pull-requests-limit: 3
+    assignees:
+      - "barry47products"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "ci/cd"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Docker dependencies (if you add Dockerfile later)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "11:00"
+      timezone: "Africa/Johannesburg"
+    open-pull-requests-limit: 2
+    assignees:
+      - "barry47products"
+    commit-message:
+      prefix: "docker"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "docker"
+    ignore:
+      # Be careful with base image major updates
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major"]

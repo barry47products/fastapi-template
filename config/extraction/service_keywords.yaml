@@ -1,0 +1,159 @@
+# Service keyword extraction rules
+# These keywords help identify service provider mentions in messages
+
+# Electrical services
+electrical_services:
+  electrician: 0.9
+  electrical: 0.8
+  wiring: 0.8
+  installation: 0.7
+  lighting: 0.7
+  power: 0.6
+  socket: 0.7
+  plug: 0.6
+  switch: 0.7
+  circuit: 0.8
+  fuse: 0.7
+  meter: 0.7
+  generator: 0.8
+  solar: 0.8
+  inverter: 0.8
+
+# Plumbing services
+plumbing_services:
+  plumber: 0.9
+  plumbing: 0.8
+  pipe: 0.7
+  leak: 0.8
+  tap: 0.7
+  faucet: 0.7
+  drain: 0.7
+  toilet: 0.7
+  geyser: 0.8
+  water: 0.5  # Low confidence, needs context
+  bathroom: 0.6
+  kitchen: 0.5  # Low confidence, needs context
+  shower: 0.7
+  basin: 0.7
+
+# Construction services
+construction_services:
+  builder: 0.9
+  construction: 0.8
+  building: 0.6
+  contractor: 0.8
+  renovation: 0.8
+  extension: 0.8
+  foundation: 0.8
+  brick: 0.7
+  cement: 0.7
+  concrete: 0.7
+  plastering: 0.8
+  tiling: 0.8
+  flooring: 0.8
+  carpentry: 0.8
+  joinery: 0.8
+
+# Roofing services
+roofing_services:
+  roofing: 0.9
+  roof: 0.8
+  tiles: 0.7
+  thatch: 0.8
+  gutters: 0.8
+  waterproofing: 0.8
+  insulation: 0.7
+  chimney: 0.7
+
+# Painting services
+painting_services:
+  painter: 0.9
+  painting: 0.8
+  paint: 0.7
+  decorating: 0.8
+  wallpaper: 0.8
+  interior: 0.6
+  exterior: 0.6
+
+# Cleaning services
+cleaning_services:
+  cleaning: 0.8
+  cleaner: 0.9
+  housekeeping: 0.9
+  maid: 0.8
+  domestic: 0.7
+  office: 0.5  # Needs context
+  carpet: 0.6
+  windows: 0.6
+
+# Garden and landscaping
+garden_services:
+  gardening: 0.8
+  gardener: 0.9
+  landscaping: 0.9
+  lawn: 0.7
+  trees: 0.6
+  pruning: 0.8
+  irrigation: 0.8
+  pool: 0.6
+
+# Security services
+security_services:
+  security: 0.8
+  alarm: 0.8
+  cctv: 0.9
+  camera: 0.7
+  monitoring: 0.7
+  guard: 0.8
+  access: 0.6
+  gate: 0.6
+  fence: 0.6
+  perimeter: 0.8
+
+# Automotive services
+automotive_services:
+  mechanic: 0.9
+  automotive: 0.8
+  car: 0.4  # Needs context
+  vehicle: 0.5
+  engine: 0.7
+  brake: 0.8
+  service: 0.3  # Very generic, needs context
+  repair: 0.6
+  maintenance: 0.7
+  parts: 0.5
+
+# IT and technology services
+technology_services:
+  it: 0.7
+  computer: 0.7
+  laptop: 0.7
+  network: 0.8
+  wifi: 0.7
+  internet: 0.6
+  software: 0.7
+  hardware: 0.7
+  repair: 0.6
+  support: 0.5
+
+# Emergency services indicators
+emergency_indicators:
+  emergency: 0.9
+  urgent: 0.8
+  "24/7": 0.8
+  "24 hours": 0.8
+  immediate: 0.8
+  asap: 0.8
+  quickly: 0.7
+  fast: 0.6
+
+# Quality indicators
+quality_indicators:
+  professional: 0.7
+  licensed: 0.8
+  certified: 0.8
+  insured: 0.8
+  qualified: 0.8
+  experienced: 0.7
+  reliable: 0.7
+  trustworthy: 0.8

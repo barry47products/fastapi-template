@@ -1,0 +1,52 @@
+# Name pattern extraction rules
+# These patterns identify provider/business names in messages
+
+# Common business name patterns
+business_name_patterns:
+  # Pattern: Word + Business Suffix
+  business_suffix_patterns:
+    - pattern: "([A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*?)\\s+(Ltd|Limited|CC|Corp|Corporation|Inc|Incorporated|Pty|Plc|Solutions|Services|Group|Company|Co\\.?)\\b"
+      confidence_weight: 0.95
+      description: "Business names with legal entity suffixes"
+    
+    - pattern: "([A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*?)\\s+(Electrical|Plumbing|Construction|Roofing|Painting|Cleaning|Catering|Transport|Security|Maintenance)\\b"
+      confidence_weight: 0.90
+      description: "Business names with trade/service suffixes"
+
+  # Pattern: Possessive Names (e.g., "John's Electrical")
+  possessive_patterns:
+    - pattern: "([A-Z][a-z]+(?:'s|s'))\\s+(Electrical|Plumbing|Construction|Roofing|Painting|Cleaning|Catering|Transport|Security|Maintenance|Services|Solutions)\\b"
+      confidence_weight: 0.88
+      description: "Possessive business names"
+
+  # Pattern: Name + Trade combination (e.g., "Smith Electrical")
+  name_trade_patterns:
+    - pattern: "([A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*?)\\s+(Electrical|Electrician|Plumbing|Plumber|Construction|Builder|Roofing|Painter|Cleaning|Cleaner|Catering|Caterer)\\b"
+      confidence_weight: 0.85
+      description: "Personal names with trade descriptions"
+
+# Geographic qualifier patterns
+geographic_patterns:
+  - pattern: "([A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*?)\\s+(Cape Town|Johannesburg|Durban|Pretoria|Port Elizabeth|Bloemfontein|East London|Pietermaritzburg|Local|Area|Regional)\\b"
+    confidence_weight: 0.75
+    description: "Names with geographic qualifiers"
+
+# Contact reference patterns  
+contact_reference_patterns:
+  - pattern: "contact\\s+([A-Z][a-z]+(?:\\s+[A-Z][a-z]+){0,2})(?:\\s+(?:at|on|for))?\\b"
+    confidence_weight: 0.80
+    description: "Contact reference patterns"
+
+# Exclusion patterns (to avoid false positives)
+exclusion_patterns:
+  - "\\b(?:I|You|We|They|He|She|It|This|That|These|Those|My|Your|Our|Their|His|Her|Its)\\b"
+  - "\\b(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Today|Tomorrow|Yesterday)\\b"
+  - "\\b(?:Morning|Afternoon|Evening|Night|Day|Week|Month|Year|Time|Hour|Minute)\\b"
+  - "\\b(?:Good|Bad|Better|Best|Worse|Worst|Nice|Great|Excellent|Poor|Terrible)\\b"
+
+# Minimum and maximum length constraints
+validation:
+  minimum_name_length: 3
+  maximum_name_length: 100
+  minimum_word_count: 1
+  maximum_word_count: 6

@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(poetry run pytest:*)",
+      "Bash(poetry run ruff:*)",
+      "Bash(poetry run mypy:*)",
+      "Bash(poetry run black:*)",
+      "Bash(poetry run pre-commit run:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(poetry run black:*)",
+      "Bash(poetry run flake8:*)",
+      "Bash(grep:*)",
+      "Bash(python:*)",
+      "Bash(poetry run python -m pytest:*)",
+      "Bash(poetry run:*)",
+      "WebSearch",
+      "Bash(make:*)",
+      "Bash(make test:*)",
+      "Bash(gh label create:*)",
+      "WebFetch(domain:green-api.com)",
+      "Bash(curl:*)",
+      "Bash(cd:*)",
+      "Bash(cd:*)",
+      "Bash(cd:*)"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "outputStyle": "Explanatory"
+}

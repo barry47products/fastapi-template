@@ -1,0 +1,13 @@
+{
+  "name": "neighbour-approved-dev-tools",
+  "version": "1.0.0",
+  "description": "Development tools for Neighbour Approved",
+  "private": true,
+  "scripts": {
+    "emulators": "firebase emulators:start",
+    "emulators:firestore": "firebase emulators:start --only firestore,ui"
+  },
+  "devDependencies": {
+    "firebase-tools": "^13.0.0"
+  }
+}
