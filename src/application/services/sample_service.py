@@ -10,24 +10,31 @@ This module shows how to implement application services that:
 Replace this with your actual business services.
 """
 
-from datetime import datetime, UTC
+from __future__ import annotations
+
+from datetime import UTC, datetime
 from typing import Any, Protocol
 from uuid import uuid4
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from src.domain.events import DomainEventRegistry
+from src.domain.events import DomainEvent, DomainEventRegistry
 from src.infrastructure.observability import get_logger, get_metrics_collector
 
 
-class SampleDomainEvent(BaseModel):
+class SampleDomainEvent(DomainEvent):
     """Sample domain event for demonstration."""
 
     event_type: str = "sample_operation_completed"
     entity_id: str
     operation_type: str
-    timestamp: datetime
     metadata: dict[str, Any]
+    operation_timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+    @property
+    def aggregate_id(self) -> str:
+        """Return the aggregate identifier."""
+        return self.entity_id
 
 
 class UserRepository(Protocol):
@@ -165,7 +172,6 @@ class SampleApplicationService:
             domain_event = SampleDomainEvent(
                 entity_id=saved_user["id"],
                 operation_type="user_onboarding_completed",
-                timestamp=datetime.now(UTC),
                 metadata={
                     "user_name": user_name,
                     "user_email": user_email,

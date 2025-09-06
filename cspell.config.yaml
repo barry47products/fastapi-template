@@ -56,7 +56,9 @@ words:
   - ansible
   - anticorruption
   - anyio
+  - anymore
   - api
+  - apikey
   - apis
   - argocd
   - args
@@ -93,6 +95,7 @@ words:
   - calloc
   - caplog
   - capsys
+  - CASESENSITIVE
   - cassandra
   - categorisation
   - categorise
@@ -316,6 +319,7 @@ words:
   - malloc
   - mamba
   - mambaforge
+  - María
   - mariadb
   - maven
   - md
@@ -359,11 +363,13 @@ words:
   - newrelic
   - nok
   - nomad
+  - nonexistent
   - noop
   - normalisation
   - normalise
   - normalised
   - normalising
+  - notanemail
   - nox
   - npm
   - nullopt
@@ -398,6 +404,8 @@ words:
   - parametrizing
   - params
   - parquet
+  - parsable
+  - parseable
   - pbac
   - pdm
   - Perflint
@@ -460,6 +468,7 @@ words:
   - refurb
   - repr
   - req
+  - reraises
   - res
   - resp
   - ret
@@ -480,6 +489,7 @@ words:
   - sanitising
   - sass
   - scss
+  - sëcrët
   - secretstr
   - semaphore
   - sentry
@@ -530,6 +540,7 @@ words:
   - tcp
   - teardown
   - terraform
+  - tëst
   - tex
   - tidb
   - timedelta
@@ -562,6 +573,7 @@ words:
   - uri
   - url
   - urn
+  - USDX
   - usecase
   - usefixtures
   - util

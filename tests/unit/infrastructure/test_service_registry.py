@@ -1,17 +1,17 @@
-"""Unit tests for service registry infrastructure."""  # noqa: INP001, I002
+"""Unit tests for service registry infrastructure."""
 
-# pylint: disable=redefined-outer-name
+from __future__ import annotations
 
-from unittest.mock import MagicMock  # noqa: I001
+from unittest.mock import MagicMock
 
 import pytest
 
 from src.infrastructure.observability import MetricsCollector
 from src.infrastructure.service_registry import (
+    ServiceRegistry,
     clear_service_registry,
     get_service_registry,
     initialize_service_registry,
-    ServiceRegistry,
 )
 from src.shared.exceptions import ServiceNotConfiguredException
 
@@ -256,3 +256,354 @@ class TestServiceRegistryIntegration:
 
         assert registry.get_metrics_collector() is collector
         assert registry.get_repository_factory() is factory
+
+
+class TestServiceRegistryHealthChecker:
+    """Test service registry health checker functionality."""
+
+    def test_register_and_get_health_checker(self) -> None:
+        """Should register and retrieve health checker service."""
+        registry = ServiceRegistry()
+        health_checker = MagicMock()
+
+        registry.register_health_checker(health_checker)
+
+        assert registry.has_health_checker()
+        assert registry.get_health_checker() is health_checker
+
+    def test_get_health_checker_raises_when_not_registered(self) -> None:
+        """Should raise error when health checker not registered."""
+        registry = ServiceRegistry()
+
+        assert not registry.has_health_checker()
+        with pytest.raises(ServiceNotConfiguredException, match="HealthChecker not registered"):
+            registry.get_health_checker()
+
+
+class TestServiceRegistryAPIKeyValidator:
+    """Test service registry API key validator functionality."""
+
+    def test_register_and_get_api_key_validator(self) -> None:
+        """Should register and retrieve API key validator service."""
+        registry = ServiceRegistry()
+        api_key_validator = MagicMock()
+
+        registry.register_api_key_validator(api_key_validator)
+
+        assert registry.has_api_key_validator()
+        assert registry.get_api_key_validator() is api_key_validator
+
+    def test_get_api_key_validator_raises_when_not_registered(self) -> None:
+        """Should raise error when API key validator not registered."""
+        registry = ServiceRegistry()
+
+        assert not registry.has_api_key_validator()
+        with pytest.raises(ServiceNotConfiguredException, match="APIKeyValidator not registered"):
+            registry.get_api_key_validator()
+
+
+class TestServiceRegistryRateLimiter:
+    """Test service registry rate limiter functionality."""
+
+    def test_register_and_get_rate_limiter(self) -> None:
+        """Should register and retrieve rate limiter service."""
+        registry = ServiceRegistry()
+        rate_limiter = MagicMock()
+
+        registry.register_rate_limiter(rate_limiter)
+
+        assert registry.has_rate_limiter()
+        assert registry.get_rate_limiter() is rate_limiter
+
+    def test_get_rate_limiter_raises_when_not_registered(self) -> None:
+        """Should raise error when rate limiter not registered."""
+        registry = ServiceRegistry()
+
+        assert not registry.has_rate_limiter()
+        with pytest.raises(ServiceNotConfiguredException, match="RateLimiter not registered"):
+            registry.get_rate_limiter()
+
+
+class TestServiceRegistryWebhookVerifier:
+    """Test service registry webhook verifier functionality."""
+
+    def test_register_and_get_webhook_verifier(self) -> None:
+        """Should register and retrieve webhook verifier service."""
+        registry = ServiceRegistry()
+        webhook_verifier = MagicMock()
+
+        registry.register_webhook_verifier(webhook_verifier)
+
+        assert registry.has_webhook_verifier()
+        assert registry.get_webhook_verifier() is webhook_verifier
+
+    def test_get_webhook_verifier_raises_when_not_registered(self) -> None:
+        """Should raise error when webhook verifier not registered."""
+        registry = ServiceRegistry()
+
+        assert not registry.has_webhook_verifier()
+        with pytest.raises(ServiceNotConfiguredException, match="WebhookVerifier not registered"):
+            registry.get_webhook_verifier()
+
+
+class TestServiceRegistryFeatureFlagManager:
+    """Test service registry feature flag manager functionality."""
+
+    def test_register_and_get_feature_flag_manager(self) -> None:
+        """Should register and retrieve feature flag manager service."""
+        registry = ServiceRegistry()
+        feature_flag_manager = MagicMock()
+
+        registry.register_feature_flag_manager(feature_flag_manager)
+
+        assert registry.has_feature_flag_manager()
+        assert registry.get_feature_flag_manager() is feature_flag_manager
+
+    def test_get_feature_flag_manager_raises_when_not_registered(self) -> None:
+        """Should raise error when feature flag manager not registered."""
+        registry = ServiceRegistry()
+
+        assert not registry.has_feature_flag_manager()
+        with pytest.raises(
+            ServiceNotConfiguredException, match="FeatureFlagManager not registered"
+        ):
+            registry.get_feature_flag_manager()
+
+
+class TestServiceRegistryNotificationService:
+    """Test service registry notification service functionality."""
+
+    def test_register_and_get_notification_service(self) -> None:
+        """Should register and retrieve notification service."""
+        registry = ServiceRegistry()
+        notification_service = MagicMock()
+
+        registry.register_notification_service(notification_service)
+
+        assert registry.has_notification_service()
+        assert registry.get_notification_service() is notification_service
+
+    def test_get_notification_service_raises_when_not_registered(self) -> None:
+        """Should raise error when notification service not registered."""
+        registry = ServiceRegistry()
+
+        assert not registry.has_notification_service()
+        with pytest.raises(
+            ServiceNotConfiguredException, match="SampleNotificationService not registered"
+        ):
+            registry.get_notification_service()
+
+
+class TestServiceRegistryClearAllServices:
+    """Test service registry clear all services functionality."""
+
+    def test_clear_all_services_resets_all_services(self) -> None:
+        """Should clear all registered services."""
+        registry = ServiceRegistry()
+
+        # Register all types of services
+        registry.register_metrics_collector(MetricsCollector())
+        registry.register_health_checker(MagicMock())
+        registry.register_api_key_validator(MagicMock())
+        registry.register_rate_limiter(MagicMock())
+        registry.register_webhook_verifier(MagicMock())
+        registry.register_feature_flag_manager(MagicMock())
+        registry.register_repository_factory(MagicMock())
+        registry.register_notification_service(MagicMock())
+
+        # Verify all are registered
+        assert registry.has_metrics_collector()
+        assert registry.has_health_checker()
+        assert registry.has_api_key_validator()
+        assert registry.has_rate_limiter()
+        assert registry.has_webhook_verifier()
+        assert registry.has_feature_flag_manager()
+        assert registry.has_repository_factory()
+        assert registry.has_notification_service()
+
+        # Clear all services
+        registry.clear_all_services()
+
+        # Verify all are cleared
+        assert not registry.has_metrics_collector()
+        assert not registry.has_health_checker()
+        assert not registry.has_api_key_validator()
+        assert not registry.has_rate_limiter()
+        assert not registry.has_webhook_verifier()
+        assert not registry.has_feature_flag_manager()
+        assert not registry.has_repository_factory()
+        assert not registry.has_notification_service()
+
+
+class TestServiceRegistryGlobalFunctions:
+    """Test service registry global function edge cases."""
+
+    def setup_method(self) -> None:
+        """Setup test by clearing service registry."""
+        clear_service_registry()
+
+    def teardown_method(self) -> None:
+        """Cleanup test by clearing service registry."""
+        clear_service_registry()
+
+    def test_clear_service_registry_with_none_registry(self) -> None:
+        """Should handle clearing when registry is None."""
+        # Ensure registry is None
+        clear_service_registry()
+
+        # Should not raise error when clearing None registry
+        clear_service_registry()
+
+        # Should still raise error when trying to get
+        with pytest.raises(ServiceNotConfiguredException, match="Service registry not initialized"):
+            get_service_registry()
+
+    def test_clear_service_registry_clears_registered_services(self) -> None:
+        """Should clear registered services when clearing registry."""
+        # Initialize and register services
+        registry = initialize_service_registry()
+        registry.register_metrics_collector(MetricsCollector())
+        registry.register_health_checker(MagicMock())
+
+        # Verify services are registered
+        assert registry.has_metrics_collector()
+        assert registry.has_health_checker()
+
+        # Clear registry
+        clear_service_registry()
+
+        # Should not be able to get registry anymore
+        with pytest.raises(ServiceNotConfiguredException, match="Service registry not initialized"):
+            get_service_registry()
+
+    def test_initialize_service_registry_twice(self) -> None:
+        """Should handle initializing service registry multiple times."""
+        registry1 = initialize_service_registry()
+        registry2 = initialize_service_registry()
+
+        # Should create new instance each time
+        assert isinstance(registry1, ServiceRegistry)
+        assert isinstance(registry2, ServiceRegistry)
+
+        # Latest initialization should be the active one
+        current_registry = get_service_registry()
+        assert current_registry is registry2
+
+
+class TestServiceRegistryComprehensiveScenarios:
+    """Test comprehensive service registry usage scenarios."""
+
+    def test_all_services_registration_and_retrieval(self) -> None:
+        """Should handle registration and retrieval of all service types."""
+        registry = ServiceRegistry()
+
+        # Create mock services
+        metrics_collector = MetricsCollector()
+        health_checker = MagicMock()
+        api_key_validator = MagicMock()
+        rate_limiter = MagicMock()
+        webhook_verifier = MagicMock()
+        feature_flag_manager = MagicMock()
+        repository_factory = MagicMock()
+        notification_service = MagicMock()
+
+        # Register all services
+        registry.register_metrics_collector(metrics_collector)
+        registry.register_health_checker(health_checker)
+        registry.register_api_key_validator(api_key_validator)
+        registry.register_rate_limiter(rate_limiter)
+        registry.register_webhook_verifier(webhook_verifier)
+        registry.register_feature_flag_manager(feature_flag_manager)
+        registry.register_repository_factory(repository_factory)
+        registry.register_notification_service(notification_service)
+
+        # Verify all services can be retrieved
+        assert registry.get_metrics_collector() is metrics_collector
+        assert registry.get_health_checker() is health_checker
+        assert registry.get_api_key_validator() is api_key_validator
+        assert registry.get_rate_limiter() is rate_limiter
+        assert registry.get_webhook_verifier() is webhook_verifier
+        assert registry.get_feature_flag_manager() is feature_flag_manager
+        assert registry.get_repository_factory() is repository_factory
+        assert registry.get_notification_service() is notification_service
+
+        # Verify all has_* methods return True
+        assert registry.has_metrics_collector()
+        assert registry.has_health_checker()
+        assert registry.has_api_key_validator()
+        assert registry.has_rate_limiter()
+        assert registry.has_webhook_verifier()
+        assert registry.has_feature_flag_manager()
+        assert registry.has_repository_factory()
+        assert registry.has_notification_service()
+
+    def test_service_replacement_scenarios(self) -> None:
+        """Should handle service replacement for all service types."""
+        registry = ServiceRegistry()
+
+        # Register initial services
+        registry.register_health_checker(MagicMock())
+        registry.register_api_key_validator(MagicMock())
+        registry.register_rate_limiter(MagicMock())
+        registry.register_webhook_verifier(MagicMock())
+        registry.register_feature_flag_manager(MagicMock())
+        registry.register_notification_service(MagicMock())
+
+        # Create replacement services
+        new_health_checker = MagicMock()
+        new_api_key_validator = MagicMock()
+        new_rate_limiter = MagicMock()
+        new_webhook_verifier = MagicMock()
+        new_feature_flag_manager = MagicMock()
+        new_notification_service = MagicMock()
+
+        # Replace services
+        registry.register_health_checker(new_health_checker)
+        registry.register_api_key_validator(new_api_key_validator)
+        registry.register_rate_limiter(new_rate_limiter)
+        registry.register_webhook_verifier(new_webhook_verifier)
+        registry.register_feature_flag_manager(new_feature_flag_manager)
+        registry.register_notification_service(new_notification_service)
+
+        # Verify new services are returned
+        assert registry.get_health_checker() is new_health_checker
+        assert registry.get_api_key_validator() is new_api_key_validator
+        assert registry.get_rate_limiter() is new_rate_limiter
+        assert registry.get_webhook_verifier() is new_webhook_verifier
+        assert registry.get_feature_flag_manager() is new_feature_flag_manager
+        assert registry.get_notification_service() is new_notification_service
+
+    def test_mixed_service_states(self) -> None:
+        """Should handle scenarios with mixed service registration states."""
+        registry = ServiceRegistry()
+
+        # Register only some services
+        registry.register_metrics_collector(MetricsCollector())
+        registry.register_api_key_validator(MagicMock())
+        registry.register_feature_flag_manager(MagicMock())
+
+        # Verify registered services are available
+        assert registry.has_metrics_collector()
+        assert registry.has_api_key_validator()
+        assert registry.has_feature_flag_manager()
+
+        # Verify unregistered services are not available
+        assert not registry.has_health_checker()
+        assert not registry.has_rate_limiter()
+        assert not registry.has_webhook_verifier()
+        assert not registry.has_repository_factory()
+        assert not registry.has_notification_service()
+
+        # Verify errors are raised for unregistered services
+        with pytest.raises(ServiceNotConfiguredException, match="HealthChecker not registered"):
+            registry.get_health_checker()
+        with pytest.raises(ServiceNotConfiguredException, match="RateLimiter not registered"):
+            registry.get_rate_limiter()
+        with pytest.raises(ServiceNotConfiguredException, match="WebhookVerifier not registered"):
+            registry.get_webhook_verifier()
+        with pytest.raises(ServiceNotConfiguredException, match="RepositoryFactory not registered"):
+            registry.get_repository_factory()
+        with pytest.raises(
+            ServiceNotConfiguredException, match="SampleNotificationService not registered"
+        ):
+            registry.get_notification_service()
