@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi.testclient import TestClient
 
+from src.infrastructure.security.api_key_validator import verify_api_key
 from src.infrastructure.security.rate_limiter import check_rate_limit
 from src.infrastructure.service_registry import ServiceRegistry
 from src.interfaces.api.routers.health import get_service_registry
@@ -62,12 +63,13 @@ def test_should_expose_required_api_endpoints(
     """All required API endpoints should be registered and accessible."""
     app.dependency_overrides[get_service_registry] = lambda: mock_service_registry
     app.dependency_overrides[check_rate_limit] = lambda: "test_user"
+    app.dependency_overrides[verify_api_key] = lambda: None
 
     try:
         required_endpoints = [
             "/health/",
             "/health/detailed",
-            "/webhooks/whatsapp/message",
+            "/api/v1/users",
         ]
 
         for endpoint in required_endpoints:

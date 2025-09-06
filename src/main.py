@@ -1,4 +1,4 @@
-"""Main application bootstrap for Neighbour Approved."""
+"""Main application bootstrap for FastAPI Template."""
 
 import uvicorn
 
@@ -26,8 +26,8 @@ async def basic_status_check() -> dict[str, str | list[str]]:
     }
 
 
-# Webhook endpoints are now provided by the webhooks router in app_factory
-# /webhooks/whatsapp/* endpoints with proper API key authentication and rate limiting
+# Sample API endpoints are provided by the sample_routes router in app_factory
+# /api/v1/* endpoints with proper API key authentication and rate limiting
 
 
 def run_development_server() -> None:

@@ -5,10 +5,10 @@ from typing import Optional
 from fastapi import Header, HTTPException
 
 from src.infrastructure.observability import get_logger, get_metrics_collector
-from src.shared.exceptions import NeighbourApprovedError
+from src.shared.exceptions import ApplicationError
 
 
-class APIKeyValidationError(NeighbourApprovedError):
+class APIKeyValidationError(ApplicationError):
     """Exception raised when API key validation fails."""
 
     def __init__(self, message: str) -> None:

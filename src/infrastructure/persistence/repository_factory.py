@@ -2,13 +2,10 @@
 
 from typing import Protocol
 
-from config.settings import get_settings
-from src.domain.repositories import EndorsementRepository, ProviderRepository
 from src.infrastructure.observability import get_logger
 from src.infrastructure.service_registry import get_service_registry
 
-from .firestore_client import FirestoreClient
-from .repositories import FirestoreEndorsementRepository, FirestoreProviderRepository
+from .repositories import InMemoryProductRepository, InMemoryUserRepository
 
 
 class RepositoryFactory(Protocol):
@@ -18,114 +15,66 @@ class RepositoryFactory(Protocol):
     Provides dependency injection for repository implementations while
     maintaining clean architecture boundaries. Enables easy testing
     with mock repositories and configuration-based implementation switching.
+    
+    Replace these sample repositories with your actual domain repositories.
     """
 
-    def create_provider_repository(self) -> ProviderRepository:
-        """Create a provider repository instance."""
+    def create_user_repository(self) -> InMemoryUserRepository:
+        """Create a user repository instance."""
 
-    def create_endorsement_repository(self) -> EndorsementRepository:
-        """Create an endorsement repository instance."""
+    def create_product_repository(self) -> InMemoryProductRepository:
+        """Create a product repository instance."""
 
 
-class FirestoreRepositoryFactory:
+class SampleRepositoryFactory:
     """
-    Firestore-based implementation of the repository factory.
+    Sample implementation of repository factory using in-memory storage.
 
-    Creates repository instances configured with Firestore client
-    and proper dependency injection. Handles all infrastructure
-    concerns including logging, metrics, and service registry integration.
+    Demonstrates repository factory patterns without external dependencies.
+    Replace this with your actual repository implementations (database-backed).
     """
 
     def __init__(self) -> None:
         """Initialize factory with dependencies."""
         self.logger = get_logger(__name__)
-        self.settings = get_settings()
-        self._firestore_client: FirestoreClient | None = None
+        self._user_repository: InMemoryUserRepository | None = None
+        self._product_repository: InMemoryProductRepository | None = None
 
-    @property
-    def firestore_client(self) -> FirestoreClient:
-        """Get or create Firestore client instance."""
-        if self._firestore_client is None:
-            self._firestore_client = self._create_firestore_client()
-        return self._firestore_client
-
-    def _create_firestore_client(self) -> FirestoreClient:
-        """Create and configure Firestore client."""
+    def create_user_repository(self) -> InMemoryUserRepository:
+        """Create a user repository instance."""
         try:
-            # Get Firestore settings
-            firestore_settings = self.settings.firestore
+            if self._user_repository is None:
+                self._user_repository = InMemoryUserRepository()
 
-            # Try to get from service registry first (if available)
-            try:
-                service_registry = get_service_registry()
-                if hasattr(service_registry, "get_firestore_client"):
-                    try:
-                        return service_registry.get_firestore_client()
-                    except Exception:
-                        # Fall back to creating new instance
-                        pass
-            except Exception:
-                # Service registry not initialized, continue with direct creation
-                pass
-
-            # Create new client instance
-            client = FirestoreClient(firestore_settings)
-
-            # Register with service registry for reuse (if available)
-            try:
-                service_registry = get_service_registry()
-                if hasattr(service_registry, "register_firestore_client"):
-                    try:
-                        service_registry.register_firestore_client(client)
-                    except Exception:
-                        # Service registry might not support this yet
-                        pass
-            except Exception:
-                # Service registry not initialized, skip registration
-                pass
-
-            self.logger.info("Firestore client created successfully")
-            return client
+            self.logger.debug("User repository created successfully")
+            return self._user_repository
 
         except Exception as e:
-            self.logger.error("Failed to create Firestore client", error=str(e))
+            self.logger.error("Failed to create user repository", error=str(e))
             raise
 
-    def create_provider_repository(self) -> ProviderRepository:
-        """Create a provider repository instance with Firestore backend."""
+    def create_product_repository(self) -> InMemoryProductRepository:
+        """Create a product repository instance."""
         try:
-            repository = FirestoreProviderRepository(self.firestore_client)
-            self.logger.debug("Provider repository created successfully")
-            return repository
+            if self._product_repository is None:
+                self._product_repository = InMemoryProductRepository()
+
+            self.logger.debug("Product repository created successfully")
+            return self._product_repository
 
         except Exception as e:
-            self.logger.error("Failed to create provider repository", error=str(e))
-            raise
-
-    def create_endorsement_repository(self) -> EndorsementRepository:
-        """Create an endorsement repository instance with Firestore backend."""
-        try:
-            repository = FirestoreEndorsementRepository(self.firestore_client)
-            self.logger.debug("Endorsement repository created successfully")
-            return repository
-
-        except Exception as e:
-            self.logger.error("Failed to create endorsement repository", error=str(e))
+            self.logger.error("Failed to create product repository", error=str(e))
             raise
 
     def health_check(self) -> bool:
         """Perform health check on repository factory and dependencies."""
         try:
-            # Test Firestore client health
-            if not self.firestore_client.health_check():
-                return False
-
             # Test repository creation
-            provider_repo = self.create_provider_repository()
-            endorsement_repo = self.create_endorsement_repository()
+            user_repo = self.create_user_repository()
+            product_repo = self.create_product_repository()
 
             # Verify repositories are properly configured
-            if provider_repo is None or endorsement_repo is None:
+            if user_repo is None or product_repo is None:
                 return False
 
             self.logger.debug("Repository factory health check passed")
@@ -146,7 +95,7 @@ class RepositoryFactoryRegistry:
     def configure(cls, factory: RepositoryFactory | None = None) -> None:
         """Configure the repository factory instance."""
         if factory is None:
-            factory = FirestoreRepositoryFactory()
+            factory = SampleRepositoryFactory()
 
         cls._instance = factory
 
@@ -176,7 +125,7 @@ def configure_repository_factory(factory: RepositoryFactory | None = None) -> No
     Configure the global repository factory instance.
 
     Args:
-        factory: Factory instance to use, defaults to FirestoreRepositoryFactory
+        factory: Factory instance to use, defaults to SampleRepositoryFactory
     """
     RepositoryFactoryRegistry.configure(factory)
 
@@ -200,8 +149,8 @@ def get_repository_factory() -> RepositoryFactory:
                 # Verify the factory implements the RepositoryFactory protocol
                 if (
                     factory_instance is not None
-                    and hasattr(factory_instance, "create_provider_repository")
-                    and hasattr(factory_instance, "create_endorsement_repository")
+                    and hasattr(factory_instance, "create_user_repository")
+                    and hasattr(factory_instance, "create_product_repository")
                 ):
                     return factory_instance
             except Exception:
@@ -215,13 +164,13 @@ def get_repository_factory() -> RepositoryFactory:
 
 
 # Convenience functions for direct repository access
-def get_provider_repository() -> ProviderRepository:
-    """Get a provider repository instance."""
+def get_user_repository() -> InMemoryUserRepository:
+    """Get a user repository instance."""
     factory = get_repository_factory()
-    return factory.create_provider_repository()
+    return factory.create_user_repository()
 
 
-def get_endorsement_repository() -> EndorsementRepository:
-    """Get an endorsement repository instance."""
+def get_product_repository() -> InMemoryProductRepository:
+    """Get a product repository instance."""
     factory = get_repository_factory()
-    return factory.create_endorsement_repository()
+    return factory.create_product_repository()

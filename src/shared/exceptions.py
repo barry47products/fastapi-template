@@ -1,61 +1,18 @@
-"""Application exception hierarchy for Neighbour Approved."""
+"""Application exception hierarchy for FastAPI template."""
 
 
-class NeighbourApprovedError(Exception):
+class ApplicationError(Exception):
     """Base exception for all application-specific errors."""
 
-    error_code: str = "NEIGHBOUR_APPROVED_ERROR"
+    error_code: str = "APPLICATION_ERROR"
 
     def __init__(self, message: str) -> None:
         super().__init__(message)
         self.message = message
 
 
-# WhatsApp-related exceptions
-class WhatsAppException(NeighbourApprovedError):
-    """Base exception for WhatsApp-related errors."""
-
-    error_code: str = "WHATSAPP_ERROR"
-
-
-class WhatsAppDeliveryException(WhatsAppException):
-    """Exception for WhatsApp message delivery failures."""
-
-    error_code: str = "WHATSAPP_DELIVERY_ERROR"
-
-
-class MessageProcessingException(WhatsAppException):
-    """Base exception for message processing pipeline failures."""
-
-    error_code: str = "MESSAGE_PROCESSING_ERROR"
-
-
-class MentionExtractionException(MessageProcessingException):
-    """Exception for mention extraction failures."""
-
-    error_code: str = "MENTION_EXTRACTION_FAILED"
-
-
-class ProviderMatchingException(MessageProcessingException):
-    """Exception for provider matching failures."""
-
-    error_code: str = "PROVIDER_MATCHING_FAILED"
-
-
-class EndorsementPersistenceException(MessageProcessingException):
-    """Exception for endorsement persistence failures."""
-
-    error_code: str = "ENDORSEMENT_PERSISTENCE_FAILED"
-
-
-class ContactParsingException(MessageProcessingException):
-    """Exception for contact card parsing failures."""
-
-    error_code: str = "CONTACT_PARSING_FAILED"
-
-
 # Validation exceptions
-class ValidationException(NeighbourApprovedError):
+class ValidationException(ApplicationError):
     """Exception for validation errors."""
 
     error_code: str = "VALIDATION_ERROR"
@@ -66,32 +23,44 @@ class ValidationException(NeighbourApprovedError):
 
 
 # Business logic exceptions
-class ProviderNotFoundException(NeighbourApprovedError):
-    """Exception when a service provider is not found."""
+class EntityNotFoundException(ApplicationError):
+    """Exception when an entity is not found."""
 
-    error_code: str = "PROVIDER_NOT_FOUND"
-
-
-class EndorsementNotFoundException(NeighbourApprovedError):
-    """Exception when an endorsement is not found."""
-
-    error_code: str = "ENDORSEMENT_NOT_FOUND"
+    error_code: str = "ENTITY_NOT_FOUND"
 
 
-class RateLimitExceededException(NeighbourApprovedError):
+class UserNotFoundException(EntityNotFoundException):
+    """Exception when a user is not found."""
+
+    error_code: str = "USER_NOT_FOUND"
+
+
+class ProductNotFoundException(EntityNotFoundException):
+    """Exception when a product is not found."""
+
+    error_code: str = "PRODUCT_NOT_FOUND"
+
+
+class OrderNotFoundException(EntityNotFoundException):
+    """Exception when an order is not found."""
+
+    error_code: str = "ORDER_NOT_FOUND"
+
+
+class RateLimitExceededException(ApplicationError):
     """Exception when rate limits are exceeded."""
 
     error_code: str = "RATE_LIMIT_EXCEEDED"
 
 
-class ServiceNotConfiguredException(NeighbourApprovedError):
+class ServiceNotConfiguredException(ApplicationError):
     """Exception when a required service is not configured in the service registry."""
 
     error_code: str = "SERVICE_NOT_CONFIGURED"
 
 
 # Configuration exceptions
-class ConfigurationException(NeighbourApprovedError):
+class ConfigurationException(ApplicationError):
     """Exception for configuration-related errors."""
 
     error_code: str = "CONFIGURATION_ERROR"
@@ -108,74 +77,63 @@ class MissingEnvironmentVariableException(ConfigurationException):
 
 
 # Infrastructure exceptions
-class DatabaseException(NeighbourApprovedError):
+class DatabaseException(ApplicationError):
     """Exception for database-related errors."""
 
     error_code: str = "DATABASE_ERROR"
 
 
-class ExternalAPIException(NeighbourApprovedError):
+class ExternalAPIException(ApplicationError):
     """Exception for external API errors."""
 
     error_code: str = "EXTERNAL_API_ERROR"
 
 
+class MessageDeliveryException(ApplicationError):
+    """Exception for message delivery failures."""
+
+    error_code: str = "MESSAGE_DELIVERY_ERROR"
+
+
 # Domain-specific validation exceptions
+class EmailValidationError(ValidationException):
+    """Exception for email validation errors."""
+
+    error_code: str = "EMAIL_VALIDATION_ERROR"
+
+
 class PhoneNumberValidationError(ValidationException):
     """Exception for phone number validation errors."""
 
     error_code: str = "PHONE_NUMBER_VALIDATION_ERROR"
 
 
-class ProviderValidationError(ValidationException):
-    """Exception for provider model validation errors."""
+class MoneyValidationError(ValidationException):
+    """Exception for money/currency validation errors."""
 
-    error_code: str = "PROVIDER_VALIDATION_ERROR"
-
-
-class EndorsementValidationError(ValidationException):
-    """Exception for endorsement model validation errors."""
-
-    error_code: str = "ENDORSEMENT_VALIDATION_ERROR"
+    error_code: str = "MONEY_VALIDATION_ERROR"
 
 
-class GroupIDValidationError(ValidationException):
-    """Exception for group ID validation errors."""
+class UserValidationError(ValidationException):
+    """Exception for user model validation errors."""
 
-    error_code: str = "GROUP_ID_VALIDATION_ERROR"
-
-
-class ProviderIDValidationError(ValidationException):
-    """Exception for provider ID validation errors."""
-
-    error_code: str = "PROVIDER_ID_VALIDATION_ERROR"
+    error_code: str = "USER_VALIDATION_ERROR"
 
 
-class MessageClassificationError(ValidationException):
-    """Exception for message classification errors."""
+class ProductValidationError(ValidationException):
+    """Exception for product model validation errors."""
 
-    error_code: str = "MESSAGE_CLASSIFICATION_ERROR"
-
-
-class MentionExtractionError(ValidationException):
-    """Exception for mention extraction errors."""
-
-    error_code: str = "MENTION_EXTRACTION_ERROR"
+    error_code: str = "PRODUCT_VALIDATION_ERROR"
 
 
-class SummaryGenerationError(ValidationException):
-    """Exception for summary generation errors."""
+class OrderValidationError(ValidationException):
+    """Exception for order model validation errors."""
 
-    error_code: str = "SUMMARY_GENERATION_ERROR"
-
-
-class InsufficientDataError(SummaryGenerationError):
-    """Exception when insufficient data exists for summary generation."""
-
-    error_code: str = "INSUFFICIENT_DATA_ERROR"
+    error_code: str = "ORDER_VALIDATION_ERROR"
 
 
-class PersistenceException(NeighbourApprovedError):
+# Persistence exceptions
+class PersistenceException(ApplicationError):
     """Exception for persistence layer errors."""
 
     error_code: str = "PERSISTENCE_ERROR"
@@ -187,19 +145,45 @@ class RepositoryException(PersistenceException):
     error_code: str = "REPOSITORY_ERROR"
 
 
-class EndorsementIDValidationError(ValidationException):
-    """Exception for endorsement ID validation errors."""
+# Authentication and authorization exceptions
+class AuthenticationException(ApplicationError):
+    """Exception for authentication failures."""
 
-    error_code: str = "ENDORSEMENT_ID_VALIDATION_ERROR"
-
-
-class GreenAPIErrorException(ExternalAPIException):
-    """Exception for GREEN-API specific errors."""
-
-    error_code: str = "GREEN_API_ERROR"
+    error_code: str = "AUTHENTICATION_ERROR"
 
 
-class ContextAttributionException(MessageProcessingException):
-    """Exception for context attribution failures."""
+class AuthorizationException(ApplicationError):
+    """Exception for authorization failures."""
 
-    error_code: str = "CONTEXT_ATTRIBUTION_ERROR"
+    error_code: str = "AUTHORIZATION_ERROR"
+
+
+class InvalidAPIKeyException(AuthenticationException):
+    """Exception for invalid API key errors."""
+
+    error_code: str = "INVALID_API_KEY"
+
+
+# Business rule exceptions
+class BusinessRuleViolationException(ApplicationError):
+    """Exception for business rule violations."""
+
+    error_code: str = "BUSINESS_RULE_VIOLATION"
+
+
+class InsufficientInventoryException(BusinessRuleViolationException):
+    """Exception when there's insufficient inventory for an operation."""
+
+    error_code: str = "INSUFFICIENT_INVENTORY"
+
+
+class DuplicateEntityException(BusinessRuleViolationException):
+    """Exception when trying to create a duplicate entity."""
+
+    error_code: str = "DUPLICATE_ENTITY"
+
+
+class InvalidOperationException(BusinessRuleViolationException):
+    """Exception for invalid business operations."""
+
+    error_code: str = "INVALID_OPERATION"

@@ -4,11 +4,12 @@ from .admin import AdminInfoResponse, SafeConfigResponse, ServiceStatusResponse
 from .errors import ErrorResponse, ValidationErrorResponse
 from .health import DetailedHealthResponse, HealthCheckDetail, HealthResponse
 from .webhooks import (
-    GreenAPIGenericWebhook,
-    GreenAPIMessageWebhook,
-    GreenAPIStateWebhook,
-    GreenAPIStatusWebhook,
-    WebhookRequest,
+    GenericWebhookPayload,
+    OrderWebhookPayload,
+    PaymentWebhookPayload,
+    SystemWebhookPayload,
+    UserWebhookPayload,
+    WebhookMetadata,
     WebhookResponse,
 )
 
@@ -18,11 +19,12 @@ __all__ = [
     "HealthCheckDetail",
     "ErrorResponse",
     "ValidationErrorResponse",
-    "GreenAPIGenericWebhook",
-    "GreenAPIMessageWebhook",
-    "GreenAPIStateWebhook",
-    "GreenAPIStatusWebhook",
-    "WebhookRequest",
+    "GenericWebhookPayload",
+    "UserWebhookPayload",
+    "OrderWebhookPayload",
+    "PaymentWebhookPayload",
+    "SystemWebhookPayload",
+    "WebhookMetadata",
     "WebhookResponse",
     "AdminInfoResponse",
     "SafeConfigResponse",

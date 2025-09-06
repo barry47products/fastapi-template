@@ -1,27 +1,30 @@
-"""Application services for business logic"""
+"""
+Application services for business logic orchestration.
 
-from .contact_parser import ContactParser, ParsedContact
-from .context_attribution import AttributionResult, ContextAttributionService, TemporalPattern
-from .message_processor import MessageProcessingResult, MessageProcessor
-from .nlp import (
-    GroupSummaryGenerator,
-    MentionExtractor,
-    MessageClassifier,
-    ProviderMatcher,
-    ProviderMatchResult,
+This package contains sample application services that demonstrate:
+- Business workflow orchestration
+- Domain service coordination
+- Infrastructure service integration
+- Error handling and validation
+- Event publishing patterns
+
+Replace these with your actual business services.
+"""
+
+from .sample_service import (
+    BusinessLogicError,
+    NotificationService,
+    SampleApplicationService,
+    SampleDomainEvent,
+    UserOnboardingResult,
+    UserRepository,
 )
 
 __all__ = [
-    "AttributionResult",
-    "ContactParser",
-    "ContextAttributionService",
-    "GroupSummaryGenerator",
-    "MentionExtractor",
-    "MessageClassifier",
-    "MessageProcessor",
-    "MessageProcessingResult",
-    "ParsedContact",
-    "ProviderMatcher",
-    "ProviderMatchResult",
-    "TemporalPattern",
+    "BusinessLogicError",
+    "NotificationService",
+    "SampleApplicationService",
+    "SampleDomainEvent",
+    "UserOnboardingResult",
+    "UserRepository",
 ]

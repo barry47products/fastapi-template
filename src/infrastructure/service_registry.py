@@ -8,14 +8,13 @@ from src.shared.exceptions import ServiceNotConfiguredException
 
 if TYPE_CHECKING:
     from src.infrastructure.feature_flags.manager import FeatureFlagManager
+    from src.infrastructure.messaging.sample_notification_service import SampleNotificationService
     from src.infrastructure.observability.health_checker import HealthChecker
     from src.infrastructure.observability.metrics import MetricsCollector
-    from src.infrastructure.persistence.firestore_client import FirestoreClient
     from src.infrastructure.persistence.repository_factory import RepositoryFactory
     from src.infrastructure.security.api_key_validator import APIKeyValidator
     from src.infrastructure.security.rate_limiter import RateLimiter
     from src.infrastructure.security.webhook_verifier import WebhookVerifier
-    from src.infrastructure.whatsapp.green_api_client import GreenAPIClient
 
 
 class ServiceRegistry:
@@ -34,9 +33,8 @@ class ServiceRegistry:
         self._rate_limiter: RateLimiter | None = None
         self._webhook_verifier: WebhookVerifier | None = None
         self._feature_flag_manager: FeatureFlagManager | None = None
-        self._firestore_client: FirestoreClient | None = None
         self._repository_factory: RepositoryFactory | None = None
-        self._green_api_client: GreenAPIClient | None = None
+        self._notification_service: SampleNotificationService | None = None
 
     # Metrics Collector Service
     def register_metrics_collector(self, collector: "MetricsCollector") -> None:
@@ -128,20 +126,20 @@ class ServiceRegistry:
         """Check if feature flag manager is registered."""
         return self._feature_flag_manager is not None
 
-    # Firestore Client Service
-    def register_firestore_client(self, client: "FirestoreClient") -> None:
-        """Register Firestore client service."""
-        self._firestore_client = client
+    # Notification Service
+    def register_notification_service(self, service: "SampleNotificationService") -> None:
+        """Register notification service."""
+        self._notification_service = service
 
-    def get_firestore_client(self) -> "FirestoreClient":
-        """Get registered Firestore client service."""
-        if self._firestore_client is None:
-            raise ServiceNotConfiguredException("FirestoreClient not registered")
-        return self._firestore_client
+    def get_notification_service(self) -> "SampleNotificationService":
+        """Get registered notification service."""
+        if self._notification_service is None:
+            raise ServiceNotConfiguredException("SampleNotificationService not registered")
+        return self._notification_service
 
-    def has_firestore_client(self) -> bool:
-        """Check if Firestore client is registered."""
-        return self._firestore_client is not None
+    def has_notification_service(self) -> bool:
+        """Check if notification service is registered."""
+        return self._notification_service is not None
 
     # Repository Factory Service
     def register_repository_factory(self, factory: "RepositoryFactory") -> None:
@@ -158,21 +156,6 @@ class ServiceRegistry:
         """Check if repository factory is registered."""
         return self._repository_factory is not None
 
-    # GREEN-API Client Service
-    def register_green_api_client(self, client: "GreenAPIClient") -> None:
-        """Register GREEN-API client service."""
-        self._green_api_client = client
-
-    def get_green_api_client(self) -> "GreenAPIClient":
-        """Get registered GREEN-API client service."""
-        if self._green_api_client is None:
-            raise ServiceNotConfiguredException("GreenAPIClient not registered")
-        return self._green_api_client
-
-    def has_green_api_client(self) -> bool:
-        """Check if GREEN-API client is registered."""
-        return self._green_api_client is not None
-
     def clear_all_services(self) -> None:
         """Clear all registered services (useful for testing)."""
         self._metrics_collector = None
@@ -181,9 +164,8 @@ class ServiceRegistry:
         self._rate_limiter = None
         self._webhook_verifier = None
         self._feature_flag_manager = None
-        self._firestore_client = None
         self._repository_factory = None
-        self._green_api_client = None
+        self._notification_service = None
 
 
 # Global service registry instance

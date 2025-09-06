@@ -9,7 +9,7 @@ from typing import Any
 
 from src.infrastructure.observability.logger import get_logger
 from src.infrastructure.observability.metrics import get_metrics_collector
-from src.shared.exceptions import NeighbourApprovedError
+from src.shared.exceptions import ApplicationError
 
 
 class HealthStatus(str, Enum):
@@ -20,7 +20,7 @@ class HealthStatus(str, Enum):
     DEGRADED = "degraded"
 
 
-class HealthCheckError(NeighbourApprovedError):
+class HealthCheckError(ApplicationError):
     """
     Exception raised when health check operations fail or configuration is invalid.
     """

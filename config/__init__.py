@@ -1,5 +1,5 @@
-"""Configuration module for Neighbour Approved."""
+"""Configuration module for FastAPI template."""
 
-from .settings import Settings, settings
+from .settings import ApplicationSettings, get_settings, reset_settings
 
-__all__ = ["Settings", "settings"]
+__all__ = ["ApplicationSettings", "get_settings", "reset_settings"]

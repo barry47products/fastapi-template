@@ -1,7 +1,17 @@
-"""Domain rules package."""
+"""
+Domain rules package.
 
-# ProviderMatcher has been moved to application services
-# Import from the new location for backward compatibility
-from src.application.services.nlp import ProviderMatcher, ProviderMatchResult
+This package would contain domain rules and business logic validation.
+Currently empty in this template - add your business rules here.
 
-__all__ = ["ProviderMatcher", "ProviderMatchResult"]
+Examples of what might go here:
+- Validation rules that span multiple domain entities
+- Complex business rule engines
+- Domain-specific calculation rules
+- Business invariant checks
+
+Note: Simple validation should stay within domain entities themselves.
+Only complex rules that require coordination should be extracted here.
+"""
+
+__all__: list[str] = []

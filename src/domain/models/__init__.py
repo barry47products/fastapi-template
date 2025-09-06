@@ -1,20 +1,23 @@
-"""Domain models module."""
+"""
+Domain models module.
 
-from .endorsement import Endorsement, EndorsementStatus, EndorsementType
-from .extracted_mention import ExtractedMention
-from .group_summary import GroupSummary, ProviderSummary, SummaryType
-from .message_classification import ClassificationResult, MessageType
-from .provider import Provider
+This package contains sample domain entities that demonstrate:
+- Rich domain models with behavior
+- Business rule enforcement
+- Domain event publishing  
+- Immutability with controlled mutations
+- Value object usage
+- Self-validation
+
+Domain entities are objects with identity that encapsulate business logic.
+They should contain the core business rules and behavior of your application.
+
+Replace these with your actual business domain entities.
+"""
+
+from .user import User, UserStatus
 
 __all__ = [
-    "Provider",
-    "Endorsement",
-    "EndorsementType",
-    "EndorsementStatus",
-    "ExtractedMention",
-    "GroupSummary",
-    "ProviderSummary",
-    "SummaryType",
-    "ClassificationResult",
-    "MessageType",
+    "User",
+    "UserStatus",
 ]

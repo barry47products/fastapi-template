@@ -1,9 +1,9 @@
-"""Firestore repository implementations for persistence layer."""
+"""Sample repository implementations for template demonstration."""
 
-from .firestore_endorsement_repository import FirestoreEndorsementRepository
-from .firestore_provider_repository import FirestoreProviderRepository
+from .sample_product_repository import InMemoryProductRepository
+from .sample_user_repository import InMemoryUserRepository
 
 __all__ = [
-    "FirestoreEndorsementRepository",
-    "FirestoreProviderRepository",
+    "InMemoryProductRepository",
+    "InMemoryUserRepository",
 ]

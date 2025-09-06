@@ -245,18 +245,14 @@ class TestServiceRegistryIntegration:
         registry = ServiceRegistry()
         collector = MetricsCollector()
         factory = MagicMock()
-        client = MagicMock()
 
         # Act
         registry.register_metrics_collector(collector)
         registry.register_repository_factory(factory)
-        registry.register_firestore_client(client)
 
         # Assert
         assert registry.has_metrics_collector()
         assert registry.has_repository_factory()
-        assert registry.has_firestore_client()
 
         assert registry.get_metrics_collector() is collector
         assert registry.get_repository_factory() is factory
-        assert registry.get_firestore_client() is client

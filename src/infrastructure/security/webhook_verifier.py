@@ -6,10 +6,10 @@ import hmac
 from fastapi import HTTPException, Request
 
 from src.infrastructure.observability import get_logger, get_metrics_collector
-from src.shared.exceptions import NeighbourApprovedError
+from src.shared.exceptions import ApplicationError
 
 
-class WebhookVerificationError(NeighbourApprovedError):
+class WebhookVerificationError(ApplicationError):
     """Exception raised when webhook verification fails or configuration is invalid."""
 
     error_code: str = "WEBHOOK_VERIFICATION_ERROR"

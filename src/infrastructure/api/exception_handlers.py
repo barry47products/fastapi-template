@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from config.settings import get_settings
 from src.infrastructure.observability import get_logger, get_metrics_collector
 from src.shared.exceptions import (
-    NeighbourApprovedError,
+    ApplicationError,
     RateLimitExceededException,
     ValidationException,
 )
@@ -92,8 +92,8 @@ async def not_found_exception_handler(
     logger = get_logger(__name__)
     metrics = get_metrics_collector()
 
-    # Cast to NeighbourApprovedError for type safety
-    approved_exc = cast(NeighbourApprovedError, exc)
+    # Cast to ApplicationError for type safety
+    approved_exc = cast(ApplicationError, exc)
 
     # Log not found error
     logger.info(
@@ -174,8 +174,8 @@ async def infrastructure_exception_handler(
     metrics = get_metrics_collector()
     settings = get_settings()
 
-    # Cast to NeighbourApprovedError for type safety
-    infra_exc = cast(NeighbourApprovedError, exc)
+    # Cast to ApplicationError for type safety
+    infra_exc = cast(ApplicationError, exc)
 
     # Log infrastructure error
     logger.error(

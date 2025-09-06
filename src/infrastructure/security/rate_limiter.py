@@ -6,10 +6,10 @@ from collections import defaultdict, deque
 from fastapi import HTTPException, Request
 
 from src.infrastructure.observability import get_logger, get_metrics_collector
-from src.shared.exceptions import NeighbourApprovedError
+from src.shared.exceptions import ApplicationError
 
 
-class RateLimitError(NeighbourApprovedError):
+class RateLimitError(ApplicationError):
     """Exception raised when rate limit configuration or validation fails."""
 
     error_code: str = "RATE_LIMIT_EXCEEDED"

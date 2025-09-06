@@ -1,39 +1,40 @@
-"""Domain events package for clean architecture separation."""
+"""
+Domain events package for clean architecture separation.
+
+This package contains sample domain events that demonstrate:
+- Domain event patterns
+- Event-driven architecture
+- Clean separation of concerns
+- Infrastructure-independent event publishing
+
+Replace these with your actual domain events.
+"""
 
 from .base import DomainEvent, DomainEventPublisher
-from .endorsement_events import EndorsementConfidenceUpdated, EndorsementStatusChanged
-from .persistence_events import (
-    FirestoreOperationEvent,
-    PersistenceHealthCheckEvent,
-    RepositoryOperationEvent,
-)
-from .phone_number_events import (
-    PhoneNumberParseError,
-    PhoneNumberValidated,
-    PhoneNumberValidationError,
-)
-from .provider_events import (
-    ProviderEndorsementDecremented,
-    ProviderEndorsementIncremented,
-    ProviderTagAdded,
-    ProviderTagRemoved,
+from .order_events import (
+    OrderCancelled,
+    OrderDelivered,
+    OrderPlaced,
+    OrderShipped,
+    OrderStatusChanged,
+    OrderUpdated,
 )
 from .registry import DomainEventRegistry
+from .user_events import UserCreated, UserDeleted, UserEmailVerified, UserStatusChanged, UserUpdated
 
 __all__ = [
     "DomainEvent",
     "DomainEventPublisher",
     "DomainEventRegistry",
-    "EndorsementConfidenceUpdated",
-    "EndorsementStatusChanged",
-    "FirestoreOperationEvent",
-    "PersistenceHealthCheckEvent",
-    "PhoneNumberParseError",
-    "PhoneNumberValidated",
-    "PhoneNumberValidationError",
-    "ProviderEndorsementDecremented",
-    "ProviderEndorsementIncremented",
-    "ProviderTagAdded",
-    "ProviderTagRemoved",
-    "RepositoryOperationEvent",
+    "OrderCancelled",
+    "OrderDelivered",
+    "OrderPlaced",
+    "OrderShipped",
+    "OrderStatusChanged",
+    "OrderUpdated",
+    "UserCreated",
+    "UserDeleted",
+    "UserEmailVerified",
+    "UserStatusChanged",
+    "UserUpdated",
 ]

@@ -7,8 +7,9 @@ from config.settings import get_settings
 if TYPE_CHECKING:
     from src.infrastructure.service_registry import ServiceRegistry
 #  pylint: disable=C0413
+from src.infrastructure.messaging import SampleNotificationService
 from src.infrastructure.observability import get_health_checker, get_logger, get_metrics_collector
-from src.infrastructure.persistence import configure_repository_factory, FirestoreRepositoryFactory
+from src.infrastructure.persistence import configure_repository_factory, SampleRepositoryFactory
 from src.infrastructure.service_registry import get_service_registry, initialize_service_registry
 
 #  pylint: enable=C0413
@@ -22,8 +23,9 @@ def initialize_infrastructure() -> None:
     1. Service registry
     2. Settings and configuration
     3. Observability (logging, metrics, health)
-    4. Persistence layer (Firestore, repositories)
-    5. Cross-service wiring
+    4. Persistence layer (sample repositories)
+    5. Messaging services
+    6. Cross-service wiring
     """
     logger = get_logger(__name__)
     logger.info("Starting infrastructure initialization")
@@ -45,6 +47,15 @@ def initialize_infrastructure() -> None:
 
         metrics_collector = get_metrics_collector()
         health_checker = get_health_checker()
+        
+        # Initialize rate limiter
+        from src.infrastructure.security.rate_limiter import configure_rate_limiter
+        configure_rate_limiter(limit=100, window_seconds=60)  # 100 requests per minute
+        
+        # Initialize API key validator
+        from src.infrastructure.security.api_key_validator import configure_api_key_validator
+        # For development, use a simple default key. In production, load from environment
+        configure_api_key_validator(api_keys=["dev-api-key-123"])
 
         # Register observability services
         service_registry.register_metrics_collector(metrics_collector)
@@ -54,8 +65,8 @@ def initialize_infrastructure() -> None:
         # 4. Initialize persistence layer
         _initialize_persistence_layer(service_registry)
 
-        # 5. Initialize WhatsApp integration
-        _initialize_whatsapp_integration(service_registry)
+        # 5. Initialize messaging services
+        _initialize_messaging_services(service_registry)
 
         # 6. Verify all services are registered (health checks can be run async later)
         logger.info(
@@ -63,7 +74,7 @@ def initialize_infrastructure() -> None:
             metrics=service_registry.has_metrics_collector(),
             health_checker=service_registry.has_health_checker(),
             repository_factory=service_registry.has_repository_factory(),
-            green_api_client=service_registry.has_green_api_client(),
+            notification_service=service_registry.has_notification_service(),
         )
 
         logger.info("Infrastructure initialization completed successfully")
@@ -74,12 +85,12 @@ def initialize_infrastructure() -> None:
 
 
 def _initialize_persistence_layer(service_registry: "ServiceRegistry") -> None:
-    """Initialize persistence layer with Firestore and repositories."""
+    """Initialize persistence layer with sample repositories."""
     logger = get_logger(__name__)
 
     try:
         # Create and configure repository factory
-        repository_factory = FirestoreRepositoryFactory()
+        repository_factory = SampleRepositoryFactory()
 
         # Register with service registry
         service_registry.register_repository_factory(repository_factory)
@@ -94,30 +105,21 @@ def _initialize_persistence_layer(service_registry: "ServiceRegistry") -> None:
         raise
 
 
-def _initialize_whatsapp_integration(service_registry: "ServiceRegistry") -> None:
-    """Initialize WhatsApp integration services."""
+def _initialize_messaging_services(service_registry: "ServiceRegistry") -> None:
+    """Initialize messaging and notification services."""
     logger = get_logger(__name__)
-    settings = get_settings()
 
     try:
-        # Only initialize if WhatsApp integration is enabled
-        if not settings.green_api.webhook_enabled:
-            logger.info("WhatsApp integration disabled, skipping initialization")
-            return
-
-        # Import GREEN-API client
-        from src.infrastructure.whatsapp.green_api_client import GreenAPIClient
-
-        # Create and configure GREEN-API client
-        green_api_client = GreenAPIClient()
+        # Create and configure notification service
+        notification_service = SampleNotificationService()
 
         # Register with service registry
-        service_registry.register_green_api_client(green_api_client)
+        service_registry.register_notification_service(notification_service)
 
-        logger.info("WhatsApp integration initialized successfully")
+        logger.info("Messaging services initialized successfully")
 
     except Exception as e:
-        logger.error("Failed to initialize WhatsApp integration", error=str(e))
+        logger.error("Failed to initialize messaging services", error=str(e))
         raise
 
 

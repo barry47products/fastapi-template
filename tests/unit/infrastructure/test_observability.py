@@ -4,11 +4,7 @@
 
 from unittest.mock import patch
 
-from src.infrastructure.observability import (
-    get_logger,
-    get_metrics_collector,
-    MetricsCollector,
-)
+from src.infrastructure.observability import get_logger, get_metrics_collector, MetricsCollector
 
 
 class TestStructuredLogger:
