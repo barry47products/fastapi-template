@@ -1,8 +1,8 @@
-"""Unit tests for service registry infrastructure."""
+"""Unit tests for service registry infrastructure."""  # noqa: INP001, I002
 
 # pylint: disable=redefined-outer-name
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock  # noqa: I001
 
 import pytest
 

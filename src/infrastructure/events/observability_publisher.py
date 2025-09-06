@@ -1,5 +1,7 @@
 """Infrastructure event publisher for observability (logging and metrics)."""
 
+from __future__ import annotations
+
 from src.domain.events import (
     DomainEvent,
     DomainEventPublisher,
@@ -58,19 +60,19 @@ class ObservabilityEventPublisher(DomainEventPublisher):
             self._logger.info(
                 "User created",
                 user_id=event.user_id,
-                email=event.email,
+                email=event.user_email,
             )
         elif isinstance(event, UserUpdated):
             self._logger.info(
                 "User updated",
                 user_id=event.user_id,
-                changes=len(event.changes),
+                fields_updated=event.fields_updated,
             )
         elif isinstance(event, UserStatusChanged):
             self._logger.info(
                 "User status changed",
                 user_id=event.user_id,
-                old_status=event.old_status,
+                previous_status=event.previous_status,
                 new_status=event.new_status,
             )
         elif isinstance(event, UserEmailVerified):
@@ -83,7 +85,7 @@ class ObservabilityEventPublisher(DomainEventPublisher):
             self._logger.info(
                 "User deleted",
                 user_id=event.user_id,
-                reason=event.reason,
+                deletion_reason=event.deletion_reason,
             )
 
         # Order events
@@ -92,21 +94,20 @@ class ObservabilityEventPublisher(DomainEventPublisher):
                 "Order placed",
                 order_id=event.order_id,
                 user_id=event.user_id,
-                item_count=event.item_count,
-                total_amount=float(event.total_amount.amount),
-                currency=event.total_amount.currency,
+                order_total=event.order_total,
+                currency=event.currency,
             )
         elif isinstance(event, OrderUpdated):
             self._logger.info(
                 "Order updated",
                 order_id=event.order_id,
-                changes=len(event.changes),
+                fields_updated=event.fields_updated,
             )
         elif isinstance(event, OrderStatusChanged):
             self._logger.info(
                 "Order status changed",
                 order_id=event.order_id,
-                old_status=event.old_status,
+                previous_status=event.previous_status,
                 new_status=event.new_status,
             )
         elif isinstance(event, OrderShipped):
@@ -115,7 +116,7 @@ class ObservabilityEventPublisher(DomainEventPublisher):
                 order_id=event.order_id,
                 tracking_number=event.tracking_number,
                 carrier=event.carrier,
-                estimated_delivery=event.estimated_delivery_date.isoformat() if event.estimated_delivery_date else None,
+                shipped_at=event.shipped_at.isoformat(),
             )
         elif isinstance(event, OrderDelivered):
             self._logger.info(
@@ -127,8 +128,8 @@ class ObservabilityEventPublisher(DomainEventPublisher):
             self._logger.info(
                 "Order cancelled",
                 order_id=event.order_id,
-                reason=event.reason,
-                refund_amount=float(event.refund_amount.amount) if event.refund_amount else None,
+                cancellation_reason=event.cancellation_reason,
+                refund_amount=event.refund_amount,
             )
 
         # Generic domain event logging
@@ -149,34 +150,38 @@ class ObservabilityEventPublisher(DomainEventPublisher):
         elif isinstance(event, UserStatusChanged):
             self._metrics.increment_counter(
                 "user_status_changes_total",
-                {"old_status": event.old_status, "new_status": event.new_status},
+                {"previous_status": event.previous_status, "new_status": event.new_status},
             )
         elif isinstance(event, UserEmailVerified):
             self._metrics.increment_counter("user_email_verifications_total", {})
         elif isinstance(event, UserDeleted):
-            self._metrics.increment_counter("users_deleted_total", {"reason": event.reason})
+            self._metrics.increment_counter(
+                "users_deleted_total", {"deletion_reason": event.deletion_reason}
+            )
 
         # Order metrics
         elif isinstance(event, OrderPlaced):
             self._metrics.increment_counter("orders_placed_total", {})
             self._metrics.record_histogram(
                 "order_total_amount",
-                float(event.total_amount.amount),
-                {"currency": event.total_amount.currency},
+                event.order_total,
+                {"currency": event.currency},
             )
         elif isinstance(event, OrderUpdated):
             self._metrics.increment_counter("orders_updated_total", {})
         elif isinstance(event, OrderStatusChanged):
             self._metrics.increment_counter(
                 "order_status_changes_total",
-                {"old_status": event.old_status, "new_status": event.new_status},
+                {"previous_status": event.previous_status, "new_status": event.new_status},
             )
         elif isinstance(event, OrderShipped):
             self._metrics.increment_counter("orders_shipped_total", {"carrier": event.carrier})
         elif isinstance(event, OrderDelivered):
             self._metrics.increment_counter("orders_delivered_total", {})
         elif isinstance(event, OrderCancelled):
-            self._metrics.increment_counter("orders_cancelled_total", {"reason": event.reason})
+            self._metrics.increment_counter(
+                "orders_cancelled_total", {"cancellation_reason": event.cancellation_reason}
+            )
 
         # Generic domain event metrics
         else:

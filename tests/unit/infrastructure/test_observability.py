@@ -1,8 +1,8 @@
-"""Unit tests for observability infrastructure."""
+"""Unit tests for observability infrastructure."""  # noqa: INP001, I002
 
 # pylint: disable=redefined-outer-name
 
-from unittest.mock import patch
+from unittest.mock import patch  # noqa: I001
 
 from src.infrastructure.observability import get_logger, get_metrics_collector, MetricsCollector
 

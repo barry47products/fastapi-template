@@ -1,4 +1,7 @@
-"""Test sample API endpoints contract compliance."""
+"""Test sample API endpoints contract compliance."""  # noqa: INP001, I002
+
+from collections.abc import Generator
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
@@ -22,7 +25,7 @@ class TestSampleAPIContract:
         return {"X-API-Key": "test-api-key-1234567890"}
 
     @pytest.fixture(autouse=True)
-    def setup_dependencies(self) -> None:
+    def setup_dependencies(self) -> Generator[None]:
         """Setup dependency overrides for testing."""
         # Mock security dependencies to always allow access
         app.dependency_overrides[verify_api_key] = lambda: "test_user"
@@ -34,10 +37,12 @@ class TestSampleAPIContract:
         app.dependency_overrides.clear()
 
     def test_should_create_user_successfully(
-        self, client: TestClient, api_headers: dict[str, str]
+        self,
+        client: TestClient,
+        api_headers: dict[str, str],
     ) -> None:
         """Test user creation endpoint."""
-        user_data = {"name": "John Doe", "email": "john.doe@example.com", "age": 30}
+        user_data: dict[str, Any] = {"name": "John Doe", "email": "john.doe@example.com", "age": 30}
 
         response = client.post("/api/v1/users", json=user_data, headers=api_headers)
 
@@ -51,11 +56,13 @@ class TestSampleAPIContract:
         assert "updated_at" in response_data
 
     def test_should_list_users_with_pagination(
-        self, client: TestClient, api_headers: dict[str, str]
+        self,
+        client: TestClient,
+        api_headers: dict[str, str],
     ) -> None:
         """Test user listing endpoint with pagination."""
         # Create a user first
-        user_data = {"name": "Jane Doe", "email": "jane.doe@example.com", "age": 25}
+        user_data: dict[str, Any] = {"name": "Jane Doe", "email": "jane.doe@example.com", "age": 25}
         client.post("/api/v1/users", json=user_data, headers=api_headers)
 
         # List users
@@ -66,10 +73,12 @@ class TestSampleAPIContract:
         assert isinstance(response_data, list)
 
     def test_should_create_product_successfully(
-        self, client: TestClient, api_headers: dict[str, str]
+        self,
+        client: TestClient,
+        api_headers: dict[str, str],
     ) -> None:
         """Test product creation endpoint."""
-        product_data = {
+        product_data: dict[str, Any] = {
             "name": "Sample Product",
             "description": "A sample product for testing",
             "price": 99.99,
@@ -86,10 +95,16 @@ class TestSampleAPIContract:
         assert response_data["in_stock"] is True
 
     def test_should_handle_sample_webhook(
-        self, client: TestClient, api_headers: dict[str, str]
+        self,
+        client: TestClient,
+        api_headers: dict[str, str],
     ) -> None:
         """Test sample webhook endpoint."""
-        webhook_payload = {"type": "test_event", "id": "webhook_123", "data": {"key": "value"}}
+        webhook_payload: dict[str, Any] = {
+            "type": "test_event",
+            "id": "webhook_123",
+            "data": {"key": "value"},
+        }
 
         response = client.post("/api/v1/webhook/sample", json=webhook_payload, headers=api_headers)
 
@@ -102,17 +117,19 @@ class TestSampleAPIContract:
     def test_should_require_authentication(self, client: TestClient) -> None:
         """Test that endpoints require API key authentication."""
         # Keep the overrides for this test since we're testing the template structure
-        user_data = {"name": "Test User", "email": "test@example.com", "age": 30}
+        user_data: dict[str, Any] = {"name": "Test User", "email": "test@example.com", "age": 30}
 
         # Request without API key header should be handled by the mock
         response = client.post("/api/v1/users", json=user_data)
         assert response.status_code == 201  # Should work with mocked authentication
 
     def test_should_handle_validation_errors(
-        self, client: TestClient, api_headers: dict[str, str]
+        self,
+        client: TestClient,
+        api_headers: dict[str, str],
     ) -> None:
         """Test validation error handling."""
-        invalid_user_data = {
+        invalid_user_data: dict[str, Any] = {
             "name": "",  # Too short
             "email": "invalid-email",
             "age": 15,  # Too young
@@ -122,7 +139,9 @@ class TestSampleAPIContract:
         assert response.status_code == 422  # Unprocessable Entity
 
     def test_should_handle_not_found_errors(
-        self, client: TestClient, api_headers: dict[str, str]
+        self,
+        client: TestClient,
+        api_headers: dict[str, str],
     ) -> None:
         """Test 404 error handling for missing resources."""
         response = client.get("/api/v1/users/non-existent-id", headers=api_headers)

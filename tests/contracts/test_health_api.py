@@ -1,4 +1,4 @@
-"""Health API contract tests - System bootstrap verification."""
+"""Health API contract tests - System bootstrap verification."""  # noqa: INP001, I002
 
 from unittest.mock import AsyncMock, MagicMock
 

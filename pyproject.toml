@@ -20,13 +20,10 @@ prometheus-client = "^0.22.1"
 pytest = "^8.3.0"
 pytest-asyncio = "^0.24.0"
 pytest-cov = "^6.0.0"
-black = "^24.10.0"
-isort = "^5.13.0"
 ruff = "^0.8.0"
 mypy = "^1.13.0"
 pre-commit = "^4.0.0"
 pytest-watch = "^4.2.0"
-bandit = "^1.8.6"
 httpx = "^0.28.1"
 types-pyyaml = "^6.0.12.20250822"
 pytest-xdist = "^3.8.0"
@@ -35,60 +32,205 @@ pytest-xdist = "^3.8.0"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.black]
-line-length = 100
-target-version = ['py313']
-exclude = 'scripts/'
-
 [tool.ruff]
+# Global Ruff settings
 line-length = 100
 target-version = "py313"
-exclude = ["scripts/"]
+src = ["src", "config", "tests"]
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "C90", "I", "N", "UP", "S", "B", "A", "COM", "C4"]  # Import linting enabled
-ignore = ["I001"]  # Let isort handle import sorting, but keep other import rules
+# Enable comprehensive set of rules
+select = [
+    # Core Python errors and warnings
+    "F",      # Pyflakes (undefined names, imports)
+    "E",      # pycodestyle errors (whitespace, indentation)
+    "W",      # pycodestyle warnings
+    "C90",    # McCabe complexity
+    "I",      # isort (import sorting)
+    "N",      # pep8-naming (naming conventions)
+    
+    # Code quality and best practices
+    "UP",     # pyupgrade (modern Python syntax)
+    "YTT",    # flake8-2020 (sys.version checks)
+    "ASYNC",  # flake8-async (async best practices)
+    "S",      # flake8-bandit (security)
+    "BLE",    # flake8-blind-except (bare except)
+    "B",      # flake8-bugbear (likely bugs)
+    "A",      # flake8-builtins (shadowing builtins)
+    "COM",    # flake8-commas (trailing commas)
+    "C4",     # flake8-comprehensions (list/dict comprehensions)
+    "DTZ",    # flake8-datetimez (timezone aware)
+    "T10",    # flake8-debugger (debugger calls)
+    "EM",     # flake8-errmsg (exception messages)
+    "FA",     # flake8-future-annotations
+    "ISC",    # flake8-implicit-str-concat
+    "ICN",    # flake8-import-conventions
+    "LOG",    # flake8-logging
+    "G",      # flake8-logging-format
+    "INP",    # flake8-no-pep420 (implicit namespace)
+    "PIE",    # flake8-pie (misc lints)
+    "T20",    # flake8-print (print statements)
+    "PT",     # flake8-pytest-style
+    "Q",      # flake8-quotes
+    "RSE",    # flake8-raise (exception raising)
+    "RET",    # flake8-return (return statements)
+    "SLF",    # flake8-self (private access)
+    "SLOT",   # flake8-slots (slot usage)
+    "SIM",    # flake8-simplify (code simplification)
+    "TID",    # flake8-tidy-imports
+    "TCH",    # flake8-type-checking (TYPE_CHECKING blocks)
+    "INT",    # flake8-gettext
+    "ARG",    # flake8-unused-arguments
+    "PTH",    # flake8-use-pathlib (pathlib over os.path)
+    "TD",     # flake8-todos (TODO formatting)
+    "FIX",    # flake8-fixme (FIXME/XXX/HACK)
+    "ERA",    # eradicate (commented code)
+    
+    # Framework specific
+    "PL",     # pylint (comprehensive checks)
+    "TRY",    # tryceratops (exception handling)
+    "FLY",    # flynt (f-string conversion)
+    "PERF",   # Perflint (performance anti-patterns)
+    "FURB",   # refurb (modernization)
+    "RUF",    # Ruff-specific rules
+]
 
+# Ignore specific rules
+ignore = [
+    # Rules that conflict with formatter or are too strict
+    "E501",    # Line too long (formatter handles this)
+    "ANN401",  # Dynamically typed expressions (Any)
+    "S101",    # Use of assert (needed for tests)
+    "PLR0913", # Too many arguments (sometimes needed)
+    "TD003",   # Missing issue link on TODO
+    "FIX002",  # Line contains TODO
+    "COM812",  # Missing trailing comma (formatter handles)
+    "ISC001",  # Conflicts with formatter
+    "C901",    # Function too complex (acceptable in demo code)
+    "PLR0912", # Too many branches (acceptable in demo code)
+    "PLR0915", # Too many statements (acceptable in demo code)
+    
+    # Template-specific ignores (remove noqa clutter)
+    "T20",     # Print statements (useful for debugging)
+    "S110",    # Try-except-pass (acceptable for service transitions)
+    "ERA001",  # Commented code (may have valid reasons)
+    "I002",    # Missing `from __future__ import annotations`
+    "I001",    # Import sorting issues (formatter can't fix all cases)
+    "TID252",  # Relative imports (acceptable in domain layer)
+    "BLE001",  # Blind exception catching (sometimes needed)
+    "EM101",   # String literals in exceptions (template examples)
+    "EM102",   # F-strings in exceptions (template examples)
+    "TRY003",  # Long exception messages (acceptable in templates)
+    "TRY301",  # Abstract raise to inner function (template clarity)
+    "TRY400",  # Use logging.exception instead of error
+    "PLR2004", # Magic values (acceptable in template examples)
+    "RUF010",  # F-strings with .format() calls
+    "RUF100",  # Unused noqa directives (will clean these up)
+    "TRY300",  # Consider moving statement to else block (verbose for templates)
+    "TRY004",  # Prefer TypeError exception (template flexibility)
+    "ARG001",  # Unused function arguments (FastAPI dependency injection)
+    "DTZ005",  # datetime.now() without timezone (acceptable for examples)
+    "SIM108",  # Use ternary operator (template readability)
+    "B904",    # Raise from err (template simplicity)
+    "PLW0603", # Global statement discouraged (template examples)
+    "PERF401", # List comprehension performance (template readability)
+]
+
+# Rule-specific configurations
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101", "S102", "S104", "S105", "S106"]  # Allow assert usage, exec, host binding, and hardcoded passwords in tests
+"tests/*" = [
+    "S101",    # asserts are fine in tests
+    "S102",    # exec usage okay in tests
+    "S104",    # host binding okay in tests
+    "S105",    # hardcoded passwords okay in tests
+    "S106",    # hardcoded passwords in tests
+    "ANN",     # don't need type hints in tests
+    "ARG",     # unused arguments okay (fixtures)
+    "PLR2004", # magic values okay in tests
+    "PLR0913", # many arguments okay (test parametrize)
+    "SLF001",  # private access okay in tests
+]
 "src/shared/exceptions.py" = ["N818"]  # Allow Exception suffix for domain clarity
 "src/main.py" = ["S104"]  # Allow binding to all interfaces for development server
-"src/infrastructure/observability/*" = ["S110"]  # Allow try-except-pass for service registry transition
-"src/infrastructure/security/*" = ["S110"]  # Allow try-except-pass for service registry transition  
-"src/infrastructure/feature_flags/*" = ["S110"]  # Allow try-except-pass for service registry transition
-"src/infrastructure/persistence/*" = ["S110"]  # Allow try-except-pass for service registry transition
-"src/interfaces/api/routers/*" = ["B008"]  # Allow FastAPI Depends() pattern in routers
-"src/interfaces/api/dependencies/*" = ["B008"]  # Allow FastAPI Depends() pattern in dependencies
+"src/infrastructure/observability/*" = ["S110", "T20"]  # Allow try-except-pass and prints for service transitions
+"src/infrastructure/security/*" = ["S110", "S324"]  # Allow try-except-pass and insecure hash for demo
+"src/infrastructure/persistence/*" = ["S110", "PLR0913"]  # Allow try-except-pass and many args
+"src/interfaces/api/routers/*" = ["B008", "PLR0913"]  # Allow FastAPI Depends() pattern and many args
+"src/interfaces/api/dependencies/*" = ["B008"]  # Allow FastAPI Depends() pattern
 
-[tool.flake8]
-max-line-length = 100
+[tool.ruff.lint.pylint]
+max-returns = 6
+max-branches = 15
+max-statements = 50
+max-args = 10
+
+[tool.ruff.lint.mccabe]
+max-complexity = 12
+
+[tool.ruff.lint.isort]
+known-first-party = ["src", "config", "tests"]
+required-imports = ["from __future__ import annotations"]
+
+[tool.ruff.format]
+# Formatting settings (replaces Black)
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = true
+docstring-code-line-length = 88
 
 [tool.mypy]
+# MyPy configuration for strict type checking
 python_version = "3.13"
+plugins = ["pydantic.mypy"]
+
+# Strictness flags
 strict = true
 warn_return_any = true
+warn_unused_configs = true
 disallow_untyped_defs = true
-plugins = ["pydantic.mypy"]
-exclude = ["scripts/"]
+disallow_any_generics = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+strict_equality = true
+strict_concatenate = true
 
-[[tool.mypy.overrides]]
-module = "structlog.*"
-ignore_missing_imports = true
+# Import discovery
+namespace_packages = true
+explicit_package_bases = true
+mypy_path = "$MYPY_CONFIG_FILE_DIR"
 
-[[tool.mypy.overrides]]
-module = "prometheus_client.*"
-ignore_missing_imports = true
+# Error presentation
+show_error_codes = true
+show_error_context = true
+pretty = true
+color_output = true
 
+# Per-module options
 [[tool.mypy.overrides]]
-module = "src.infrastructure.observability.logger"
+module = "tests.*"
+# Less strict for tests
+disallow_untyped_defs = false
+disallow_untyped_decorators = false
+disallow_any_generics = false
 warn_return_any = false
 
 [[tool.mypy.overrides]]
-module = "fastapi.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = "uvicorn.*"
+module = [
+    # Third-party libraries without stubs
+    "structlog.*",
+    "prometheus_client.*",
+    "fastapi.*",
+    "uvicorn.*",
+    "google.cloud.*",
+    "whatsapp_api_client_python.*",
+]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
@@ -96,31 +238,13 @@ module = "src.main"
 disallow_untyped_decorators = false
 
 [[tool.mypy.overrides]]
-module = "tests.*"
-disallow_untyped_decorators = false
+module = "src.infrastructure.observability.logger"
 warn_return_any = false
-disallow_any_expr = false
-
-[[tool.mypy.overrides]]
-module = "google.cloud.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = "whatsapp_api_client_python.*"
-ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "src.infrastructure.persistence.*"
 warn_return_any = false
 disallow_untyped_calls = false
-
-[tool.isort]
-profile = "black"
-multi_line_output = 3
-line_length = 100
-known_first_party = ["src", "config", "tests"]
-sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
-force_alphabetical_sort_within_sections = true
 
 [tool.pydantic-mypy]
 init_forbid_extra = true
@@ -135,6 +259,8 @@ addopts = [
     "--strict-markers",
     "--strict-config",
     "--durations=10",
+    "--show-capture=all",
+    "-s",
 ]
 testpaths = ["tests"]
 pythonpath = ["."]
@@ -188,14 +314,3 @@ fail_under = 100
 show_missing = true
 skip_covered = false
 
-[tool.pylint."messages control"]
-disable = [
-    "C0415",  # import-outside-toplevel
-    "W0613",  # unused-argument  
-    "W0212",  # protected-access
-    "W0718",  # broad-exception-caught
-    "W0122",  # exec-used
-    "E1101",  # no-member (Pylint doesn't understand Pydantic dynamic attributes)
-    "R0903",  # too-few-public-methods (common in test classes and data classes)
-    "E0110",  # abstract-class-instantiated (intentional in tests to verify abstract behaviour)
-]

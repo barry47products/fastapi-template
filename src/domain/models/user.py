@@ -1,8 +1,10 @@
 """User domain entity demonstrating clean domain patterns."""
 
-from datetime import datetime, UTC
+from __future__ import annotations
+
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field, field_validator
@@ -17,6 +19,9 @@ from src.domain.events.user_events import (
 )
 from src.domain.value_objects.email import Email
 from src.shared.exceptions import ValidationException
+
+if TYPE_CHECKING:
+    from src.domain.types import ChangeData
 
 
 class UserStatus(str, Enum):
@@ -102,12 +107,11 @@ class User(BaseModel):
         """Validate email field is Email value object."""
         if isinstance(v, Email):
             return v
-        elif isinstance(v, str):
+        if isinstance(v, str):
             return Email(value=v)
-        elif isinstance(v, dict) and "value" in v:
+        if isinstance(v, dict) and "value" in v:
             return Email(value=v["value"])
-        else:
-            raise ValidationException("Invalid email format", field="email")
+        raise ValidationException("Invalid email format", field="email")
 
     def __str__(self) -> str:
         """Return user string representation."""
@@ -127,7 +131,7 @@ class User(BaseModel):
             return False
         return self.id == other.id
 
-    def activate(self) -> "User":
+    def activate(self) -> User:
         """
         Activate user account.
 
@@ -157,7 +161,7 @@ class User(BaseModel):
 
         return new_user
 
-    def suspend(self, reason: str = "admin_action") -> "User":
+    def suspend(self, reason: str = "admin_action") -> User:
         """
         Suspend user account.
 
@@ -184,7 +188,7 @@ class User(BaseModel):
 
         return new_user
 
-    def verify_email(self) -> "User":
+    def verify_email(self) -> User:
         """
         Verify user email address.
 
@@ -200,16 +204,16 @@ class User(BaseModel):
 
         return new_user
 
-    def update_profile(self, name: str | None = None, age: int | None = None) -> "User":
+    def update_profile(self, name: str | None = None, age: int | None = None) -> User:
         """
         Update user profile information.
 
         Returns new User instance with updated information.
         """
-        updates = {"updated_at": datetime.now(UTC)}
+        updates: dict[str, Any] = {"updated_at": datetime.now(UTC)}
         fields_updated = []
-        previous_values = {}
-        new_values = {}
+        previous_values: ChangeData = {}
+        new_values: ChangeData = {}
 
         if name is not None and name != self.name:
             updates["name"] = name
@@ -240,13 +244,13 @@ class User(BaseModel):
 
         return new_user
 
-    def record_login(self) -> "User":
+    def record_login(self) -> User:
         """Record user login timestamp."""
         return self.model_copy(
             update={"last_login_at": datetime.now(UTC), "updated_at": datetime.now(UTC)}
         )
 
-    def soft_delete(self, reason: str = "user_requested") -> "User":
+    def soft_delete(self, reason: str = "user_requested") -> User:
         """
         Soft delete user (mark as deleted but keep data).
 
@@ -286,7 +290,7 @@ class User(BaseModel):
         """Check if user has ever logged in."""
         return self.last_login_at is not None
 
-    def add_metadata(self, key: str, value: Any) -> "User":
+    def add_metadata(self, key: str, value: Any) -> User:
         """Add metadata to user profile."""
         new_metadata = dict(self.metadata)
         new_metadata[key] = value
@@ -296,17 +300,14 @@ class User(BaseModel):
     @classmethod
     def create_new(
         cls, email: str | Email, name: str, age: int, auto_verify_email: bool = False
-    ) -> "User":
+    ) -> User:
         """
         Factory method to create a new user with proper domain event publishing.
 
         This demonstrates the factory pattern for domain entities.
         """
         # Convert email to value object if needed
-        if isinstance(email, str):
-            email_vo = Email(value=email)
-        else:
-            email_vo = email
+        email_vo = Email(value=email) if isinstance(email, str) else email
 
         # Create user
         user = cls(

@@ -1,6 +1,5 @@
 """Sample in-memory implementation of Product repository for template demonstration."""
 
-from datetime import datetime
 from typing import Any
 
 from src.infrastructure.observability import get_logger, get_metrics_collector

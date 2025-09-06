@@ -11,6 +11,11 @@ Health checks should validate:
 - Domain service operations
 """
 
+from __future__ import annotations
+
+import asyncio
+import re
+from datetime import UTC, datetime
 from typing import Any
 
 from src.infrastructure.observability import get_logger, get_metrics_collector
@@ -29,15 +34,10 @@ async def check_sample_domain_functionality() -> bool:
     - Testing value object constraints
     - Verifying domain service operations
     """
-    import asyncio
-
     # Simulate some domain validation work
     await asyncio.sleep(0.01)
 
     try:
-        # Sample domain validation - replace with your domain logic
-        from datetime import datetime, UTC
-
         # Example: Test that we can create and validate timestamps
         current_time = datetime.now(UTC)
         if not isinstance(current_time, datetime):
@@ -45,10 +45,14 @@ async def check_sample_domain_functionality() -> bool:
 
         # Example: Test basic data validation
         sample_data = {"name": "test", "value": 42}
-        if not sample_data.get("name") or sample_data.get("value", 0) < 0:
+        name_value = sample_data.get("name")
+        numeric_value = sample_data.get("value", 0)
+
+        # Ensure we have proper types for comparison
+        if not name_value or not isinstance(numeric_value, int | float):
             return False
 
-        return True
+        return numeric_value >= 0
 
     except Exception:
         return False
@@ -60,8 +64,6 @@ async def check_value_object_validation() -> bool:
 
     Replace this with checks for your actual value objects.
     """
-    import asyncio
-
     await asyncio.sleep(0.01)
 
     try:
@@ -72,15 +74,15 @@ async def check_value_object_validation() -> bool:
         email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         test_email = "test@example.com"
 
-        import re
-
-        if not re.match(email_pattern, test_email):
-            return False
-
-        return True
+        return bool(re.match(email_pattern, test_email))
 
     except Exception:
         return False
+
+
+def _validate_user_age(age: int) -> bool:
+    """Helper function for user age validation business rule."""
+    return 13 <= age <= 120
 
 
 async def check_business_rules() -> bool:
@@ -89,24 +91,15 @@ async def check_business_rules() -> bool:
 
     Replace this with checks for your actual business rules.
     """
-    import asyncio
-
     await asyncio.sleep(0.01)
 
     try:
-        # Example business rule: user age validation
-        def validate_user_age(age: int) -> bool:
-            return 13 <= age <= 120
-
         # Test valid ages
-        if not validate_user_age(25) or not validate_user_age(65):
+        if not _validate_user_age(25) or not _validate_user_age(65):
             return False
 
         # Test invalid ages
-        if validate_user_age(5) or validate_user_age(150):
-            return False
-
-        return True
+        return not (_validate_user_age(5) or _validate_user_age(150))
 
     except Exception:
         return False

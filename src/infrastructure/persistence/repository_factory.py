@@ -15,7 +15,7 @@ class RepositoryFactory(Protocol):
     Provides dependency injection for repository implementations while
     maintaining clean architecture boundaries. Enables easy testing
     with mock repositories and configuration-based implementation switching.
-    
+
     Replace these sample repositories with your actual domain repositories.
     """
 

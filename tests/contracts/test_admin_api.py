@@ -1,4 +1,4 @@
-"""Admin API contract tests - Configuration and system information endpoints."""
+"""Admin API contract tests - Configuration and system information endpoints."""  # noqa: INP001, I002
 
 from unittest.mock import MagicMock
 

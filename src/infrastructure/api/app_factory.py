@@ -1,10 +1,15 @@
 """FastAPI application factory with configuration-driven setup."""
 
-from collections.abc import AsyncIterator, Callable
+from __future__ import annotations
+
 from contextlib import AbstractAsyncContextManager, asynccontextmanager
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator, Callable
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from config.settings import ApplicationSettings, get_settings
 from src.domain.events import DomainEventRegistry
@@ -16,17 +21,11 @@ from src.infrastructure.api.exception_handlers import (
     validation_exception_handler,
 )
 from src.infrastructure.events import ObservabilityEventPublisher
-from src.infrastructure.feature_flags import configure_feature_flags
 from src.infrastructure.observability import (
-    configure_health_checker,
     get_logger,
     get_metrics_collector,
 )
-from src.infrastructure.security import (
-    configure_api_key_validator,
-    configure_rate_limiter,
-    configure_webhook_verifier,
-)
+from src.interfaces.api.routers import admin_routes, health_routes, sample_routes
 from src.shared.exceptions import (
     AuthenticationException,
     AuthorizationException,
@@ -66,8 +65,10 @@ def create_lifespan_manager(
         metrics = get_metrics_collector()
 
         try:
-            logger.info("Starting FastAPI template application", environment=app_settings.environment.value)
-            
+            logger.info(
+                "Starting FastAPI template application", environment=app_settings.environment.value
+            )
+
             # Initialize all infrastructure services
             initialize_infrastructure()
 
@@ -129,7 +130,6 @@ def configure_middleware(app: FastAPI, settings: ApplicationSettings) -> None:
         app: FastAPI application instance
         settings: Application settings
     """
-    from fastapi.middleware.cors import CORSMiddleware
 
     # Add CORS middleware
     app.add_middleware(
@@ -148,12 +148,11 @@ def add_api_routes(app: FastAPI) -> None:
     Args:
         app: FastAPI application instance
     """
-    from src.interfaces.api.routers import admin_routes, health_routes, sample_routes
 
     # Core system routes
     app.include_router(health_routes.router)
     app.include_router(admin_routes.router)
-    
+
     # Business/sample routes
     app.include_router(sample_routes.router)
 

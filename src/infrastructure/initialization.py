@@ -8,8 +8,15 @@ if TYPE_CHECKING:
     from src.infrastructure.service_registry import ServiceRegistry
 #  pylint: disable=C0413
 from src.infrastructure.messaging import SampleNotificationService
-from src.infrastructure.observability import get_health_checker, get_logger, get_metrics_collector
+from src.infrastructure.observability import (
+    configure_health_checker,
+    get_health_checker,
+    get_logger,
+    get_metrics_collector,
+)
 from src.infrastructure.persistence import configure_repository_factory, SampleRepositoryFactory
+from src.infrastructure.security.api_key_validator import configure_api_key_validator
+from src.infrastructure.security.rate_limiter import configure_rate_limiter
 from src.infrastructure.service_registry import get_service_registry, initialize_service_registry
 
 #  pylint: enable=C0413
@@ -41,19 +48,15 @@ def initialize_infrastructure() -> None:
 
         # 3. Initialize observability services
         # First configure the health checker with default timeout
-        from src.infrastructure.observability import configure_health_checker
-
         configure_health_checker(timeout=10)
 
         metrics_collector = get_metrics_collector()
         health_checker = get_health_checker()
-        
+
         # Initialize rate limiter
-        from src.infrastructure.security.rate_limiter import configure_rate_limiter
         configure_rate_limiter(limit=100, window_seconds=60)  # 100 requests per minute
-        
+
         # Initialize API key validator
-        from src.infrastructure.security.api_key_validator import configure_api_key_validator
         # For development, use a simple default key. In production, load from environment
         configure_api_key_validator(api_keys=["dev-api-key-123"])
 

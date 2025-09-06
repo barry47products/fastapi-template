@@ -1,0 +1,20 @@
+# Project-specific words
+# Add custom words here that are specific to your project
+# One word per line
+# Lines starting with # are comments
+
+# Project name variations
+fastapi-template
+FastAPITemplate
+
+# Custom domain terms
+# Add your domain-specific terminology here
+
+# Team members' names
+# Add team members' names to avoid spell check errors in comments
+
+# Third-party library names not in main config
+# Add any additional libraries or tools you use
+
+# Custom abbreviations
+# Add project-specific abbreviations

@@ -1,4 +1,4 @@
-"""Application settings using Pydantic Settings."""
+"""Application settings using Pydantic Settings."""  # noqa: I002
 
 import os
 from enum import Enum
@@ -29,7 +29,7 @@ class Environment(str, Enum):
 class APISettings(BaseModel):
     """API server configuration."""
 
-    host: str = Field(default="0.0.0.0", description="API server host")
+    host: str = Field(default="0.0.0.0", description="API server host")  # noqa: S104
     port: int = Field(default=8000, ge=1000, le=65535, description="API server port")
     title: str = Field(default="FastAPI Template", description="API title")
     description: str = Field(
@@ -220,26 +220,26 @@ class ApplicationSettings(BaseSettings):
     def validate_configuration(self) -> None:
         """Validate configuration for common issues."""
         if self.is_production() and self.debug:
-            raise ConfigurationException("Debug mode cannot be enabled in production")
+            raise ConfigurationException("Debug mode cannot be enabled in production")  # noqa: EM101, TRY003
 
         if self.is_production() and "sample" in str(self.security.api_keys[0]).lower():
-            raise ConfigurationException("Sample API keys cannot be used in production")
+            raise ConfigurationException("Sample API keys cannot be used in production")  # noqa: EM101, TRY003
 
         if (
             self.external_services.email_service_enabled
             and not self.external_services.email_service_api_key
         ):
-            raise ConfigurationException("Email service API key required when email is enabled")
+            raise ConfigurationException("Email service API key required when email is enabled")  # noqa: EM101, TRY003
 
         if (
             self.external_services.sms_service_enabled
             and not self.external_services.sms_service_api_key
         ):
-            raise ConfigurationException("SMS service API key required when SMS is enabled")
+            raise ConfigurationException("SMS service API key required when SMS is enabled")  # noqa: EM101, TRY003
 
 
-# Global settings instance
-_SETTINGS: ApplicationSettings | None = None
+# Global settings instance (lowercase because it's mutable)
+_settings: ApplicationSettings | None = None
 
 
 def get_settings() -> ApplicationSettings:
@@ -252,16 +252,16 @@ def get_settings() -> ApplicationSettings:
     Raises:
         ConfigurationException: If configuration validation fails
     """
-    global _SETTINGS  # pylint: disable=global-statement
+    global _settings  # pylint: disable=global-statement  # noqa: PLW0603
 
-    if _SETTINGS is None:
-        _SETTINGS = ApplicationSettings()
-        _SETTINGS.validate_configuration()
+    if _settings is None:
+        _settings = ApplicationSettings()
+        _settings.validate_configuration()
 
-    return _SETTINGS
+    return _settings
 
 
 def reset_settings() -> None:
     """Reset settings singleton (useful for testing)."""
-    global _SETTINGS  # pylint: disable=global-statement
-    _SETTINGS = None
+    global _settings  # pylint: disable=global-statement  # noqa: PLW0603
+    _settings = None

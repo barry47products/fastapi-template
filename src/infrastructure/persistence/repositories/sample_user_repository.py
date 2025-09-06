@@ -1,12 +1,16 @@
 """Sample in-memory implementation of User repository for template demonstration."""
 
-from datetime import datetime, UTC
-from typing import Any
+from __future__ import annotations
+
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 from src.domain.models import User
-from src.domain.value_objects import Email
 from src.infrastructure.observability import get_logger, get_metrics_collector
 from src.shared.exceptions import RepositoryException
+
+if TYPE_CHECKING:
+    from src.domain.value_objects import Email
 
 
 class InMemoryUserRepository:
@@ -28,16 +32,16 @@ class InMemoryUserRepository:
         """Save or update a user."""
         try:
             user_data = self._to_document(user)
-            self._storage[user.id.value] = user_data
+            self._storage[str(user.id)] = user_data
 
             self.metrics.increment_counter("user_saves_total", {})
-            self.logger.info("User saved successfully", user_id=user.id.value)
+            self.logger.info("User saved successfully", user_id=str(user.id))
 
         except Exception as e:
             self.metrics.increment_counter("user_save_errors_total", {})
             self.logger.error(
                 "Failed to save user",
-                user_id=user.id.value,
+                user_id=str(user.id),
                 error=str(e),
             )
             raise RepositoryException(f"Failed to save user: {e}") from e
@@ -111,7 +115,7 @@ class InMemoryUserRepository:
         try:
             users = []
             for user_data in self._storage.values():
-                if user_data.get("created_at", datetime.min) > date:
+                if user_data.get("created_at", datetime.min.replace(tzinfo=UTC)) > date:
                     user = self._from_document(user_data)
                     users.append(user)
 
@@ -200,7 +204,7 @@ class InMemoryUserRepository:
     def _to_document(self, user: User) -> dict[str, Any]:
         """Convert User entity to storage document."""
         return {
-            "id": user.id.value,
+            "id": str(user.id),
             "name": user.name,
             "email": user.email.value,
             "age": user.age,

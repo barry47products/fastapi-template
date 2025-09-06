@@ -4,7 +4,7 @@ Domain models module.
 This package contains sample domain entities that demonstrate:
 - Rich domain models with behavior
 - Business rule enforcement
-- Domain event publishing  
+- Domain event publishing
 - Immutability with controlled mutations
 - Value object usage
 - Self-validation

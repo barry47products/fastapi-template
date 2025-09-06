@@ -5,7 +5,6 @@ from typing import Any
 
 from pydantic import BaseModel, field_validator
 
-from src.domain.events import DomainEventRegistry
 from src.shared.exceptions import ValidationException
 
 
@@ -40,7 +39,7 @@ class Email(BaseModel):
             raise ValidationException("Invalid email format", field="email")
 
         # Check for common typos
-        if email.endswith(".con") or email.endswith(".co"):
+        if email.endswith((".con", ".co")):
             raise ValidationException("Email domain appears to have a typo", field="email")
 
         # Length validation

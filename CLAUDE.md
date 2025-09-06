@@ -40,10 +40,20 @@ poetry install && poetry shell
 
 # Development  
 make run                # uvicorn src.main:app --reload --port 8000
-make test              # pytest with 100% coverage requirement
-make test-watch        # TDD watch mode
-make lint              # ruff check + fix
-make module-test       # all quality checks (black, ruff, mypy, tests)
+make test               # pytest with 100% coverage requirement
+make test-fast          # TDD fast tests (no slow markers)
+make watch              # TDD watch mode with ptw
+
+# Code Quality (Modern Ruff + MyPy)
+make format             # ruff format + ruff check --fix (auto-fix)
+make lint               # ruff format --check + ruff check (no fixes)
+make typecheck          # mypy strict type checking
+
+# Combined Workflows
+make quality            # lint + typecheck + test (full quality check)
+make quick              # format + test-fast (rapid development)
+make pr                 # format + quality (prepare for PR)
+make fix                # ruff --unsafe-fixes (aggressive auto-fix)
 ```
 
 ## Code Standards

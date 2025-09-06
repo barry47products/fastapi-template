@@ -1,4 +1,4 @@
-"""Test configuration for behaviour-driven tests."""
+"""Test configuration for behaviour-driven tests."""  # noqa: I002
 
 import pytest
 from fastapi.testclient import TestClient

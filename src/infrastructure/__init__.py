@@ -13,15 +13,15 @@ from .service_registry import (
 )
 
 __all__ = [
+    "ServiceRegistry",
     "api",
+    "clear_service_registry",
     "feature_flags",
+    "get_service_registry",
+    "initialize_infrastructure",
+    "initialize_service_registry",
     "observability",
     "persistence",
     "security",
-    "ServiceRegistry",
-    "get_service_registry",
-    "initialize_service_registry",
-    "clear_service_registry",
-    "initialize_infrastructure",
     "shutdown_infrastructure",
 ]

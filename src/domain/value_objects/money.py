@@ -34,7 +34,7 @@ class Money(BaseModel):
 
         try:
             # Convert to Decimal for precision
-            if isinstance(v, (int, float, str)):
+            if isinstance(v, int | float | str):
                 decimal_amount = Decimal(str(v))
             elif isinstance(v, Decimal):
                 decimal_amount = v
@@ -132,7 +132,7 @@ class Money(BaseModel):
 
     def __mul__(self, multiplier: float | int | Decimal) -> "Money":
         """Multiply money by a number."""
-        if not isinstance(multiplier, (int, float, Decimal)):
+        if not isinstance(multiplier, int | float | Decimal):
             raise ValidationException("Multiplier must be a number", field="multiplier")
 
         if multiplier < 0:
@@ -143,7 +143,7 @@ class Money(BaseModel):
 
     def __truediv__(self, divisor: float | int | Decimal) -> "Money":
         """Divide money by a number."""
-        if not isinstance(divisor, (int, float, Decimal)):
+        if not isinstance(divisor, int | float | Decimal):
             raise ValidationException("Divisor must be a number", field="divisor")
 
         if divisor <= 0:
@@ -180,8 +180,7 @@ class Money(BaseModel):
         if include_symbol and self.currency in symbols:
             symbol = symbols[self.currency]
             return f"{symbol}{self.amount:.2f}"
-        else:
-            return f"{self.amount:.2f} {self.currency}"
+        return f"{self.amount:.2f} {self.currency}"
 
     def is_zero(self) -> bool:
         """Check if amount is zero."""

@@ -60,7 +60,7 @@ class DomainEventPublisher(ABC):
         Args:
             event: The domain event to publish
         """
-        pass  # pylint: disable=unnecessary-pass
+        # pylint: disable=unnecessary-pass
 
     @abstractmethod
     def publish_batch(self, events: list[DomainEvent]) -> None:
@@ -70,4 +70,4 @@ class DomainEventPublisher(ABC):
         Args:
             events: List of domain events to publish
         """
-        pass  # pylint: disable=unnecessary-pass
+        # pylint: disable=unnecessary-pass

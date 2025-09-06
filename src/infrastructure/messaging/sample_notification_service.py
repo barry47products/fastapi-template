@@ -56,7 +56,7 @@ class SampleNotificationService:
 
             # Simulate email sending logic
             message_id = f"email_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}_{len(self._sent_messages) + 1:04d}"
-            
+
             # Store message for demonstration
             message_record = {
                 "id": message_id,
@@ -130,7 +130,7 @@ class SampleNotificationService:
 
             # Simulate SMS sending logic
             message_id = f"sms_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}_{len(self._sent_messages) + 1:04d}"
-            
+
             # Store message for demonstration
             message_record = {
                 "id": message_id,
@@ -205,7 +205,7 @@ class SampleNotificationService:
 
             # Simulate push notification sending logic
             message_id = f"push_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}_{len(self._sent_messages) + 1:04d}"
-            
+
             # Store message for demonstration
             message_record = {
                 "id": message_id,
