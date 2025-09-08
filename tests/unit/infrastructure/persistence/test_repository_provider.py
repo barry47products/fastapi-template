@@ -575,9 +575,7 @@ class TestRepositoryProviderErrorHandling:
             mock_db_settings.enable_firestore = True
             mock_get_settings.return_value.database = mock_db_settings
 
-            with patch(
-                "src.infrastructure.persistence.repositories.firestore.FirestoreRepository"
-            ):
+            with patch("src.infrastructure.persistence.repositories.firestore.FirestoreRepository"):
                 provider = RepositoryProvider(
                     database_url="firestore://test-project",
                     db_type=DatabaseType.FIRESTORE,

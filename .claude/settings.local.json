@@ -18,7 +18,9 @@
       "mcp__ide__getDiagnostics",
       "WebSearch",
       "WebFetch(domain:green-api.com)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh run list:*)"
     ],
     "deny": [],
     "ask": []

@@ -618,9 +618,7 @@ class TestRedisCacheImplementationBehaviour:
 
     async def test_disconnects_existing_client(self) -> None:
         """Disconnects existing Redis client when one exists."""
-        repo = MockRedisCacheRepository(
-            connection_url="redis://localhost:6379", key_prefix="test"
-        )
+        repo = MockRedisCacheRepository(connection_url="redis://localhost:6379", key_prefix="test")
         mock_client = AsyncMock()
         repo._client = mock_client
 
@@ -647,17 +645,13 @@ class TestRedisCacheImplementationBehaviour:
             result = await repo._create_impl(entity)
 
             mock_client.setex.assert_called_once_with(
-                "test:test_id",
-                1800,
-                '{"id": "test_id", "name": "test_name", "value": 42}'
+                "test:test_id", 1800, '{"id": "test_id", "name": "test_name", "value": 42}'
             )
             assert result is entity
 
     async def test_gets_entity_from_redis_cache(self) -> None:
         """Gets entity from Redis cache when found."""
-        repo = MockRedisCacheRepository(
-            connection_url="redis://localhost:6379", key_prefix="test"
-        )
+        repo = MockRedisCacheRepository(connection_url="redis://localhost:6379", key_prefix="test")
         mock_client = AsyncMock()
         cached_json = '{"id": "test_id", "name": "test_name", "value": 42}'
         mock_client.get.return_value = cached_json
@@ -678,9 +672,7 @@ class TestRedisCacheImplementationBehaviour:
 
     async def test_returns_none_when_entity_not_in_cache(self) -> None:
         """Returns None when entity not found in Redis cache."""
-        repo = MockRedisCacheRepository(
-            connection_url="redis://localhost:6379", key_prefix="test"
-        )
+        repo = MockRedisCacheRepository(connection_url="redis://localhost:6379", key_prefix="test")
         mock_client = AsyncMock()
         mock_client.get.return_value = None
 
@@ -713,17 +705,13 @@ class TestRedisCacheImplementationBehaviour:
             result = await repo._update_impl(entity)
 
             mock_client.setex.assert_called_once_with(
-                "test:test_id",
-                900,
-                '{"id": "test_id", "name": "updated_name", "value": 100}'
+                "test:test_id", 900, '{"id": "test_id", "name": "updated_name", "value": 100}'
             )
             assert result is entity
 
     async def test_deletes_entity_from_redis_cache(self) -> None:
         """Deletes entity from Redis cache when exists."""
-        repo = MockRedisCacheRepository(
-            connection_url="redis://localhost:6379", key_prefix="test"
-        )
+        repo = MockRedisCacheRepository(connection_url="redis://localhost:6379", key_prefix="test")
         mock_client = AsyncMock()
         mock_client.delete.return_value = 1  # One key deleted
 
@@ -741,9 +729,7 @@ class TestRedisCacheImplementationBehaviour:
 
     async def test_delete_returns_false_when_entity_not_found(self) -> None:
         """Returns False when entity to delete not found in Redis."""
-        repo = MockRedisCacheRepository(
-            connection_url="redis://localhost:6379", key_prefix="test"
-        )
+        repo = MockRedisCacheRepository(connection_url="redis://localhost:6379", key_prefix="test")
         mock_client = AsyncMock()
         mock_client.delete.return_value = 0  # No keys deleted
 
@@ -760,9 +746,7 @@ class TestRedisCacheImplementationBehaviour:
 
     async def test_lists_all_entities_from_redis(self) -> None:
         """Lists all entities matching key pattern from Redis."""
-        repo = MockRedisCacheRepository(
-            connection_url="redis://localhost:6379", key_prefix="test"
-        )
+        repo = MockRedisCacheRepository(connection_url="redis://localhost:6379", key_prefix="test")
         mock_client = AsyncMock()
         mock_client.keys.return_value = ["test:1", "test:2"]
         mock_client.mget.return_value = [
@@ -785,9 +769,7 @@ class TestRedisCacheImplementationBehaviour:
 
     async def test_list_handles_deserialization_errors(self) -> None:
         """Handles deserialization errors when listing entities."""
-        repo = MockRedisCacheRepository(
-            connection_url="redis://localhost:6379", key_prefix="test"
-        )
+        repo = MockRedisCacheRepository(connection_url="redis://localhost:6379", key_prefix="test")
         mock_client = AsyncMock()
         mock_client.keys.return_value = ["test:1", "test:2"]
         mock_client.mget.return_value = [
@@ -810,9 +792,7 @@ class TestRedisCacheImplementationBehaviour:
 
     async def test_sets_entity_with_custom_ttl(self) -> None:
         """Sets entity in Redis cache with custom TTL."""
-        repo = MockRedisCacheRepository(
-            connection_url="redis://localhost:6379", key_prefix="test"
-        )
+        repo = MockRedisCacheRepository(connection_url="redis://localhost:6379", key_prefix="test")
         entity = TestEntity("test_id", "test_name", 42)
         mock_client = AsyncMock()
 
@@ -826,16 +806,12 @@ class TestRedisCacheImplementationBehaviour:
             await repo.set_with_ttl("test_id", entity, 1200)
 
             mock_client.setex.assert_called_once_with(
-                "test:test_id",
-                1200,
-                '{"id": "test_id", "name": "test_name", "value": 42}'
+                "test:test_id", 1200, '{"id": "test_id", "name": "test_name", "value": 42}'
             )
 
     async def test_gets_ttl_for_entity(self) -> None:
         """Gets TTL for entity key from Redis."""
-        repo = MockRedisCacheRepository(
-            connection_url="redis://localhost:6379", key_prefix="test"
-        )
+        repo = MockRedisCacheRepository(connection_url="redis://localhost:6379", key_prefix="test")
         mock_client = AsyncMock()
         mock_client.ttl.return_value = 900
 
@@ -853,9 +829,7 @@ class TestRedisCacheImplementationBehaviour:
 
     async def test_invalidates_keys_matching_pattern(self) -> None:
         """Invalidates all keys matching pattern."""
-        repo = MockRedisCacheRepository(
-            connection_url="redis://localhost:6379", key_prefix="test"
-        )
+        repo = MockRedisCacheRepository(connection_url="redis://localhost:6379", key_prefix="test")
         mock_client = AsyncMock()
         mock_client.keys.return_value = ["test:user:1", "test:user:2", "test:user:3"]
         mock_client.delete.return_value = 3
@@ -875,9 +849,7 @@ class TestRedisCacheImplementationBehaviour:
 
     async def test_invalidate_pattern_handles_no_matches(self) -> None:
         """Handles case where pattern matches no keys."""
-        repo = MockRedisCacheRepository(
-            connection_url="redis://localhost:6379", key_prefix="test"
-        )
+        repo = MockRedisCacheRepository(connection_url="redis://localhost:6379", key_prefix="test")
         mock_client = AsyncMock()
         mock_client.keys.return_value = []
 

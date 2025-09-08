@@ -896,7 +896,9 @@ class TestPostgreSQLImplementationBehaviour:
             mock_context.__aexit__ = AsyncMock(return_value=None)
             mock_get_conn.return_value = mock_context
 
-            with pytest.raises(RepositoryException, match="Entity with ID non_existent_id not found for update"):
+            with pytest.raises(
+                RepositoryException, match="Entity with ID non_existent_id not found for update"
+            ):
                 await repo._update_impl(entity)
 
     async def test_delete_returns_true_when_entity_deleted(self) -> None:
