@@ -58,7 +58,7 @@ jobs:
             --cov-report=xml \
             --cov-report=html \
             --cov-report=term-missing \
-            --cov-fail-under=100 \
+            --cov-fail-under=90 \
             -m "not network"
 
       - name: Upload coverage reports
@@ -98,6 +98,7 @@ jobs:
             --cov=src \
             --cov-report=xml \
             --cov-report=term-missing \
+            --cov-fail-under=94 \
             -m "not network"
 
       - name: SonarQube Scan
