@@ -8,7 +8,7 @@ readme = "README.md"
 packages = [{include = "src"}, {include = "config"}]
 
 [tool.poetry.dependencies]
-python = "^3.13"
+python = "^3.11"
 pydantic = "^2.10.0"
 pydantic-settings = "^2.6.0"
 fastapi = "^0.116.1"
