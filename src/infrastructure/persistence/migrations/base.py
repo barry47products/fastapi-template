@@ -265,13 +265,13 @@ class PostgreSQLMigrationRunner(MigrationRunner):
     async def create_migration_table(self) -> None:
         """Create migration tracking table in PostgreSQL."""
         try:
-            from sqlalchemy import (  # type: ignore[import-not-found]
+            from sqlalchemy import (
                 Column,
                 DateTime,
                 String,
                 create_engine,
             )
-            from sqlalchemy.ext.declarative import (  # type: ignore[import-not-found]
+            from sqlalchemy.ext.declarative import (
                 declarative_base,
             )
 

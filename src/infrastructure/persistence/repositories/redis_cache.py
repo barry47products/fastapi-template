@@ -49,7 +49,7 @@ class RedisCacheRepository(BaseRepository[T, ID], RetryMixin):
         """
         try:
             # Import here to avoid dependency issues
-            import redis.asyncio as redis_async  # type: ignore[import-not-found]
+            import redis.asyncio as redis_async
 
             self._client = redis_async.from_url(
                 self.connection_url,
