@@ -16,6 +16,8 @@ from src.infrastructure.observability.metrics import (
 )
 
 
+@pytest.mark.unit
+@pytest.mark.fast
 class TestMetricsCollectorSingleton:
     """Test metrics collector singleton behavior."""
 
@@ -51,6 +53,8 @@ class TestMetricsCollectorSingleton:
         assert _MetricsCollectorSingleton.get_instance() is custom_collector
 
 
+@pytest.mark.unit
+@pytest.mark.fast
 class TestMetricsCollector:
     """Test metrics collector behavior."""
 
@@ -306,6 +310,8 @@ class TestMetricsCollector:
         assert "no_labels_histogram" in collector._histograms
 
 
+@pytest.mark.unit
+@pytest.mark.integration
 class TestConfigureMetrics:
     """Test metrics configuration function."""
 
@@ -372,6 +378,8 @@ class TestConfigureMetrics:
         mock_start_server.assert_called_once_with(9999)
 
 
+@pytest.mark.unit
+@pytest.mark.fast
 class TestGetMetricsCollector:
     """Test get metrics collector function."""
 

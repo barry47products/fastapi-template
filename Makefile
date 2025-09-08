@@ -1,7 +1,7 @@
 # FastAPI Template - Modern Development Makefile
 # Using Ruff + MyPy for all quality checks
 
-.PHONY: help install format lint typecheck test test-watch quality quick fix clean pr run run-test run-prod
+.PHONY: help install format lint typecheck test test-watch test-cov test-fast test-unit test-integration test-behaviour test-security test-smoke quality quick fix clean pr run run-test run-prod
 
 # Colors for output
 CYAN := \033[0;36m
@@ -54,10 +54,35 @@ test-cov: ## Run tests with coverage report
 	poetry run pytest --cov=src --cov-report=term-missing --cov-report=html
 	@echo "$(GREEN)✓ Coverage report generated$(RESET)"
 
-test-fast: ## Run non-slow tests only
+test-fast: ## Run fast tests only (excludes slow markers)
 	@echo "$(CYAN)Running fast tests...$(RESET)"
-	poetry run pytest -m "not slow" -xvs
+	poetry run pytest -m "fast and not slow" -xvs
 	@echo "$(GREEN)✓ Fast tests passed$(RESET)"
+
+test-unit: ## Run unit tests only
+	@echo "$(CYAN)Running unit tests...$(RESET)"
+	poetry run pytest -m "unit" -xvs
+	@echo "$(GREEN)✓ Unit tests passed$(RESET)"
+
+test-integration: ## Run integration tests only
+	@echo "$(CYAN)Running integration tests...$(RESET)"
+	poetry run pytest -m "integration" -xvs
+	@echo "$(GREEN)✓ Integration tests passed$(RESET)"
+
+test-behaviour: ## Run behaviour-driven tests
+	@echo "$(CYAN)Running behaviour tests...$(RESET)"
+	poetry run pytest -m "behaviour" -xvs
+	@echo "$(GREEN)✓ Behaviour tests passed$(RESET)"
+
+test-security: ## Run security tests
+	@echo "$(CYAN)Running security tests...$(RESET)"
+	poetry run pytest -m "security" -xvs
+	@echo "$(GREEN)✓ Security tests passed$(RESET)"
+
+test-smoke: ## Run smoke tests only
+	@echo "$(CYAN)Running smoke tests...$(RESET)"
+	poetry run pytest -m "smoke" -xvs
+	@echo "$(GREEN)✓ Smoke tests passed$(RESET)"
 
 # Combined commands
 quality: ## Run all quality checks (lint + typecheck + test)

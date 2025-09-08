@@ -27,6 +27,9 @@ def mock_metrics() -> MagicMock:
     return MagicMock()
 
 
+@pytest.mark.unit
+@pytest.mark.fast
+@pytest.mark.behaviour
 class TestSampleDomainFunctionality:
     """Test sample domain functionality health check."""
 
@@ -77,6 +80,9 @@ class TestSampleDomainFunctionality:
         assert result is True
 
 
+@pytest.mark.unit
+@pytest.mark.fast
+@pytest.mark.behaviour
 class TestValueObjectValidation:
     """Test value object validation health check."""
 
@@ -121,6 +127,9 @@ class TestValueObjectValidation:
             assert test_email == "test@example.com"
 
 
+@pytest.mark.unit
+@pytest.mark.fast
+@pytest.mark.behaviour
 class TestUserAgeValidation:
     """Test user age validation helper function."""
 
@@ -144,6 +153,9 @@ class TestUserAgeValidation:
         assert _validate_user_age(121) is False  # Just above maximum
 
 
+@pytest.mark.unit
+@pytest.mark.fast
+@pytest.mark.behaviour
 class TestBusinessRules:
     """Test business rules health check."""
 
@@ -200,6 +212,9 @@ class TestBusinessRules:
             assert 5 in ages_checked if len(ages_checked) > 2 else True
 
 
+@pytest.mark.unit
+@pytest.mark.integration
+@pytest.mark.behaviour
 class TestDomainLayerHealthCheck:
     """Test comprehensive domain layer health check."""
 
