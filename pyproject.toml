@@ -15,11 +15,7 @@ fastapi = "^0.116.1"
 uvicorn = "^0.35.0"
 structlog = "^25.4.0"
 prometheus-client = "^0.22.1"
-# Database drivers (optional based on feature flags)
-sqlalchemy = {version = "^2.0.0", optional = true}
-asyncpg = {version = "^0.29.0", optional = true}
-redis = {version = "^5.0.0", optional = true}
-google-cloud-firestore = {version = "^2.20.0", optional = true}
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.36"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.0"
@@ -38,7 +34,6 @@ pytest-xdist = "^3.8.0"
 optional = true
 
 [tool.poetry.group.postgres.dependencies]
-sqlalchemy = {extras = ["asyncio"], version = "^2.0.36"}
 asyncpg = "^0.30.0"
 alembic = "^1.14.0"
 
