@@ -125,5 +125,6 @@ jobs:
           args: >
             -Dsonar.projectKey=barry47products_fastapi-template
             -Dsonar.organization=barry47products
+            -Dsonar.exclusions=tests/**/*
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
