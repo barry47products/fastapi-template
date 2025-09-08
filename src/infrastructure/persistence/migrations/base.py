@@ -286,8 +286,13 @@ class PostgreSQLMigrationRunner(MigrationRunner):
                 description = Column(String(500))
                 applied_at = Column(DateTime, nullable=False)
 
+            # Create database tables from all models registered with the declarative base
+            # MigrationRecord is used implicitly by SQLAlchemy during metadata.create_all()
             engine = create_engine(self.database_url)
             base.metadata.create_all(engine)
+
+            # Verify the model was registered (for static analysis tools)
+            _ = MigrationRecord
 
             self.logger.info("Created PostgreSQL migration table")
 

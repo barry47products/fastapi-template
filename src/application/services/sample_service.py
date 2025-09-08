@@ -104,7 +104,7 @@ class SampleApplicationService:
         self.logger = get_logger(__name__)
         self.metrics = get_metrics_collector()
 
-    async def onboard_new_user(
+    def onboard_new_user(
         self,
         user_name: str,
         user_email: str,

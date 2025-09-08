@@ -118,6 +118,13 @@ jobs:
             --cov-report=term-missing \
             --cov-fail-under=94 \
             -m "not network"
+        env:
+          COVERAGE_FILE: .coverage
+
+      - name: Verify coverage report exists
+        run: |
+          ls -la coverage.xml
+          echo "Coverage report size: $(wc -l coverage.xml)"
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5
@@ -126,5 +133,7 @@ jobs:
             -Dsonar.projectKey=barry47products_fastapi-template
             -Dsonar.organization=barry47products
             -Dsonar.exclusions=tests/**/*
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+            -Dsonar.sources=src,config
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
