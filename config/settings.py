@@ -308,13 +308,26 @@ class ApplicationSettings(BaseSettings):
 
     def validate_configuration(self) -> None:
         """Validate configuration for common issues."""
-        if self.is_production() and self.debug:
+        self._validate_production_settings()
+        self._validate_database_configuration()
+        self._validate_external_services()
+
+    def _validate_production_settings(self) -> None:
+        """Validate production-specific settings."""
+        if not self.is_production():
+            return
+
+        if self.debug:
             raise ConfigurationException("Debug mode cannot be enabled in production")  # noqa: EM101, TRY003
 
-        if self.is_production() and "sample" in str(self.security.api_keys[0]).lower():
+        if "sample" in str(self.security.api_keys[0]).lower():
             raise ConfigurationException("Sample API keys cannot be used in production")  # noqa: EM101, TRY003
 
-        # Database validation
+        if self.database.primary_db == DatabaseType.IN_MEMORY:
+            raise ConfigurationException("In-memory database cannot be used in production")  # noqa: EM101, TRY003
+
+    def _validate_database_configuration(self) -> None:
+        """Validate database configuration."""
         if self.database.enable_postgresql and not self.database.database_url.startswith(
             "postgresql"
         ):
@@ -326,9 +339,8 @@ class ApplicationSettings(BaseSettings):
         if self.database.cache_db and not self.database.cache_url:
             raise ConfigurationException("Cache database specified but no cache URL provided")  # noqa: EM101, TRY003
 
-        if self.is_production() and self.database.primary_db == DatabaseType.IN_MEMORY:
-            raise ConfigurationException("In-memory database cannot be used in production")  # noqa: EM101, TRY003
-
+    def _validate_external_services(self) -> None:
+        """Validate external service configuration."""
         if (
             self.external_services.email_service_enabled
             and not self.external_services.email_service_api_key

@@ -132,7 +132,7 @@ class SampleApplicationService:
 
         try:
             # Step 1: Business rule validation
-            await self._validate_user_eligibility(user_name, user_email, user_age)
+            self._validate_user_eligibility(user_name, user_email, user_age)
 
             # Step 2: Check for existing user
             existing_user = self.user_repository.find_by_email(user_email)
@@ -242,7 +242,7 @@ class SampleApplicationService:
                 errors=[f"Unexpected error: {str(e)}"],
             )
 
-    async def _validate_user_eligibility(
+    def _validate_user_eligibility(
         self,
         user_name: str,
         user_email: str,
@@ -268,7 +268,7 @@ class SampleApplicationService:
         if user_age > 120:
             raise BusinessLogicError("Please enter a valid age", "INVALID_AGE")
 
-    async def get_user_profile_summary(self, user_id: str) -> dict[str, Any]:
+    def get_user_profile_summary(self, user_id: str) -> dict[str, Any]:
         """
         Get comprehensive user profile summary.
 

@@ -119,7 +119,7 @@ class MigrationManager:
         applied_count = 0
 
         # Apply migrations with database connection
-        connection = await self._get_database_connection()
+        connection = self._get_database_connection()
 
         try:
             for migration in pending:
@@ -148,7 +148,7 @@ class MigrationManager:
             )
             raise
         finally:
-            await self._close_database_connection(connection)
+            self._close_database_connection(connection)
 
         return applied_count
 
@@ -183,7 +183,7 @@ class MigrationManager:
             return 0
 
         rollback_count = 0
-        connection = await self._get_database_connection()
+        connection = self._get_database_connection()
 
         try:
             for migration in to_rollback:
@@ -208,7 +208,7 @@ class MigrationManager:
             )
             raise
         finally:
-            await self._close_database_connection(connection)
+            self._close_database_connection(connection)
 
         return rollback_count
 
@@ -232,7 +232,7 @@ class MigrationManager:
             "pending_versions": [m.version for m in pending],
         }
 
-    async def _get_database_connection(self) -> Any:
+    def _get_database_connection(self) -> Any:
         """Get database connection for migrations.
 
         Returns:
@@ -246,7 +246,7 @@ class MigrationManager:
         self.logger.debug("Getting database connection for migrations")
         return {"type": "mock", "database": self.db_settings.primary_db.value}
 
-    async def _close_database_connection(self, connection: Any) -> None:
+    def _close_database_connection(self, connection: Any) -> None:
         """Close database connection.
 
         Args:

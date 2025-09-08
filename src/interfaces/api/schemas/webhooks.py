@@ -5,6 +5,9 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
+# Constants for reusable field descriptions
+WEBHOOK_METADATA_DESC = "Webhook metadata"
+
 
 class WebhookMetadata(BaseModel):
     """Webhook metadata information."""
@@ -76,7 +79,7 @@ class GenericWebhookPayload(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    metadata: WebhookMetadata = Field(description="Webhook metadata")
+    metadata: WebhookMetadata = Field(description=WEBHOOK_METADATA_DESC)
     data: dict[str, Any] = Field(description="Event-specific data payload")
 
 
@@ -85,7 +88,7 @@ class UserWebhookPayload(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    metadata: WebhookMetadata = Field(description="Webhook metadata")
+    metadata: WebhookMetadata = Field(description=WEBHOOK_METADATA_DESC)
     data: UserEventData = Field(description="User event data")
 
 
@@ -94,7 +97,7 @@ class OrderWebhookPayload(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    metadata: WebhookMetadata = Field(description="Webhook metadata")
+    metadata: WebhookMetadata = Field(description=WEBHOOK_METADATA_DESC)
     data: OrderEventData = Field(description="Order event data")
 
 
@@ -103,7 +106,7 @@ class PaymentWebhookPayload(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    metadata: WebhookMetadata = Field(description="Webhook metadata")
+    metadata: WebhookMetadata = Field(description=WEBHOOK_METADATA_DESC)
     data: PaymentEventData = Field(description="Payment event data")
 
 
@@ -112,7 +115,7 @@ class SystemWebhookPayload(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    metadata: WebhookMetadata = Field(description="Webhook metadata")
+    metadata: WebhookMetadata = Field(description=WEBHOOK_METADATA_DESC)
     data: SystemEventData = Field(description="System event data")
 
 

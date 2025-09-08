@@ -278,7 +278,10 @@ class PostgreSQLMigrationRunner(MigrationRunner):
             base = declarative_base()
 
             class MigrationRecord(base):  # type: ignore[misc,valid-type]
+                """Migration record model for tracking applied migrations."""
+
                 __tablename__ = "schema_migrations"
+
                 version = Column(String(255), primary_key=True)
                 description = Column(String(500))
                 applied_at = Column(DateTime, nullable=False)

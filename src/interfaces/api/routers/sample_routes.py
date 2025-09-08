@@ -22,23 +22,28 @@ from pydantic import BaseModel, Field
 from src.infrastructure.observability import get_logger, get_metrics_collector
 from src.infrastructure.security import check_rate_limit, verify_api_key
 
+# Constants for reusable field descriptions and messages
+USER_FULL_NAME_DESC = "User's full name"
+USER_AGE_DESC = "User's age"
+USER_NOT_FOUND_MSG = "User not found"
+
 
 # Sample request/response schemas
 class CreateUserRequest(BaseModel):
     """Request schema for creating a new user."""
 
-    name: str = Field(min_length=2, max_length=100, description="User's full name")
+    name: str = Field(min_length=2, max_length=100, description=USER_FULL_NAME_DESC)
     email: str = Field(description="User's email address")
-    age: int = Field(ge=18, le=120, description="User's age")
+    age: int = Field(ge=18, le=120, description=USER_AGE_DESC)
 
 
 class UserResponse(BaseModel):
     """Response schema for user data."""
 
     id: str = Field(description="Unique user identifier")
-    name: str = Field(description="User's full name")
+    name: str = Field(description=USER_FULL_NAME_DESC)
     email: str = Field(description="User's email address")
-    age: int = Field(description="User's age")
+    age: int = Field(description=USER_AGE_DESC)
     created_at: datetime = Field(description="When the user was created")
     updated_at: datetime = Field(description="When the user was last updated")
 
@@ -46,8 +51,8 @@ class UserResponse(BaseModel):
 class UpdateUserRequest(BaseModel):
     """Request schema for updating user data."""
 
-    name: str | None = Field(None, min_length=2, max_length=100, description="User's full name")
-    age: int | None = Field(None, ge=18, le=120, description="User's age")
+    name: str | None = Field(None, min_length=2, max_length=100, description=USER_FULL_NAME_DESC)
+    age: int | None = Field(None, ge=18, le=120, description=USER_AGE_DESC)
 
 
 class CreateProductRequest(BaseModel):
@@ -179,7 +184,7 @@ async def get_user(user_id: str) -> UserResponse:
     if user_id not in _users_storage:
         logger.warning("User not found", user_id=user_id)
         metrics.increment_counter("user_not_found_total", {})
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail=USER_NOT_FOUND_MSG)
 
     user_data = _users_storage[user_id]
     logger.info("User retrieved successfully", user_id=user_id)
@@ -204,7 +209,7 @@ async def update_user(user_id: str, update_request: UpdateUserRequest) -> UserRe
     if user_id not in _users_storage:
         logger.warning("User update failed - user not found", user_id=user_id)
         metrics.increment_counter("user_update_failures_total", {"reason": "not_found"})
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail=USER_NOT_FOUND_MSG)
 
     user_data = _users_storage[user_id].copy()
 
@@ -242,7 +247,7 @@ async def delete_user(user_id: str) -> None:
     if user_id not in _users_storage:
         logger.warning("User deletion failed - user not found", user_id=user_id)
         metrics.increment_counter("user_deletion_failures_total", {"reason": "not_found"})
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail=USER_NOT_FOUND_MSG)
 
     del _users_storage[user_id]
 
