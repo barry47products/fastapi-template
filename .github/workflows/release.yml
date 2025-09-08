@@ -1,0 +1,99 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  discussions: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-root
+
+      - name: Run full quality check
+        run: |
+          poetry run ruff format --check .
+          poetry run ruff check .
+          poetry run mypy .
+          poetry run pytest --cov=src --cov-fail-under=100
+
+      - name: Extract tag name
+        id: tag
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get the previous tag
+          PREVIOUS_TAG=$(git tag --sort=-version:refname | sed -n '2p')
+          if [ -z "$PREVIOUS_TAG" ]; then
+            PREVIOUS_TAG=$(git rev-list --max-parents=0 HEAD)
+          fi
+          
+          # Generate changelog
+          echo "## Changes" > CHANGELOG.md
+          git log --pretty=format:"- %s" $PREVIOUS_TAG..${{ steps.tag.outputs.tag }} >> CHANGELOG.md
+          
+          # Set output for release notes
+          {
+            echo 'changelog<<EOF'
+            cat CHANGELOG.md
+            echo EOF
+          } >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          release_name: Release ${{ steps.tag.outputs.tag }}
+          body: |
+            # FastAPI Template ${{ steps.tag.outputs.tag }}
+            
+            ${{ steps.changelog.outputs.changelog }}
+            
+            ## Installation
+            
+            ```bash
+            git clone https://github.com/barry47products/fastapi-template.git your-project-name
+            cd your-project-name
+            poetry install && poetry shell
+            ```
+            
+            ## What's Included
+            
+            - 🚀 Production-ready FastAPI application
+            - 🏗️ Clean Architecture with domain-driven design
+            - 🔒 Security with API key authentication and rate limiting
+            - 📊 Built-in observability with logging and metrics
+            - 🧪 100% test coverage with behavioural testing
+            - 🐳 Docker support with multi-stage builds
+            - 🗄️ Multi-database support (PostgreSQL, Firestore, Redis)
+            
+            See the [README](https://github.com/barry47products/fastapi-template/blob/main/README.md) for complete documentation.
+          draft: false
+          prerelease: false
+

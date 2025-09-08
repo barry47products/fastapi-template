@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 GitHub Discussions
+    url: https://github.com/barry47products/fastapi-template/discussions
+    about: Ask questions, share ideas, and connect with the community
+  - name: 📖 Documentation
+    url: https://github.com/barry47products/fastapi-template/tree/main/docs
+    about: Check our comprehensive documentation for guides and examples
+  - name: 🚀 Quick Start Guide
+    url: https://github.com/barry47products/fastapi-template#quick-start
+    about: Get up and running with the template in minutes

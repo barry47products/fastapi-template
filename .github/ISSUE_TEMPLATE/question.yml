@@ -1,0 +1,91 @@
+name: Question
+description: Ask a question about using the FastAPI template
+title: "[QUESTION]: "
+labels: ["question", "help wanted"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question about using the FastAPI template? We're here to help! Please provide as much context as possible.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What would you like to know?
+      placeholder: I'm trying to understand how to...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Question Category
+      description: What area does your question relate to?
+      options:
+        - Getting Started/Setup
+        - Architecture/Design Patterns
+        - Database/Persistence
+        - Security/Authentication
+        - Testing Strategies
+        - Deployment/Production
+        - Development Workflow
+        - Configuration/Settings
+        - Performance/Optimization
+        - Troubleshooting/Debugging
+        - Best Practices
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Provide context about what you're trying to achieve
+      placeholder: I'm building an API that needs to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: attempted
+    attributes:
+      label: What Have You Tried?
+      description: What approaches or solutions have you already tried?
+      placeholder: I've tried...
+
+  - type: textarea
+    id: code
+    attributes:
+      label: Relevant Code
+      description: If applicable, provide relevant code snippets
+      render: python
+      placeholder: |
+        # Your code here
+        def example_function():
+            pass
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment (if relevant)
+      description: Provide environment details if they might be relevant
+      placeholder: |
+        - OS: [e.g. macOS, Ubuntu, Windows]
+        - Python version: [e.g. 3.11.6]
+        - Template version: [e.g. v1.0.0]
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues and discussions
+          required: true
+        - label: I have checked the documentation in the docs/ directory
+          required: true
+        - label: I have provided sufficient context for my question
+          required: true

@@ -1,95 +1,225 @@
-# Neighbour Approved
+# FastAPI Template
 
-**The Gratitude Engine for Local Services** - A WhatsApp-based service endorsement platform where good work gets recognised, remembered, and rewarded.
+> **Production-ready FastAPI template with clean architecture, comprehensive testing, and modern Python practices**
 
-[![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/)
-[![Poetry](https://img.shields.io/badge/poetry-managed-blueviolet.svg)](https://python-poetry.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.116.1-009688.svg)](https://fastapi.tiangolo.com/)
-[![Pydantic](https://img.shields.io/badge/Pydantic-v2-E92063.svg)](https://docs.pydantic.dev/)
-[![Uvicorn](https://img.shields.io/badge/Uvicorn-0.35.0-2196F3.svg)](https://www.uvicorn.org/)
+[![Python](https://img.shields.io/badge/Python-3.11%2B-blue?logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-green?logo=fastapi)](https://fastapi.tiangolo.com)
+[![Poetry](https://img.shields.io/badge/Poetry-package%20manager-blue)](https://python-poetry.org)
+[![Ruff](https://img.shields.io/badge/Code%20style-Ruff-black)](https://github.com/astral-sh/ruff)
+[![MyPy](https://img.shields.io/badge/Type%20checker-MyPy-blue)](https://mypy.readthedocs.io)
+[![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen)](https://pytest.org)
 
-[![pytest](https://img.shields.io/badge/pytest-8.3.0-orange.svg)](https://pytest.org/)
-[![Code Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://pytest.org/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Linting: Ruff](https://img.shields.io/badge/linting-ruff-FCC624.svg)](https://github.com/astral-sh/ruff)
-[![Type Checked: mypy](https://img.shields.io/badge/type%20checked-mypy-blue.svg)](http://mypy-lang.org/)
-[![Security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/PyCQA/bandit)
+## Why This Template?
 
-[![structlog](https://img.shields.io/badge/logging-structlog-orange.svg)](https://www.structlog.org/)
-[![Prometheus](https://img.shields.io/badge/metrics-prometheus-E6522C.svg)](https://prometheus.io/)
-[![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen.svg)](https://pre-commit.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+**Stop spending weeks setting up infrastructure.** This template provides everything you need to build production-ready APIs from day one.
 
-WhatsApp-based local service endorsement platform that captures and organises community recommendations.
+- 🚀 **Zero-to-API in minutes** - Complete setup with authentication, validation, and monitoring
+- 🏗️ **Clean Architecture** - Domain-driven design with clear separation of concerns
+- 🔒 **Production Security** - API key authentication, rate limiting, and input validation
+- 📊 **Built-in Observability** - Structured logging, metrics, and health checks
+- 🧪 **100% Test Coverage** - Comprehensive test suite with behavioural testing
+- 🐳 **Docker Ready** - Multi-stage builds with development and production configurations
+- 🗄️ **Multi-Database Support** - PostgreSQL, Firestore, Redis with feature flags
+- ⚡ **Developer Experience** - Hot reload, type safety, and modern Python tooling
 
-## Overview
+## Quick Start
 
-Neighbour Approved transforms WhatsApp neighbourhood groups into intelligent recommendation engines. When neighbours mention service providers, we capture these as endorsements, creating a permanent, searchable record of community trust.
-
-## Development Approach
-
-- **Test-Driven Development (TDD)**: Red-Green-Refactor cycle
-- **Flow-Based Development**: WIP limit of 1 - complete one module entirely before starting the next
-- **100% Test Coverage**: No exceptions
-- **Type Safety**: Full type annotations with Python 3.13
-
-## Tech Stack
-
-- Python 3.13
-- FastAPI
-- Pydantic
-- Poetry for dependency management
-- Firestore for persistence
-- GREEN-API for WhatsApp integration
-
-## Getting Started
-
-### Prerequisites
-
-- Python 3.13+
-- Poetry package manager
-
-### Installation
+### 1. Create Your Project
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/neighbour-approved.git
-cd neighbour-approved
+# Clone the template
+git clone https://github.com/barry47products/fastapi-template.git your-project-name
+cd your-project-name
 
 # Install dependencies
-poetry install
+poetry install && poetry shell
+
+# Set up development environment
+cp .env.example .env
 ```
 
-### VSCode Setup
-
-After installation, configure VSCode to use the Poetry environment:
-
-1. **Find your Poetry environment path**:
-
-   ```bash
-   poetry env info --path
-   ```
-
-2. **Select Python Interpreter in VSCode**:
-   - Press `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux)
-   - Type "Python: Select Interpreter"
-   - Choose the Poetry environment path from step 1
-
-3. **Reload VSCode** if needed:
-   - Press `Cmd+Shift+P` / `Ctrl+Shift+P`
-   - Type "Developer: Reload Window"
-
-### Running the Application
+### 2. Start Development
 
 ```bash
-# Start development server
-poetry run uvicorn src.main:app --reload
-
-# Or use the built-in development server
-poetry run python -m src.main
+# Run with hot reload
+make run
 
 # Run tests
-poetry run pytest
+make test
 
-# Run tests with coverage
-poetry run pytest --cov=src --cov-report=term-missing
+# Check code quality
+make quality
+```
+
+### 3. Your API is Ready
+
+Visit `http://localhost:8000/docs` to explore your API documentation.
+
+## What's Included
+
+### 🏗️ Architecture
+
+- **Domain Layer**: Pure business logic with immutable models
+- **Application Layer**: Commands, queries, and orchestration
+- **Infrastructure Layer**: Database, external APIs, security
+- **Interface Layer**: FastAPI routes and schemas
+
+### 🛠️ Development Tools
+
+- **Poetry**: Dependency management and virtual environments
+- **Ruff**: Lightning-fast linting and formatting
+- **MyPy**: Static type checking with strict mode
+- **Pytest**: Testing framework with high coverage requirement
+- **Pre-commit**: Automated code quality checks
+
+### 📦 Infrastructure
+
+- **Authentication**: API key validation with multiple formats
+- **Rate Limiting**: Configurable request throttling
+- **Validation**: Pydantic models with comprehensive error handling
+- **Observability**: Structured logging with metrics collection
+- **Health Checks**: Kubernetes-ready liveness and readiness probes
+- **Error Handling**: Domain-specific exceptions with proper HTTP responses
+
+### 🗄️ Database Support
+
+- **PostgreSQL**: Production async implementation with connection pooling
+- **Firestore**: NoSQL document store with caching
+- **Redis**: High-performance caching layer
+- **Feature Flags**: Enable/disable databases via configuration
+
+## Configuration
+
+All configuration is handled via environment variables:
+
+```bash
+# API Configuration
+API_HOST=0.0.0.0
+API_PORT=8000
+API_TITLE="Your API"
+
+# Security
+INTERNAL_API_KEYS=your-secret-key-here
+WEBHOOK_SECRET=webhook-secret
+
+# Database (choose one)
+DATABASE_TYPE=postgresql  # postgresql|firestore|redis|in_memory
+DATABASE_URL=postgresql://user:pass@localhost:5432/db
+
+# Observability
+LOG_LEVEL=INFO
+METRICS_ENABLED=true
+```
+
+## Available Commands
+
+```bash
+# Development
+make run                # Start development server
+make test               # Run all tests
+make test-fast          # Run fast tests only (excludes slow markers)
+make watch              # Run tests in watch mode
+
+# Code Quality
+make format             # Format code with Ruff
+make lint               # Check code style
+make typecheck          # Run MyPy type checking
+make quality            # Run all quality checks
+make pr                 # Prepare for pull request
+
+# Database
+make migrate-up         # Apply database migrations
+make migrate-down       # Rollback last migration
+
+# Docker
+make docker-build       # Build Docker image
+make docker-run         # Run in container
+```
+
+## Testing Strategy
+
+This template follows behaviour-driven testing principles:
+
+- **Unit Tests**: Domain logic and pure functions
+- **Integration Tests**: Component interactions
+- **Contract Tests**: API endpoint behaviour
+- **Behaviour Tests**: User story validation
+
+```bash
+# Run specific test categories
+make test-unit          # Domain and business logic
+make test-integration   # Infrastructure components
+make test-behaviour     # End-to-end scenarios
+make test-security      # Security validations
+```
+
+## Deployment
+
+### Docker
+
+```dockerfile
+# Multi-stage build included
+docker build -t your-api .
+docker run -p 8000:8000 your-api
+```
+
+### Kubernetes
+
+```yaml
+# Kubernetes manifests provided
+kubectl apply -f kubernetes/
+```
+
+### Environment Variables
+
+Production-ready configuration with validation:
+
+```python
+# All settings are typed and validated
+class Settings(BaseModel):
+    api: APISettings
+    database: DatabaseSettings
+    security: SecuritySettings
+    observability: ObservabilitySettings
+```
+
+## Architecture Decisions
+
+### Why Clean Architecture?
+
+- **Testability**: Business logic isolated from infrastructure
+- **Flexibility**: Easy to swap databases or external services
+- **Maintainability**: Clear boundaries and responsibilities
+
+### Why These Tools?
+
+- **FastAPI**: Best-in-class API framework with automatic docs
+- **Ruff**: 10-100x faster than alternatives with same results
+- **Poetry**: Reliable dependency management with lock files
+- **Pydantic**: Runtime validation with excellent error messages
+
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+### Development Setup
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Ensure all tests pass: `make quality`
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+- 📖 [Documentation](docs/)
+- 🐛 [Issue Tracker](https://github.com/barry47products/fastapi-template/issues)
+- 💬 [Discussions](https://github.com/barry47products/fastapi-template/discussions)
+
+---
+
+## **Built with ❤️ for the Python community**

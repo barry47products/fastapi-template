@@ -620,6 +620,9 @@ words:
   - yugabyte
   - zipkin
   - zsh
+  - snok
+  - unittests
+  - codecov
 ignoreRegExpList:
   - /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi
   - /[0-9a-f]{32}/gi
