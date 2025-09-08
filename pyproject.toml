@@ -236,6 +236,11 @@ show_error_context = true
 pretty = true
 color_output = true
 
+# Performance optimisations
+cache_fine_grained = true
+skip_version_check = true
+sqlite_cache = true
+
 # Per-module options
 [[tool.mypy.overrides]]
 module = "tests.*"

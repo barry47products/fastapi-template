@@ -185,6 +185,7 @@ words:
   - domainmodel
   - dos
   - dpage
+  - Dsonar
   - dto
   - dtos
   - dynamodb
@@ -521,6 +522,7 @@ words:
   - skipif
   - sku
   - smtp
+  - snok
   - sonarqube
   - spanner
   - sqlalchemy
@@ -584,6 +586,7 @@ words:
   - unauthorised
   - undef
   - unittest
+  - unittests
   - urg
   - uri
   - url
@@ -620,9 +623,6 @@ words:
   - yugabyte
   - zipkin
   - zsh
-  - snok
-  - unittests
-  - codecov
 ignoreRegExpList:
   - /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi
   - /[0-9a-f]{32}/gi

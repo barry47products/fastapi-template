@@ -42,6 +42,15 @@ jobs:
       - name: Install project
         run: poetry install --no-interaction
 
+      - name: Cache MyPy
+        uses: actions/cache@v4
+        with:
+          path: .mypy_cache
+          key: mypy-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/pyproject.toml') }}-${{ hashFiles('**/*.py') }}
+          restore-keys: |
+            mypy-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/pyproject.toml') }}-
+            mypy-${{ runner.os }}-${{ matrix.python-version }}-
+
       - name: Run format check
         run: poetry run ruff format --check .
 
@@ -92,6 +101,15 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-interaction --no-root
 
+      - name: Cache MyPy
+        uses: actions/cache@v4
+        with:
+          path: .mypy_cache
+          key: mypy-sonar-${{ runner.os }}-${{ hashFiles('**/pyproject.toml') }}-${{ hashFiles('**/*.py') }}
+          restore-keys: |
+            mypy-sonar-${{ runner.os }}-${{ hashFiles('**/pyproject.toml') }}-
+            mypy-sonar-${{ runner.os }}-
+
       - name: Run tests with coverage for SonarQube
         run: |
           poetry run pytest \
@@ -103,7 +121,9 @@ jobs:
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5
+        with:
+          args: >
+            -Dsonar.projectKey=barry47products_fastapi-template
+            -Dsonar.organization=barry47products
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_PROJECT_KEY: barry47products_fastapi-template
-          SONAR_ORGANIZATION: barry47products
