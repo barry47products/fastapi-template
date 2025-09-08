@@ -11,7 +11,7 @@ from src.infrastructure.dependencies import (
     get_metrics_collector,
     get_notification_service,
     get_rate_limiter,
-    get_repository_factory,
+    get_repository_provider,
     get_webhook_verifier,
 )
 
@@ -76,13 +76,13 @@ class TestDependencyProviders:
         assert manager1 is manager2
         assert manager1.__class__.__name__ == "FeatureFlagManager"
 
-    def test_get_repository_factory_returns_singleton(self) -> None:
-        """Repository factory provider returns singleton instance."""
-        factory1 = get_repository_factory()
-        factory2 = get_repository_factory()
+    def test_get_repository_provider_returns_singleton(self) -> None:
+        """Repository provider returns singleton instance."""
+        provider1 = get_repository_provider()
+        provider2 = get_repository_provider()
 
-        assert factory1 is factory2
-        assert factory1.__class__.__name__ == "SampleRepositoryFactory"
+        assert provider1 is provider2
+        assert provider1.__class__.__name__ == "RepositoryProvider"
 
     def test_get_notification_service_returns_singleton(self) -> None:
         """Notification service provider returns singleton instance."""

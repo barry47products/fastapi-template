@@ -10,7 +10,11 @@ if TYPE_CHECKING:
     from src.infrastructure.messaging.sample_notification_service import SampleNotificationService
     from src.infrastructure.observability.health_checker import HealthChecker
     from src.infrastructure.observability.metrics import MetricsCollector
-    from src.infrastructure.persistence.repository_factory import RepositoryFactory
+    from src.infrastructure.persistence.repositories import (
+        InMemoryProductRepository,
+        InMemoryUserRepository,
+    )
+    from src.infrastructure.persistence.repository_provider import RepositoryProvider
     from src.infrastructure.security.api_key_validator import APIKeyValidator
     from src.infrastructure.security.rate_limiter import RateLimiter
     from src.infrastructure.security.webhook_verifier import WebhookVerifier
@@ -74,11 +78,27 @@ def get_feature_flag_manager() -> FeatureFlagManager:
 
 
 @lru_cache
-def get_repository_factory() -> RepositoryFactory:
-    """Get singleton repository factory via FastAPI DI."""
-    from src.infrastructure.persistence.repository_factory import SampleRepositoryFactory
+def get_repository_provider() -> RepositoryProvider:
+    """Get singleton repository provider via FastAPI DI."""
+    from src.infrastructure.persistence.repository_provider import RepositoryProvider
 
-    return SampleRepositoryFactory()
+    return RepositoryProvider(database_url="memory://", db_type="in_memory")
+
+
+def get_user_repository() -> InMemoryUserRepository:
+    """Get user repository via dependency injection."""
+    from src.infrastructure.persistence.repositories import InMemoryUserRepository
+
+    provider = get_repository_provider()
+    return provider.get(InMemoryUserRepository)
+
+
+def get_product_repository() -> InMemoryProductRepository:
+    """Get product repository via dependency injection."""
+    from src.infrastructure.persistence.repositories import InMemoryProductRepository
+
+    provider = get_repository_provider()
+    return provider.get(InMemoryProductRepository)
 
 
 @lru_cache

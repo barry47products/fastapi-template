@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from config.settings import get_settings
 from src.infrastructure.observability import configure_health_checker, get_logger
-from src.infrastructure.persistence import configure_repository_factory
+from src.infrastructure.persistence.repository_provider import configure_repository_provider
 from src.infrastructure.security.api_key_validator import configure_api_key_validator
 from src.infrastructure.security.rate_limiter import configure_rate_limiter
 
@@ -34,8 +34,8 @@ def initialize_infrastructure() -> None:
             window_seconds=60,
         )
 
-        # Configure repository factory
-        configure_repository_factory()
+        # Configure repository provider
+        configure_repository_provider()
 
         logger.info("Infrastructure initialization completed successfully")
 
