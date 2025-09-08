@@ -36,7 +36,7 @@ class HealthCheckError(ApplicationError):
 class HealthChecker:
     """Component health monitoring system for application observability."""
 
-    def __init__(self, timeout: int) -> None:
+    def __init__(self, timeout: float) -> None:
         """Initialize health checker with configuration.
 
         Args:

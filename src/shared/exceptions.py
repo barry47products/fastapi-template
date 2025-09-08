@@ -145,6 +145,30 @@ class RepositoryException(PersistenceException):
     error_code: str = "REPOSITORY_ERROR"
 
 
+class ConnectionException(PersistenceException):
+    """Exception for database/cache connection errors."""
+
+    error_code: str = "CONNECTION_ERROR"
+
+
+class TransactionException(PersistenceException):
+    """Exception for database transaction errors."""
+
+    error_code: str = "TRANSACTION_ERROR"
+
+
+class MigrationException(PersistenceException):
+    """Exception for database migration errors."""
+
+    error_code: str = "MIGRATION_ERROR"
+
+
+class CacheException(PersistenceException):
+    """Exception for cache-related errors."""
+
+    error_code: str = "CACHE_ERROR"
+
+
 # Authentication and authorization exceptions
 class AuthenticationException(ApplicationError):
     """Exception for authentication failures."""

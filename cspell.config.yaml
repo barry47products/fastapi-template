@@ -60,6 +60,7 @@ words:
   - api
   - apikey
   - apis
+  - appendonly
   - argocd
   - args
   - arp
@@ -183,6 +184,7 @@ words:
   - doi
   - domainmodel
   - dos
+  - dpage
   - dto
   - dtos
   - dynamodb
@@ -252,6 +254,7 @@ words:
   - hack
   - hatch
   - hazelcast
+  - healthcheck
   - helper
   - helpers
   - hexagonal
@@ -289,6 +292,7 @@ words:
   - ipvanynetwork
   - isbn
   - isort
+  - isready
   - istio
   - jaeger
   - jenkins
@@ -378,6 +382,7 @@ words:
   - npm
   - nullopt
   - nullptr
+  - numprocesses
   - oauth
   - offence
   - offences
@@ -414,6 +419,7 @@ words:
   - pbac
   - pdm
   - Perflint
+  - pgadmin
   - pipenv
   - pipfile
   - plugin
@@ -468,6 +474,7 @@ words:
   - rce
   - realloc
   - redis
+  - rediscommander
   - redoc
   - refactor
   - refurb
@@ -503,6 +510,7 @@ words:
   - serialise
   - serialised
   - serialising
+  - setex
   - setter
   - setuptools
   - sftp
@@ -546,6 +554,7 @@ words:
   - teardown
   - terraform
   - tëst
+  - testdb
   - tex
   - tidb
   - timedelta

@@ -127,7 +127,14 @@ async def create_user(user_request: CreateUserRequest) -> UserResponse:
     logger.info("User created successfully", user_id=user_id, email=user_request.email)
     metrics.increment_counter("users_created_total", {})
 
-    return UserResponse(**user_data)
+    return UserResponse(
+        id=user_id,
+        name=user_request.name,
+        email=user_request.email,
+        age=user_request.age,
+        created_at=now,
+        updated_at=now,
+    )
 
 
 @router.get("/users", response_model=list[UserResponse])
@@ -277,7 +284,15 @@ async def create_product(product_request: CreateProductRequest) -> ProductRespon
     )
     metrics.increment_counter("products_created_total", {"category": product_request.category})
 
-    return ProductResponse(**product_data)
+    return ProductResponse(
+        id=product_id,
+        name=product_request.name,
+        description=product_request.description,
+        price=product_request.price,
+        category=product_request.category,
+        created_at=now,
+        in_stock=True,
+    )
 
 
 @router.get("/products", response_model=list[ProductResponse])

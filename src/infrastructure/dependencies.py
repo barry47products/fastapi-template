@@ -80,9 +80,10 @@ def get_feature_flag_manager() -> FeatureFlagManager:
 @lru_cache
 def get_repository_provider() -> RepositoryProvider:
     """Get singleton repository provider via FastAPI DI."""
+    from config.settings import DatabaseType
     from src.infrastructure.persistence.repository_provider import RepositoryProvider
 
-    return RepositoryProvider(database_url="memory://", db_type="in_memory")
+    return RepositoryProvider(database_url="memory://", db_type=DatabaseType.IN_MEMORY)
 
 
 def get_user_repository() -> InMemoryUserRepository:

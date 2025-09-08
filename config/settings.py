@@ -42,21 +42,110 @@ class APISettings(BaseModel):
     openapi_url: str | None = Field(default="/openapi.json", description="OpenAPI JSON URL")
 
 
-class DatabaseSettings(BaseModel):
-    """Database configuration."""
+class DatabaseType(str, Enum):
+    """Supported database types."""
 
-    # For template purposes, we use simple settings
-    # Replace with actual database settings (PostgreSQL, MySQL, etc.)
-    database_url: str = Field(
-        default="sqlite:///./template.db",
-        description="Database connection URL",
+    FIRESTORE = "firestore"
+    POSTGRESQL = "postgresql"
+    REDIS = "redis"
+    IN_MEMORY = "in_memory"
+
+
+class DatabaseSettings(BaseModel):
+    """Multi-database configuration with feature flags."""
+
+    # Primary database configuration
+    primary_db: DatabaseType = Field(
+        default=DatabaseType.IN_MEMORY,
+        description="Primary database for persistent data storage",
     )
+    database_url: str = Field(
+        default="memory://localhost",
+        description="Primary database connection URL",
+    )
+
+    # Cache database configuration
+    cache_db: DatabaseType | None = Field(
+        default=None,
+        description="Optional cache database for performance optimization",
+    )
+    cache_url: str | None = Field(
+        default=None,
+        description="Cache database connection URL",
+    )
+
+    # Legacy settings for backward compatibility
     echo_queries: bool = Field(
         default=False,
         description="Echo database queries (development only)",
     )
+
+    # Connection pooling configuration
     pool_size: int = Field(default=5, ge=1, le=50, description="Connection pool size")
     max_overflow: int = Field(default=10, ge=0, le=100, description="Pool max overflow")
+    pool_timeout: int = Field(default=30, ge=5, le=300, description="Pool timeout in seconds")
+    pool_recycle: int = Field(
+        default=3600, ge=300, le=86400, description="Pool recycle time in seconds"
+    )
+
+    # Retry configuration
+    retry_attempts: int = Field(default=3, ge=1, le=10, description="Database retry attempts")
+    retry_delay: float = Field(default=1.0, ge=0.1, le=10.0, description="Retry delay in seconds")
+    connection_timeout: float = Field(
+        default=30.0, ge=5.0, le=300.0, description="Connection timeout in seconds"
+    )
+
+    # Database feature flags
+    enable_firestore: bool = Field(default=False, description="Enable Google Firestore support")
+    enable_postgresql: bool = Field(default=False, description="Enable PostgreSQL support")
+    enable_redis_cache: bool = Field(default=False, description="Enable Redis caching")
+    enable_connection_pooling: bool = Field(default=True, description="Enable connection pooling")
+    enable_retry_logic: bool = Field(default=True, description="Enable retry logic")
+    enable_read_replicas: bool = Field(default=False, description="Enable read replica support")
+    enable_migrations: bool = Field(default=False, description="Enable automatic migrations")
+
+    def is_feature_enabled(self, feature: str) -> bool:
+        """Check if a database feature is enabled.
+
+        Args:
+            feature: Feature flag name
+
+        Returns:
+            True if feature is enabled, False otherwise
+        """
+        return getattr(self, feature, False)
+
+    def supports_transactions(self) -> bool:
+        """Check if primary database supports transactions.
+
+        Returns:
+            True if transactions are supported
+        """
+        return self.primary_db in {DatabaseType.POSTGRESQL, DatabaseType.FIRESTORE}
+
+    def supports_acid(self) -> bool:
+        """Check if primary database supports ACID properties.
+
+        Returns:
+            True if ACID properties are supported
+        """
+        return self.primary_db == DatabaseType.POSTGRESQL
+
+    def requires_schema_migrations(self) -> bool:
+        """Check if database requires schema migrations.
+
+        Returns:
+            True if schema migrations are required
+        """
+        return self.primary_db == DatabaseType.POSTGRESQL
+
+    def supports_full_text_search(self) -> bool:
+        """Check if database supports full-text search.
+
+        Returns:
+            True if full-text search is supported
+        """
+        return self.primary_db in {DatabaseType.POSTGRESQL, DatabaseType.FIRESTORE}
 
 
 class SecuritySettings(BaseModel):
@@ -224,6 +313,21 @@ class ApplicationSettings(BaseSettings):
 
         if self.is_production() and "sample" in str(self.security.api_keys[0]).lower():
             raise ConfigurationException("Sample API keys cannot be used in production")  # noqa: EM101, TRY003
+
+        # Database validation
+        if self.database.enable_postgresql and not self.database.database_url.startswith(
+            "postgresql"
+        ):
+            raise ConfigurationException("PostgreSQL enabled but database URL is not PostgreSQL")  # noqa: EM101, TRY003
+
+        if self.database.enable_redis_cache and not self.database.cache_url:
+            raise ConfigurationException("Redis cache enabled but no cache URL provided")  # noqa: EM101, TRY003
+
+        if self.database.cache_db and not self.database.cache_url:
+            raise ConfigurationException("Cache database specified but no cache URL provided")  # noqa: EM101, TRY003
+
+        if self.is_production() and self.database.primary_db == DatabaseType.IN_MEMORY:
+            raise ConfigurationException("In-memory database cannot be used in production")  # noqa: EM101, TRY003
 
         if (
             self.external_services.email_service_enabled

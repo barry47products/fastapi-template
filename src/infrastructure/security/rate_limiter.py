@@ -23,7 +23,7 @@ class RateLimitError(ApplicationError):
 class RateLimiter:
     """Sliding window rate limiter for request throttling."""
 
-    def __init__(self, limit: int, window_seconds: int) -> None:
+    def __init__(self, limit: int, window_seconds: float) -> None:
         """Initialize rate limiter with request limit and time window."""
         self.limit = limit
         self.window_seconds = window_seconds
@@ -79,7 +79,7 @@ class _RateLimiterSingleton:
         cls._instance = limiter
 
 
-def configure_rate_limiter(limit: int, window_seconds: int) -> None:
+def configure_rate_limiter(limit: int, window_seconds: float) -> None:
     """Configure the global rate limiter instance.
 
     This function is kept for backward compatibility during initialization.
