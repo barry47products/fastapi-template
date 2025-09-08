@@ -17,6 +17,7 @@ structlog = "^25.4.0"
 prometheus-client = "^0.22.1"
 sqlalchemy = {extras = ["asyncio"], version = "^2.0.36"}
 redis = {extras = ["hiredis"], version = "^5.2.1"}
+google-cloud-firestore = "^2.19.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.0"
@@ -48,7 +49,7 @@ optional = true
 optional = true
 
 [tool.poetry.group.firestore.dependencies]
-google-cloud-firestore = "^2.19.0"
+# google-cloud-firestore is included as main dependency above
 grpcio = "^1.68.1"
 
 [build-system]
