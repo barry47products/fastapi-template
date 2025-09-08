@@ -4,9 +4,8 @@
 # E1136: Pylint doesn't understand Pydantic's dynamic model_fields access
 # W0107: Abstract method pass statements are intentional for interface definition
 
-from abc import ABC, abstractmethod
 from datetime import datetime, UTC
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field
@@ -44,15 +43,15 @@ class DomainEvent(BaseModel):
         return self.model_dump()
 
 
-class DomainEventPublisher(ABC):
+@runtime_checkable
+class DomainEventPublisher(Protocol):
     """
-    Abstract base class for domain event publishers.
+    Protocol for domain event publishers.
 
     Infrastructure layers implement this interface to receive domain events
     and handle cross-cutting concerns without coupling the domain to infrastructure.
     """
 
-    @abstractmethod
     def publish(self, event: DomainEvent) -> None:
         """
         Publish a domain event.
@@ -60,9 +59,7 @@ class DomainEventPublisher(ABC):
         Args:
             event: The domain event to publish
         """
-        # pylint: disable=unnecessary-pass
 
-    @abstractmethod
     def publish_batch(self, events: list[DomainEvent]) -> None:
         """
         Publish multiple domain events as a batch.
@@ -70,4 +67,3 @@ class DomainEventPublisher(ABC):
         Args:
             events: List of domain events to publish
         """
-        # pylint: disable=unnecessary-pass

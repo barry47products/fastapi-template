@@ -2,30 +2,20 @@
 
 from __future__ import annotations
 
-from src.domain.events import (
-    DomainEvent,
-    DomainEventPublisher,
-    OrderCancelled,
-    OrderDelivered,
-    OrderPlaced,
-    OrderShipped,
-    OrderStatusChanged,
-    OrderUpdated,
-    UserCreated,
-    UserDeleted,
-    UserEmailVerified,
-    UserStatusChanged,
-    UserUpdated,
-)
+from typing import TYPE_CHECKING
+
 from src.infrastructure.observability import get_logger, get_metrics_collector
 
+if TYPE_CHECKING:
+    from src.domain.events import DomainEvent
 
-class ObservabilityEventPublisher(DomainEventPublisher):
+
+class ObservabilityEventPublisher:
     """
-    Infrastructure event publisher that handles observability concerns.
+    Simple event publisher for observability concerns.
 
-    Subscribes to domain events and translates them into logging and metrics
-    operations, maintaining clean separation between domain and infrastructure.
+    Handles domain events by logging them and recording metrics,
+    maintaining clean separation between domain and infrastructure.
     """
 
     def __init__(self) -> None:
@@ -40,8 +30,8 @@ class ObservabilityEventPublisher(DomainEventPublisher):
         Args:
             event: The domain event to publish
         """
-        self._handle_logging(event)
-        self._handle_metrics(event)
+        self._log_event(event)
+        self._record_metrics(event)
 
     def publish_batch(self, events: list[DomainEvent]) -> None:
         """
@@ -53,139 +43,24 @@ class ObservabilityEventPublisher(DomainEventPublisher):
         for event in events:
             self.publish(event)
 
-    def _handle_logging(self, event: DomainEvent) -> None:
-        """Handle structured logging for domain events."""
-        # User events
-        if isinstance(event, UserCreated):
-            self._logger.info(
-                "User created",
-                user_id=event.user_id,
-                email=event.user_email,
-            )
-        elif isinstance(event, UserUpdated):
-            self._logger.info(
-                "User updated",
-                user_id=event.user_id,
-                fields_updated=event.fields_updated,
-            )
-        elif isinstance(event, UserStatusChanged):
-            self._logger.info(
-                "User status changed",
-                user_id=event.user_id,
-                previous_status=event.previous_status,
-                new_status=event.new_status,
-            )
-        elif isinstance(event, UserEmailVerified):
-            self._logger.info(
-                "User email verified",
-                user_id=event.user_id,
-                email=event.email,
-            )
-        elif isinstance(event, UserDeleted):
-            self._logger.info(
-                "User deleted",
-                user_id=event.user_id,
-                deletion_reason=event.deletion_reason,
-            )
+    def _log_event(self, event: DomainEvent) -> None:
+        """Log domain event with structured data."""
+        event_data = event.to_dict()
 
-        # Order events
-        elif isinstance(event, OrderPlaced):
-            self._logger.info(
-                "Order placed",
-                order_id=event.order_id,
-                user_id=event.user_id,
-                order_total=event.order_total,
-                currency=event.currency,
-            )
-        elif isinstance(event, OrderUpdated):
-            self._logger.info(
-                "Order updated",
-                order_id=event.order_id,
-                fields_updated=event.fields_updated,
-            )
-        elif isinstance(event, OrderStatusChanged):
-            self._logger.info(
-                "Order status changed",
-                order_id=event.order_id,
-                previous_status=event.previous_status,
-                new_status=event.new_status,
-            )
-        elif isinstance(event, OrderShipped):
-            self._logger.info(
-                "Order shipped",
-                order_id=event.order_id,
-                tracking_number=event.tracking_number,
-                carrier=event.carrier,
-                shipped_at=event.shipped_at.isoformat(),
-            )
-        elif isinstance(event, OrderDelivered):
-            self._logger.info(
-                "Order delivered",
-                order_id=event.order_id,
-                delivered_at=event.delivered_at.isoformat(),
-            )
-        elif isinstance(event, OrderCancelled):
-            self._logger.info(
-                "Order cancelled",
-                order_id=event.order_id,
-                cancellation_reason=event.cancellation_reason,
-                refund_amount=event.refund_amount,
-            )
+        self._logger.info(
+            "Domain event: %s",
+            event.event_type,
+            event_type=event.event_type,
+            event_id=str(event.event_id),
+            occurred_at=event.occurred_at.isoformat(),
+            aggregate_id=event.aggregate_id,
+            **{
+                k: v
+                for k, v in event_data.items()
+                if k not in {"event_id", "occurred_at", "event_type"}
+            },
+        )
 
-        # Generic domain event logging
-        else:
-            self._logger.info(
-                "Domain event published",
-                event_type=event.event_type,
-                occurred_at=event.occurred_at.isoformat(),
-            )
-
-    def _handle_metrics(self, event: DomainEvent) -> None:
-        """Handle metrics collection for domain events."""
-        # User metrics
-        if isinstance(event, UserCreated):
-            self._metrics.increment_counter("users_created_total", {})
-        elif isinstance(event, UserUpdated):
-            self._metrics.increment_counter("users_updated_total", {})
-        elif isinstance(event, UserStatusChanged):
-            self._metrics.increment_counter(
-                "user_status_changes_total",
-                {"previous_status": event.previous_status, "new_status": event.new_status},
-            )
-        elif isinstance(event, UserEmailVerified):
-            self._metrics.increment_counter("user_email_verifications_total", {})
-        elif isinstance(event, UserDeleted):
-            self._metrics.increment_counter(
-                "users_deleted_total", {"deletion_reason": event.deletion_reason}
-            )
-
-        # Order metrics
-        elif isinstance(event, OrderPlaced):
-            self._metrics.increment_counter("orders_placed_total", {})
-            self._metrics.record_histogram(
-                "order_total_amount",
-                event.order_total,
-                {"currency": event.currency},
-            )
-        elif isinstance(event, OrderUpdated):
-            self._metrics.increment_counter("orders_updated_total", {})
-        elif isinstance(event, OrderStatusChanged):
-            self._metrics.increment_counter(
-                "order_status_changes_total",
-                {"previous_status": event.previous_status, "new_status": event.new_status},
-            )
-        elif isinstance(event, OrderShipped):
-            self._metrics.increment_counter("orders_shipped_total", {"carrier": event.carrier})
-        elif isinstance(event, OrderDelivered):
-            self._metrics.increment_counter("orders_delivered_total", {})
-        elif isinstance(event, OrderCancelled):
-            self._metrics.increment_counter(
-                "orders_cancelled_total", {"cancellation_reason": event.cancellation_reason}
-            )
-
-        # Generic domain event metrics
-        else:
-            self._metrics.increment_counter(
-                "domain_events_published_total",
-                {"event_type": event.event_type},
-            )
+    def _record_metrics(self, event: DomainEvent) -> None:
+        """Record metrics for domain event."""
+        self._metrics.increment_counter("domain_events_total", {"event_type": event.event_type})

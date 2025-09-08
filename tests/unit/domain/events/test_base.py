@@ -212,35 +212,32 @@ class TestDomainEvent:
 class TestDomainEventPublisher:
     """Test domain event publisher interface."""
 
-    def test_is_abstract_base_class(self) -> None:
-        """Is abstract base class that cannot be instantiated."""
+    def test_is_protocol_interface(self) -> None:
+        """Is Protocol interface that cannot be instantiated."""
 
-        with pytest.raises(TypeError, match="Can't instantiate abstract class"):
-            DomainEventPublisher()  # type: ignore[abstract]
+        with pytest.raises(TypeError, match="Protocols cannot be instantiated"):
+            DomainEventPublisher()  # type: ignore[misc]
 
-    def test_requires_publish_implementation(self) -> None:
-        """Requires publish method implementation."""
+    def test_allows_protocol_implementation(self) -> None:
+        """Allows classes that implement the protocol methods."""
 
-        class IncompletePublisher(DomainEventPublisher):
-            pass
+        class SimplePublisher:
+            def __init__(self) -> None:
+                self.published_events: list[DomainEvent] = []
 
-        with pytest.raises(TypeError, match="Can't instantiate abstract class"):
-            IncompletePublisher()  # type: ignore[abstract]
-
-    def test_requires_publish_batch_implementation(self) -> None:
-        """Requires publish batch method implementation."""
-
-        class PartialPublisher(DomainEventPublisher):
             def publish(self, event: DomainEvent) -> None:
-                pass
+                self.published_events.append(event)
 
-        with pytest.raises(TypeError, match="Can't instantiate abstract class"):
-            PartialPublisher()  # type: ignore[abstract]
+            def publish_batch(self, events: list[DomainEvent]) -> None:
+                self.published_events.extend(events)
 
-    def test_allows_concrete_implementation(self) -> None:
-        """Allows concrete implementation with all methods."""
+        publisher = SimplePublisher()
+        assert isinstance(publisher, DomainEventPublisher)
 
-        class ConcretePublisher(DomainEventPublisher):
+    def test_protocol_works_with_structural_typing(self) -> None:
+        """Protocol enables structural typing for implementations."""
+
+        class ConcretePublisher:
             def __init__(self) -> None:
                 self.published_events: list[DomainEvent] = []
 
@@ -258,7 +255,7 @@ class TestDomainEventPublisher:
     def test_concrete_implementation_works_correctly(self) -> None:
         """Concrete implementation works correctly."""
 
-        class WorkingPublisher(DomainEventPublisher):
+        class WorkingPublisher:
             def __init__(self) -> None:
                 self.events: list[DomainEvent] = []
 
@@ -293,7 +290,7 @@ class TestDomainEventPublisher:
     def test_supports_polymorphic_usage(self) -> None:
         """Supports polymorphic usage through interface."""
 
-        class MockPublisher(DomainEventPublisher):
+        class MockPublisher:
             def __init__(self) -> None:
                 self.call_count = 0
 
