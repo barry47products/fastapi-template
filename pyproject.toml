@@ -16,7 +16,7 @@ uvicorn = "^0.35.0"
 structlog = "^25.4.0"
 prometheus-client = "^0.22.1"
 sqlalchemy = {extras = ["asyncio"], version = "^2.0.36"}
-redis = {extras = ["hiredis"], version = "^5.2.1"}
+redis = {extras = ["hiredis"], version = "^6.4.0"}
 google-cloud-firestore = "^2.19.0"
 
 [tool.poetry.group.dev.dependencies]
