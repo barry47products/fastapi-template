@@ -79,27 +79,19 @@ class APIKeyValidator:
 def configure_api_key_validator(api_keys: list[str]) -> None:
     """Configure the global API key validator.
 
+    This function is kept for backward compatibility during initialization.
+    With dependency injection, configuration is handled via get_api_key_validator().
+
     Args:
         api_keys: List of valid API keys for authentication
     """
+    # For backward compatibility, set the singleton instance
     validator = APIKeyValidator(api_keys=api_keys)
-
-    # Register with service registry (primary method)
-    try:
-        from src.infrastructure.service_registry import get_service_registry
-
-        service_registry = get_service_registry()
-        service_registry.register_api_key_validator(validator)
-    except Exception:
-        # Service registry might not be initialized yet
-        pass
-
-    # Also set in singleton for backward compatibility during transition
     _APIKeyValidatorSingleton.set_instance(validator)
 
 
 def get_api_key_validator() -> APIKeyValidator:
-    """Get the global API key validator instance via service registry.
+    """Get the global API key validator instance via singleton fallback.
 
     Returns:
         API key validator instance
@@ -107,17 +99,6 @@ def get_api_key_validator() -> APIKeyValidator:
     Raises:
         APIKeyValidationError: If validator not configured
     """
-    # Try to get from service registry first (new DI pattern)
-    try:
-        from src.infrastructure.service_registry import get_service_registry
-
-        service_registry = get_service_registry()
-        if service_registry.has_api_key_validator():
-            return service_registry.get_api_key_validator()
-    except Exception:
-        # Fall back to singleton pattern for backward compatibility
-        pass
-
     # Fallback to singleton for backward compatibility during transition
     return _APIKeyValidatorSingleton.get_instance()
 

@@ -317,39 +317,29 @@ class TestConfigureMetrics:
         """Clear singleton after each test."""
         _MetricsCollectorSingleton._instance = None
 
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_registers_with_service_registry(self, mock_get_registry: MagicMock) -> None:
-        """Registers metrics collector with service registry."""
-        mock_registry = MagicMock()
-        mock_get_registry.return_value = mock_registry
-
+    def test_sets_singleton_instance_for_backward_compatibility(self) -> None:
+        """Sets singleton instance for backward compatibility."""
         configure_metrics(enabled=False, port=9090)
 
-        mock_registry.register_metrics_collector.assert_called_once()
-        collector_arg = mock_registry.register_metrics_collector.call_args[0][0]
-        assert isinstance(collector_arg, MetricsCollector)
-
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_handles_service_registry_import_error(self, mock_get_registry: MagicMock) -> None:
-        """Handles service registry import error gracefully."""
-        mock_get_registry.side_effect = ImportError("Module not found")
-
-        # Should not raise exception
-        configure_metrics(enabled=False, port=9090)
-
-        # Should still set singleton
         collector = _MetricsCollectorSingleton.get_instance()
         assert isinstance(collector, MetricsCollector)
 
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_handles_service_registry_runtime_error(self, mock_get_registry: MagicMock) -> None:
-        """Handles service registry runtime error gracefully."""
-        mock_get_registry.side_effect = RuntimeError("Registry not initialized")
+    def test_creates_new_collector_each_call(self) -> None:
+        """Creates new collector each time configure is called."""
+        configure_metrics(enabled=False, port=9090)
+        collector1 = _MetricsCollectorSingleton.get_instance()
 
+        configure_metrics(enabled=False, port=9090)
+        collector2 = _MetricsCollectorSingleton.get_instance()
+
+        assert collector1 is not collector2
+
+    def test_configures_collector_without_errors(self) -> None:
+        """Configures metrics collector without errors."""
         # Should not raise exception
         configure_metrics(enabled=False, port=9090)
 
-        # Should still set singleton
+        # Should set singleton
         collector = _MetricsCollectorSingleton.get_instance()
         assert isinstance(collector, MetricsCollector)
 
@@ -393,53 +383,36 @@ class TestGetMetricsCollector:
         """Clear singleton after each test."""
         _MetricsCollectorSingleton._instance = None
 
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_returns_collector_from_service_registry(self, mock_get_registry: MagicMock) -> None:
-        """Returns metrics collector from service registry when available."""
-        mock_collector = MetricsCollector()
-        mock_registry = MagicMock()
-        mock_registry.has_metrics_collector.return_value = True
-        mock_registry.get_metrics_collector.return_value = mock_collector
-        mock_get_registry.return_value = mock_registry
+    def test_returns_singleton_instance_when_configured(self) -> None:
+        """Returns singleton instance when configured."""
+        # Configure metrics first
+        configure_metrics(enabled=False, port=9090)
 
         result = get_metrics_collector()
 
-        assert result is mock_collector
-        mock_registry.has_metrics_collector.assert_called_once()
-        mock_registry.get_metrics_collector.assert_called_once()
+        assert isinstance(result, MetricsCollector)
 
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_falls_back_to_singleton_when_registry_unavailable(
-        self, mock_get_registry: MagicMock
-    ) -> None:
-        """Falls back to singleton when service registry unavailable."""
-        mock_get_registry.side_effect = ImportError("Registry not available")
-
+    def test_creates_singleton_if_not_exists(self) -> None:
+        """Creates singleton instance if not exists."""
         result = get_metrics_collector()
 
         # Should create singleton instance
         assert isinstance(result, MetricsCollector)
 
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_falls_back_to_singleton_when_collector_not_in_registry(
-        self, mock_get_registry: MagicMock
-    ) -> None:
-        """Falls back to singleton when metrics collector not in registry."""
-        mock_registry = MagicMock()
-        mock_registry.has_metrics_collector.return_value = False
-        mock_get_registry.return_value = mock_registry
-
-        result = get_metrics_collector()
-
-        # Should create singleton instance
-        assert isinstance(result, MetricsCollector)
-
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_returns_same_singleton_instance(self, mock_get_registry: MagicMock) -> None:
+    def test_returns_same_singleton_instance(self) -> None:
         """Returns same singleton instance on multiple calls."""
-        mock_get_registry.side_effect = ImportError("Registry not available")
-
         result1 = get_metrics_collector()
         result2 = get_metrics_collector()
 
         assert result1 is result2
+
+    def test_returns_configured_instance(self) -> None:
+        """Returns the configured metrics collector instance."""
+        # Configure with specific instance
+        configure_metrics(enabled=False, port=9090)
+        configured_collector = _MetricsCollectorSingleton.get_instance()
+
+        # Get should return the same configured instance
+        result = get_metrics_collector()
+
+        assert result is configured_collector

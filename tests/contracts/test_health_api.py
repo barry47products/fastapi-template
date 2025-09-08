@@ -1,21 +1,19 @@
 """Health API contract tests - System bootstrap verification."""  # noqa: INP001, I002
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
 from fastapi.testclient import TestClient
 
+from src.infrastructure.dependencies import get_health_checker
 from src.infrastructure.security.api_key_validator import verify_api_key
 from src.infrastructure.security.rate_limiter import check_rate_limit
-from src.infrastructure.service_registry import ServiceRegistry
-from src.interfaces.api.routers.health import get_service_registry
 from src.main import app
 
 
 @pytest.fixture
-def mock_service_registry() -> ServiceRegistry:
-    """Mock service registry for testing."""
-    registry = MagicMock(spec=ServiceRegistry)
+def mock_health_checker() -> AsyncMock:
+    """Mock health checker for testing."""
     health_checker = AsyncMock()
     health_checker.check_health.return_value = {
         "status": "healthy",
@@ -26,8 +24,7 @@ def mock_service_registry() -> ServiceRegistry:
             "external_api": {"status": "healthy", "response_time_ms": 12.0},
         },
     }
-    registry.get_health_checker.return_value = health_checker
-    return registry
+    return health_checker
 
 
 def test_should_start_application_successfully(client: TestClient) -> None:
@@ -38,10 +35,10 @@ def test_should_start_application_successfully(client: TestClient) -> None:
 
 def test_should_report_healthy_when_all_components_available(
     client: TestClient,
-    mock_service_registry: ServiceRegistry,
+    mock_health_checker: AsyncMock,
 ) -> None:
     """Health endpoint should return healthy status with all checks passing."""
-    app.dependency_overrides[get_service_registry] = lambda: mock_service_registry
+    app.dependency_overrides[get_health_checker] = lambda: mock_health_checker
     app.dependency_overrides[check_rate_limit] = lambda: "test_user"
 
     try:
@@ -58,10 +55,10 @@ def test_should_report_healthy_when_all_components_available(
 
 def test_should_expose_required_api_endpoints(
     client: TestClient,
-    mock_service_registry: ServiceRegistry,
+    mock_health_checker: AsyncMock,
 ) -> None:
     """All required API endpoints should be registered and accessible."""
-    app.dependency_overrides[get_service_registry] = lambda: mock_service_registry
+    app.dependency_overrides[get_health_checker] = lambda: mock_health_checker
     app.dependency_overrides[check_rate_limit] = lambda: "test_user"
     app.dependency_overrides[verify_api_key] = lambda: None
 

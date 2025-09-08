@@ -1,9 +1,10 @@
 """Repository factory for dependency injection and clean architecture separation."""
 
+from __future__ import annotations
+
 from typing import Protocol
 
 from src.infrastructure.observability import get_logger
-from src.infrastructure.service_registry import get_service_registry
 
 from .repositories import InMemoryProductRepository, InMemoryUserRepository
 
@@ -99,14 +100,7 @@ class RepositoryFactoryRegistry:
 
         cls._instance = factory
 
-        # Register with service registry (if available)
-        try:
-            service_registry = get_service_registry()
-            if hasattr(service_registry, "register_repository_factory"):
-                service_registry.register_repository_factory(factory)
-        except Exception:
-            # Service registry not initialized or doesn't support this yet
-            pass
+        # Service registry pattern removed - using dependency injection
 
     @classmethod
     def get_instance(cls) -> RepositoryFactory:
@@ -140,24 +134,7 @@ def get_repository_factory() -> RepositoryFactory:
     Raises:
         RuntimeError: If no factory has been configured
     """
-    # Try to get from service registry first (if available)
-    try:
-        service_registry = get_service_registry()
-        if hasattr(service_registry, "get_repository_factory"):
-            try:
-                factory_instance = service_registry.get_repository_factory()
-                # Verify the factory implements the RepositoryFactory protocol
-                if (
-                    factory_instance is not None
-                    and hasattr(factory_instance, "create_user_repository")
-                    and hasattr(factory_instance, "create_product_repository")
-                ):
-                    return factory_instance
-            except Exception:
-                pass
-    except Exception:
-        # Service registry not initialized, continue with registry instance
-        pass
+    # Service registry pattern removed - using dependency injection
 
     # Fall back to registry instance
     return RepositoryFactoryRegistry.get_instance()

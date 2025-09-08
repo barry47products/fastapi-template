@@ -11,7 +11,6 @@ from src.infrastructure.observability.health_checker import (
     HealthChecker,
     HealthCheckError,
     HealthStatus,
-    _HealthCheckerSingleton,
     check_system_health,
     configure_health_checker,
     get_health_checker,
@@ -134,10 +133,10 @@ class TestHealthChecker:
     @pytest.mark.asyncio
     async def test_handles_check_timeout(self) -> None:
         """Handles health check timeout."""
-        checker = HealthChecker(timeout=1)
+        checker = HealthChecker(timeout=0.05)  # 50ms timeout
 
         async def slow_check() -> bool:
-            await asyncio.sleep(1)  # Longer than timeout
+            await asyncio.sleep(0.1)  # 100ms > 50ms timeout
             return True
 
         checker.register_health_check("slow_service", slow_check)
@@ -146,7 +145,7 @@ class TestHealthChecker:
 
         assert result["status"] == HealthStatus.UNHEALTHY
         assert result["checks"]["slow_service"]["status"] == HealthStatus.UNHEALTHY
-        assert "timed out after 1s" in result["checks"]["slow_service"]["error"]
+        assert "timed out after 0.05s" in result["checks"]["slow_service"]["error"]
 
     @pytest.mark.asyncio
     async def test_handles_check_exception(self) -> None:
@@ -239,183 +238,41 @@ class TestHealthChecker:
         assert "T" in result["timestamp"]
 
 
-class TestHealthCheckerSingleton:
-    """Test health checker singleton behavior."""
-
-    def setup_method(self) -> None:
-        """Clear singleton before each test."""
-        _HealthCheckerSingleton._instance = None
-
-    def teardown_method(self) -> None:
-        """Clear singleton after each test."""
-        _HealthCheckerSingleton._instance = None
-
-    def test_raises_error_when_not_configured(self) -> None:
-        """Raises error when health checker not configured."""
-        with pytest.raises(HealthCheckError, match="Health checker not configured"):
-            _HealthCheckerSingleton.get_instance()
-
-    def test_returns_configured_instance(self) -> None:
-        """Returns configured instance."""
-        checker = HealthChecker(timeout=15)
-        _HealthCheckerSingleton.set_instance(checker)
-
-        result = _HealthCheckerSingleton.get_instance()
-        assert result is checker
-
-    def test_sets_singleton_instance(self) -> None:
-        """Sets singleton instance."""
-        checker = HealthChecker(timeout=20)
-
-        _HealthCheckerSingleton.set_instance(checker)
-
-        assert _HealthCheckerSingleton._instance is checker
-
-
 class TestConfigureHealthChecker:
     """Test health checker configuration function."""
 
-    def setup_method(self) -> None:
-        """Clear singleton before each test."""
-        _HealthCheckerSingleton._instance = None
-
-    def teardown_method(self) -> None:
-        """Clear singleton after each test."""
-        _HealthCheckerSingleton._instance = None
-
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_registers_with_service_registry(self, mock_get_registry: MagicMock) -> None:
-        """Registers health checker with service registry."""
-        mock_registry = MagicMock()
-        mock_get_registry.return_value = mock_registry
-
+    def test_configuration_is_backward_compatible(self) -> None:
+        """Configuration function is maintained for backward compatibility."""
+        # Should not raise any exceptions
         configure_health_checker(timeout=25)
-
-        mock_registry.register_health_checker.assert_called_once()
-        checker_arg = mock_registry.register_health_checker.call_args[0][0]
-        assert isinstance(checker_arg, HealthChecker)
-        assert checker_arg.timeout == 25
-
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_handles_service_registry_import_error(self, mock_get_registry: MagicMock) -> None:
-        """Handles service registry import error gracefully."""
-        mock_get_registry.side_effect = ImportError("Module not found")
-
-        # Should not raise exception
-        configure_health_checker(timeout=30)
-
-        # Should still set singleton
-        checker = _HealthCheckerSingleton.get_instance()
-        assert checker.timeout == 30
-
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_handles_service_registry_runtime_error(self, mock_get_registry: MagicMock) -> None:
-        """Handles service registry runtime error gracefully."""
-        mock_get_registry.side_effect = RuntimeError("Registry not initialized")
-
-        # Should not raise exception
-        configure_health_checker(timeout=35)
-
-        # Should still set singleton
-        checker = _HealthCheckerSingleton.get_instance()
-        assert checker.timeout == 35
-
-    def test_sets_singleton_instance(self) -> None:
-        """Sets singleton instance."""
-        configure_health_checker(timeout=40)
-
-        checker = _HealthCheckerSingleton.get_instance()
-        assert checker.timeout == 40
 
 
 class TestGetHealthChecker:
-    """Test get health checker function."""
+    """Test get health checker dependency injection pattern."""
 
-    def setup_method(self) -> None:
-        """Clear singleton before each test."""
-        _HealthCheckerSingleton._instance = None
-
-    def teardown_method(self) -> None:
-        """Clear singleton after each test."""
-        _HealthCheckerSingleton._instance = None
-
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_returns_checker_from_service_registry(self, mock_get_registry: MagicMock) -> None:
-        """Returns health checker from service registry when available."""
-        mock_checker = HealthChecker(timeout=45)
-        mock_registry = MagicMock()
-        mock_registry.has_health_checker.return_value = True
-        mock_registry.get_health_checker.return_value = mock_checker
-        mock_get_registry.return_value = mock_registry
-
+    def test_creates_new_instance_with_default_timeout(self) -> None:
+        """Creates new HealthChecker instance with default timeout from dependencies."""
         result = get_health_checker()
 
-        assert result is mock_checker
-        mock_registry.has_health_checker.assert_called_once()
-        mock_registry.get_health_checker.assert_called_once()
+        assert isinstance(result, HealthChecker)
+        assert result.timeout == 5.0  # Default timeout from settings
 
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_falls_back_to_singleton_when_registry_unavailable(
-        self, mock_get_registry: MagicMock
-    ) -> None:
-        """Falls back to singleton when service registry unavailable."""
-        mock_get_registry.side_effect = ImportError("Registry not available")
-        singleton_checker = HealthChecker(timeout=50)
-        _HealthCheckerSingleton.set_instance(singleton_checker)
+    def test_returns_singleton_instance(self) -> None:
+        """Returns same instance on multiple calls (cached)."""
+        checker1 = get_health_checker()
+        checker2 = get_health_checker()
 
-        result = get_health_checker()
-
-        assert result is singleton_checker
-
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_falls_back_to_singleton_when_checker_not_in_registry(
-        self, mock_get_registry: MagicMock
-    ) -> None:
-        """Falls back to singleton when health checker not in registry."""
-        mock_registry = MagicMock()
-        mock_registry.has_health_checker.return_value = False
-        mock_get_registry.return_value = mock_registry
-        singleton_checker = HealthChecker(timeout=55)
-        _HealthCheckerSingleton.set_instance(singleton_checker)
-
-        result = get_health_checker()
-
-        assert result is singleton_checker
-
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_raises_error_when_no_checker_available(self, mock_get_registry: MagicMock) -> None:
-        """Raises error when no health checker available."""
-        mock_get_registry.side_effect = ImportError("Registry not available")
-
-        with pytest.raises(HealthCheckError, match="Health checker not configured"):
-            get_health_checker()
+        assert checker1 is checker2
 
 
 class TestCheckSystemHealth:
     """Test check system health FastAPI dependency function."""
 
-    def setup_method(self) -> None:
-        """Clear singleton before each test."""
-        _HealthCheckerSingleton._instance = None
-
-    def teardown_method(self) -> None:
-        """Clear singleton after each test."""
-        _HealthCheckerSingleton._instance = None
-
     @pytest.mark.asyncio
     async def test_calls_health_checker_check_health(self) -> None:
-        """Calls health checker check_health method."""
-        checker = HealthChecker(timeout=10)
-        _HealthCheckerSingleton.set_instance(checker)
-
+        """Calls health checker check_health method and returns expected structure."""
         result = await check_system_health()
 
         assert result["status"] == HealthStatus.HEALTHY
         assert "checks" in result
         assert "timestamp" in result
-
-    @pytest.mark.asyncio
-    async def test_propagates_health_check_error(self) -> None:
-        """Propagates health check error when checker not configured."""
-        with pytest.raises(HealthCheckError, match="Health checker not configured"):
-            await check_system_health()

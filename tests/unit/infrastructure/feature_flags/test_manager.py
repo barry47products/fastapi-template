@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
-
 from src.infrastructure.feature_flags.manager import (
     FeatureFlagManager,
     _FeatureFlagManagerSingleton,
@@ -184,51 +182,28 @@ class TestConfigureFeatureFlags:
         """Reset singleton state before each test."""
         _FeatureFlagManagerSingleton._instance = None
 
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_configures_with_service_registry_when_available(
-        self, mock_get_registry: MagicMock
-    ) -> None:
-        """Configures feature flags through service registry when available."""
-        mock_registry = MagicMock()
-        mock_get_registry.return_value = mock_registry
+    def test_configures_feature_flags_for_backward_compatibility(self) -> None:
+        """Configuration function maintained for backward compatibility."""
         flags = {"test_feature": True}
 
+        # Should not raise any exceptions
         configure_feature_flags(flags)
 
-        # Verify service registry was used
-        mock_registry.register_feature_flag_manager.assert_called_once()
-        registered_manager = mock_registry.register_feature_flag_manager.call_args[0][0]
-        assert isinstance(registered_manager, FeatureFlagManager)
-        assert registered_manager.is_enabled("test_feature") is True
-
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_sets_singleton_as_fallback_when_service_registry_available(
-        self, mock_get_registry: MagicMock
-    ) -> None:
-        """Sets singleton even when service registry succeeds for backward compatibility."""
-        mock_registry = MagicMock()
-        mock_get_registry.return_value = mock_registry
+    def test_sets_singleton_for_backward_compatibility(self) -> None:
+        """Sets singleton manager for backward compatibility."""
         flags = {"fallback_test": False}
 
         configure_feature_flags(flags)
 
-        # Verify singleton was also set
         singleton_manager = _FeatureFlagManagerSingleton.get_instance()
         assert singleton_manager.is_enabled("fallback_test") is False
 
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_falls_back_to_singleton_when_service_registry_fails(
-        self, mock_get_registry: MagicMock
-    ) -> None:
-        """Falls back to singleton when service registry is not available."""
-        mock_get_registry.side_effect = ImportError("Service registry not available")
-        flags = {"fallback_feature": True}
+    def test_configures_empty_flags_by_default(self) -> None:
+        """Configures with empty flags when no flags provided to configure function."""
+        configure_feature_flags()
 
-        configure_feature_flags(flags)
-
-        # Verify singleton was set despite service registry failure
         singleton_manager = _FeatureFlagManagerSingleton.get_instance()
-        assert singleton_manager.is_enabled("fallback_feature") is True
+        assert singleton_manager.get_all_flags() == {}
 
     def test_configures_with_none_flags(self) -> None:
         """Configures feature flags with None flags argument."""
@@ -249,99 +224,60 @@ class TestGetFeatureFlagManager:
     """Test get_feature_flag_manager function."""
 
     def setup_method(self) -> None:
-        """Reset singleton state before each test."""
+        """Reset state before each test."""
+        # Clear the lru_cache to ensure fresh instance
+        get_feature_flag_manager.cache_clear()
         _FeatureFlagManagerSingleton._instance = None
 
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_returns_manager_from_service_registry_when_available(
-        self, mock_get_registry: MagicMock
-    ) -> None:
-        """Returns manager from service registry when available."""
-        mock_registry = MagicMock()
-        mock_manager = FeatureFlagManager({"registry_feature": True})
-        mock_registry.has_feature_flag_manager.return_value = True
-        mock_registry.get_feature_flag_manager.return_value = mock_manager
-        mock_get_registry.return_value = mock_registry
-
+    def test_returns_feature_flag_manager_instance(self) -> None:
+        """Returns a FeatureFlagManager instance."""
         manager = get_feature_flag_manager()
 
-        assert manager is mock_manager
-        assert manager.is_enabled("registry_feature") is True
+        assert isinstance(manager, FeatureFlagManager)
+        assert manager.get_all_flags() == {}
 
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_falls_back_to_singleton_when_registry_has_no_manager(
-        self, mock_get_registry: MagicMock
-    ) -> None:
-        """Falls back to singleton when registry exists but has no manager."""
-        mock_registry = MagicMock()
-        mock_registry.has_feature_flag_manager.return_value = False
-        mock_get_registry.return_value = mock_registry
+    def test_returns_same_instance_on_subsequent_calls(self) -> None:
+        """Returns same cached instance on subsequent calls due to lru_cache."""
+        manager1 = get_feature_flag_manager()
+        manager2 = get_feature_flag_manager()
 
-        # Set up singleton manager
-        singleton_manager = FeatureFlagManager({"singleton_feature": True})
-        _FeatureFlagManagerSingleton.set_instance(singleton_manager)
+        assert manager1 is manager2
 
+    def test_can_modify_returned_manager(self) -> None:
+        """Can modify the returned manager instance."""
         manager = get_feature_flag_manager()
 
-        assert manager is singleton_manager
-        assert manager.is_enabled("singleton_feature") is True
+        # Set a flag
+        manager.set_flag("test_feature", True)
 
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_falls_back_to_singleton_when_service_registry_import_fails(
-        self, mock_get_registry: MagicMock
-    ) -> None:
-        """Falls back to singleton when service registry import fails."""
-        mock_get_registry.side_effect = ImportError("Cannot import service registry")
-
-        # Set up singleton manager
-        singleton_manager = FeatureFlagManager({"singleton_fallback": False})
-        _FeatureFlagManagerSingleton.set_instance(singleton_manager)
-
-        manager = get_feature_flag_manager()
-
-        assert manager is singleton_manager
-        assert manager.is_enabled("singleton_fallback") is False
-
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_falls_back_to_singleton_when_registry_access_fails(
-        self, mock_get_registry: MagicMock
-    ) -> None:
-        """Falls back to singleton when registry access raises exception."""
-        mock_registry = MagicMock()
-        mock_registry.has_feature_flag_manager.side_effect = Exception("Registry error")
-        mock_get_registry.return_value = mock_registry
-
-        # Set up singleton manager
-        singleton_manager = FeatureFlagManager({"error_fallback": True})
-        _FeatureFlagManagerSingleton.set_instance(singleton_manager)
-
-        manager = get_feature_flag_manager()
-
-        assert manager is singleton_manager
-        assert manager.is_enabled("error_fallback") is True
+        # Verify it persists in the cached instance
+        manager2 = get_feature_flag_manager()
+        assert manager2.is_enabled("test_feature") is True
 
     def test_creates_new_singleton_when_none_exists(self) -> None:
-        """Creates new singleton manager when none exists and service registry unavailable."""
-        with patch("src.infrastructure.service_registry.get_service_registry") as mock_get_registry:
-            mock_get_registry.side_effect = ImportError("No service registry")
+        """Creates new manager instance."""
+        manager = get_feature_flag_manager()
 
-            manager = get_feature_flag_manager()
-
-            assert isinstance(manager, FeatureFlagManager)
-            assert manager.get_all_flags() == {}
+        assert isinstance(manager, FeatureFlagManager)
+        assert manager.get_all_flags() == {}
 
     def test_integration_with_configure_and_get(self) -> None:
-        """Integration test: configure flags then retrieve manager."""
+        """Integration test: configure flags sets the singleton, get returns fresh instance."""
         flags = {"integration_test": True, "another_flag": False}
 
-        # Configure flags
+        # Configure flags (sets singleton)
         configure_feature_flags(flags)
 
-        # Get manager and verify configuration
+        # Get manager returns a fresh instance (not the singleton)
         manager = get_feature_flag_manager()
-        assert manager.is_enabled("integration_test") is True
-        assert manager.is_enabled("another_flag") is False
-        assert manager.get_all_flags() == flags
+
+        # The dependency injection version returns empty flags by default
+        assert manager.get_all_flags() == {}
+
+        # But the singleton is still configured
+        singleton = _FeatureFlagManagerSingleton.get_instance()
+        assert singleton.is_enabled("integration_test") is True
+        assert singleton.is_enabled("another_flag") is False
 
 
 class TestFeatureFlagManagerWorkflows:

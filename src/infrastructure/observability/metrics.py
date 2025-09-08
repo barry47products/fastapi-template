@@ -190,24 +190,15 @@ class MetricsCollector:
 def configure_metrics(enabled: bool, port: int) -> None:
     """Configure metrics collection system.
 
+    This function is kept for backward compatibility during initialization.
+    With dependency injection, configuration is handled via get_metrics_collector().
+
     Args:
         enabled: Whether metrics collection is enabled
         port: Port to serve metrics on
     """
-    # Create metrics collector
+    # For backward compatibility, set the singleton instance
     collector = MetricsCollector()
-
-    # Register with service registry (primary method)
-    try:
-        from src.infrastructure.service_registry import get_service_registry
-
-        service_registry = get_service_registry()
-        service_registry.register_metrics_collector(collector)
-    except Exception:
-        # Service registry might not be initialized yet
-        pass
-
-    # Also set in singleton for backward compatibility during transition
     _MetricsCollectorSingleton.set_instance(collector)
 
     if enabled:
@@ -215,21 +206,10 @@ def configure_metrics(enabled: bool, port: int) -> None:
 
 
 def get_metrics_collector() -> MetricsCollector:
-    """Get the global metrics collector instance via service registry.
+    """Get the global metrics collector instance via singleton fallback.
 
     Returns:
         Metrics collector instance
     """
-    # Try to get from service registry first (new DI pattern)
-    try:
-        from src.infrastructure.service_registry import get_service_registry
-
-        service_registry = get_service_registry()
-        if service_registry.has_metrics_collector():
-            return service_registry.get_metrics_collector()
-    except Exception:
-        # Fall back to singleton pattern for backward compatibility
-        pass
-
     # Fallback to singleton for backward compatibility during transition
     return _MetricsCollectorSingleton.get_instance()

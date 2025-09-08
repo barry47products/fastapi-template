@@ -1,5 +1,6 @@
 """Feature flags management system."""
 
+from functools import lru_cache
 from typing import Optional
 
 
@@ -90,41 +91,24 @@ class FeatureFlagManager:
 def configure_feature_flags(flags: dict[str, bool] | None = None) -> None:
     """Configure feature flags system.
 
+    This function is kept for backward compatibility during initialization.
+    With dependency injection, configuration is handled via get_feature_flag_manager().
+
     Args:
         flags: Dictionary of flags to initialize with
     """
-    manager = FeatureFlagManager(flags=flags)
-
-    # Register with service registry (primary method)
-    try:
-        from src.infrastructure.service_registry import get_service_registry
-
-        service_registry = get_service_registry()
-        service_registry.register_feature_flag_manager(manager)
-    except Exception:
-        # Service registry might not be initialized yet
-        pass
-
-    # Also set in singleton for backward compatibility during transition
+    # For backward compatibility, set the singleton instance
+    manager = FeatureFlagManager(flags)
     _FeatureFlagManagerSingleton.set_instance(manager)
 
 
+@lru_cache
 def get_feature_flag_manager() -> FeatureFlagManager:
-    """Get the global feature flag manager instance via service registry.
+    """Get a feature flag manager instance via dependency injection.
 
     Returns:
-        Feature flag manager instance
+        FeatureFlagManager instance (cached)
+
+    Creates a default manager with empty flags for dependency injection.
     """
-    # Try to get from service registry first (new DI pattern)
-    try:
-        from src.infrastructure.service_registry import get_service_registry
-
-        service_registry = get_service_registry()
-        if service_registry.has_feature_flag_manager():
-            return service_registry.get_feature_flag_manager()
-    except Exception:
-        # Fall back to singleton pattern for backward compatibility
-        pass
-
-    # Fallback to singleton for backward compatibility during transition
-    return _FeatureFlagManagerSingleton.get_instance()
+    return FeatureFlagManager()

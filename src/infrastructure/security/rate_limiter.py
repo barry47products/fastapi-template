@@ -80,36 +80,29 @@ class _RateLimiterSingleton:
 
 
 def configure_rate_limiter(limit: int, window_seconds: int) -> None:
-    """Configure the global rate limiter instance."""
+    """Configure the global rate limiter instance.
+
+    This function is kept for backward compatibility during initialization.
+    With dependency injection, configuration is handled via get_rate_limiter().
+
+    Args:
+        limit: Maximum number of requests allowed
+        window_seconds: Time window in seconds for rate limiting
+    """
+    # For backward compatibility, set the singleton instance
     limiter = RateLimiter(limit=limit, window_seconds=window_seconds)
-
-    # Register with service registry (primary method)
-    try:
-        from src.infrastructure.service_registry import get_service_registry
-
-        service_registry = get_service_registry()
-        service_registry.register_rate_limiter(limiter)
-    except Exception:
-        # Service registry might not be initialized yet
-        pass
-
-    # Also set in singleton for backward compatibility during transition
     _RateLimiterSingleton.set_instance(limiter)
 
 
 def get_rate_limiter() -> RateLimiter:
-    """Get the configured rate limiter instance via service registry."""
-    # Try to get from service registry first (new DI pattern)
-    try:
-        from src.infrastructure.service_registry import get_service_registry
+    """Get the configured rate limiter instance via singleton fallback.
 
-        service_registry = get_service_registry()
-        if service_registry.has_rate_limiter():
-            return service_registry.get_rate_limiter()
-    except Exception:
-        # Fall back to singleton pattern for backward compatibility
-        pass
+    Returns:
+        RateLimiter instance
 
+    Raises:
+        RateLimitError: If rate limiter not configured
+    """
     # Fallback to singleton for backward compatibility during transition
     return _RateLimiterSingleton.get_instance()
 

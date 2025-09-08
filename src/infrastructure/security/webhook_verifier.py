@@ -78,27 +78,19 @@ class _WebhookVerifierSingleton:
 def configure_webhook_verifier(secret_key: str) -> None:
     """Configure the webhook verifier with secret key.
 
+    This function is kept for backward compatibility during initialization.
+    With dependency injection, configuration is handled via get_webhook_verifier().
+
     Args:
         secret_key: Secret key for webhook signature verification
     """
+    # For backward compatibility, set the singleton instance
     verifier = WebhookVerifier(secret_key=secret_key)
-
-    # Register with service registry (primary method)
-    try:
-        from src.infrastructure.service_registry import get_service_registry
-
-        service_registry = get_service_registry()
-        service_registry.register_webhook_verifier(verifier)
-    except Exception:
-        # Service registry might not be initialized yet
-        pass
-
-    # Also set in singleton for backward compatibility during transition
     _WebhookVerifierSingleton.set_instance(verifier)
 
 
 def get_webhook_verifier() -> WebhookVerifier:
-    """Get the configured webhook verifier instance via service registry.
+    """Get the configured webhook verifier instance via singleton fallback.
 
     Returns:
         Configured webhook verifier
@@ -106,17 +98,6 @@ def get_webhook_verifier() -> WebhookVerifier:
     Raises:
         WebhookVerificationError: If verifier not configured
     """
-    # Try to get from service registry first (new DI pattern)
-    try:
-        from src.infrastructure.service_registry import get_service_registry
-
-        service_registry = get_service_registry()
-        if service_registry.has_webhook_verifier():
-            return service_registry.get_webhook_verifier()
-    except Exception:
-        # Fall back to singleton pattern for backward compatibility
-        pass
-
     # Fallback to singleton for backward compatibility during transition
     return _WebhookVerifierSingleton.get_instance()
 
@@ -143,8 +124,8 @@ async def verify_webhook_signature(request: Request) -> bytes:
     client_ip = request.client.host if request.client else "unknown"
 
     # Check for signature header
-    signature = request.headers.get("X-Webhook-Signature")
-    if not signature:
+    raw_signature = request.headers.get("X-Webhook-Signature")
+    if not raw_signature:
         logger.warning(
             "Webhook signature verification failed",
             client_ip=client_ip,
@@ -159,6 +140,11 @@ async def verify_webhook_signature(request: Request) -> bytes:
             detail="Missing webhook signature",
             headers={"WWW-Authenticate": "Webhook"},
         )
+
+    # Strip sha256= prefix if present
+    signature = raw_signature
+    if raw_signature.startswith("sha256="):
+        signature = raw_signature[7:]
 
     # Verify signature
     verifier = get_webhook_verifier()

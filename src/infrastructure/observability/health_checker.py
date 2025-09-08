@@ -1,15 +1,20 @@
 """Health checking system for application monitoring and Kubernetes probes."""
 
+from __future__ import annotations
+
 import asyncio
 import time
-from collections.abc import Awaitable, Callable
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any
+from functools import lru_cache
+from typing import TYPE_CHECKING, Any
 
 from src.infrastructure.observability.logger import get_logger
 from src.infrastructure.observability.metrics import get_metrics_collector
 from src.shared.exceptions import ApplicationError
+
+if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
 
 
 class HealthStatus(str, Enum):
@@ -176,75 +181,32 @@ class HealthChecker:
         }
 
 
-class _HealthCheckerSingleton:
-    """Singleton for health checker configuration."""
-
-    _instance: HealthChecker | None = None
-
-    @classmethod
-    def set_instance(cls, checker: HealthChecker) -> None:
-        """Set the singleton health checker instance."""
-        cls._instance = checker
-
-    @classmethod
-    def get_instance(cls) -> HealthChecker:
-        """Get the singleton health checker instance.
-
-        Returns:
-            Health checker instance
-
-        Raises:
-            HealthCheckError: If health checker not configured
-        """
-        if cls._instance is None:
-            raise HealthCheckError("Health checker not configured")
-        return cls._instance
-
-
 def configure_health_checker(timeout: int) -> None:
     """Configure the health checker with timeout.
+
+    This function is kept for backward compatibility during initialization.
+    With dependency injection, configuration is handled via get_health_checker().
 
     Args:
         timeout: Maximum time in seconds to wait for health checks
     """
-    checker = HealthChecker(timeout=timeout)
-
-    # Register with service registry (primary method)
-    try:
-        from src.infrastructure.service_registry import get_service_registry
-
-        service_registry = get_service_registry()
-        service_registry.register_health_checker(checker)
-    except Exception:
-        # Service registry might not be initialized yet
-        pass
-
-    # Also set in singleton for backward compatibility during transition
-    _HealthCheckerSingleton.set_instance(checker)
+    # Configuration is now handled via dependency injection
+    # This function remains for backward compatibility with initialization code
 
 
+@lru_cache
 def get_health_checker() -> HealthChecker:
-    """Get the configured health checker instance via service registry.
+    """Get a health checker instance via dependency injection.
 
     Returns:
-        Configured health checker
+        HealthChecker instance with configured timeout (cached)
 
-    Raises:
-        HealthCheckError: If health checker not configured
+    Uses settings to determine timeout configuration.
     """
-    # Try to get from service registry first (new DI pattern)
-    try:
-        from src.infrastructure.service_registry import get_service_registry
+    from config.settings import get_settings
 
-        service_registry = get_service_registry()
-        if service_registry.has_health_checker():
-            return service_registry.get_health_checker()
-    except Exception:
-        # Fall back to singleton pattern for backward compatibility
-        pass
-
-    # Fallback to singleton for backward compatibility during transition
-    return _HealthCheckerSingleton.get_instance()
+    settings = get_settings()
+    return HealthChecker(timeout=int(settings.observability.health_check_timeout))
 
 
 async def check_system_health() -> dict[str, Any]:

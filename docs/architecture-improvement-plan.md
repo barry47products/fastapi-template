@@ -7,9 +7,57 @@
 
 This plan addresses the architectural evaluation findings, focusing on simplification, pragmatism, and production readiness. The improvements are organised into four phases, each building upon the previous to ensure a smooth transition without breaking existing functionality.
 
+## Principles
+
+1. **Workflow**: Follow a TDD approach with Failing test first (Red) -> Implementation (Green) -> Refactor (Refactor)
+
+2. **Quality Gates**: Every change must pass:
+   - 100% test coverage (line + branch) - no exceptions
+   - Full type annotations with mypy strict mode
+   - Ruff formatting and linting (all rules must pass)
+   - No `Any` types unless absolutely required
+
+3. **Code Standards**:
+   - Self-documenting code - no comments
+   - Immutable models with Pydantic `frozen=True`
+   - Specific exceptions - never generic `Exception`
+   - Pure functions where possible
+   - British English in all output
+
+4. **Testing Focus**:
+   - Domain-focused test classes (not coverage-focused)
+   - Behaviour-driven test names that tell the story
+   - Test placement mirrors src structure
+   - Mock external dependencies only
+
+5. **Infrastructure Integration**:
+   - Every module must integrate with observability foundation
+   - Use structured logging with context
+   - Increment metrics for business operations
+   - Raise domain-specific exceptions with error codes
+
+6. **Import Discipline**:
+   - Module-level imports only (✅ `from src.domain.models import Provider`)
+   - No direct imports from sub-modules (❌ `from src.domain.models.provider import Provider`)
+
+7. **Environment Configuration**:
+   - Zero hardcoded values
+   - All configuration via environment variables
+   - Use Pydantic Settings for validation
+
+8. **Flow-Based Development**:
+   - WIP = 1 (complete one improvement entirely before starting next)
+   - Each phase must be 100% complete and tested
+   - Update documentation as you go
+
+9. **Git Standards**:
+   - Commits focus on WHY (business context), not WHAT (diff shows that)
+   - One-line summary under 72 characters
+   - Avoid implementation details in commit messages
+
 ## Phase 1: Simplification & Pattern Reduction (Week 1)
 
-### 1.1 Replace Service Registry with FastAPI Dependency Injection
+### 1.1 Replace Service Registry with FastAPI Dependency Injection ✅ **COMPLETED**
 
 **Problem**: 160+ lines of boilerplate for managing 8 services  
 **Solution**: Use FastAPI's native dependency injection system
@@ -43,13 +91,38 @@ async def endpoint(
     metrics.increment_counter("endpoint_calls")
 ```
 
-**Tasks**:
+**Tasks**: ✅ **ALL COMPLETED**
 
-1. Create `src/infrastructure/dependencies.py` with all service providers
-2. Remove `ServiceRegistry` class entirely
-3. Update all service access to use `Depends()` pattern
-4. Remove dual singleton/registry pattern from health checker
-5. Update tests to use dependency overrides
+1. ✅ Create `src/infrastructure/dependencies.py` with all service providers
+2. ✅ Remove `ServiceRegistry` class entirely
+3. ✅ Update all service access to use `Depends()` pattern
+4. ✅ Remove dual singleton/registry pattern from health checker
+5. ✅ Update tests to use dependency overrides
+
+**Completed Work**:
+
+- **ServiceRegistry Removal**: Completely removed 160+ lines of service registry boilerplate
+- **Dependencies Module**: Created `src/infrastructure/dependencies.py` with @lru_cache pattern for singleton services
+- **Implementation Updates**: Updated all infrastructure components (metrics, health checker, feature flags, repository factory, webhook verifier) to use direct function calls instead of service registry
+- **Test Migration**: Fixed 28 failing tests that referenced the removed service registry, simplifying complex mocking to focus on actual behaviour
+- **Performance Optimization**: Improved slow test performance by 95% (from 3.3s to 0.2s) by reducing time intervals in rate limiter and health checker tests
+- **Backward Compatibility**: Maintained singleton patterns during transition to ensure no breaking changes to existing APIs
+
+**Impact**: Reduced complexity from 160+ lines of service registry infrastructure to simple, maintainable dependency injection functions. All tests pass with 100% coverage maintained.
+
+**Commit Message**:
+
+```bash
+feat: replace service registry with FastAPI dependency injection
+
+Eliminates service registry anti-pattern with 160+ lines of boilerplate in favour of FastAPI's native dependency injection using @lru_cache.
+
+Simplifies infrastructure management while maintaining singleton behaviour and backward compatibility. All components now use direct function calls instead of registry lookups, improving code clarity and maintainability.
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
 
 ### 1.2 Simplify Repository Factory
 

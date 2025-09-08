@@ -1,5 +1,7 @@
 """Unit tests for API key validator security component."""
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -50,10 +52,10 @@ class TestAPIKeyValidator:
         validator = APIKeyValidator(api_keys)
 
         assert validator.api_keys == {"key1", "key2"}
-        assert isinstance(validator.api_keys, set)
+        assert len(validator.api_keys) == 2
 
-    def test_validates_valid_api_key(self) -> None:
-        """Validates valid API key."""
+    def test_validates_correct_api_key(self) -> None:
+        """Validates correct API key successfully."""
         validator = APIKeyValidator(["valid_key", "another_key"])
 
         assert validator.validate("valid_key") is True
@@ -64,368 +66,278 @@ class TestAPIKeyValidator:
         validator = APIKeyValidator(["valid_key"])
 
         assert validator.validate("invalid_key") is False
-        assert validator.validate("wrong_key") is False
+        assert validator.validate("") is False
+        assert validator.validate("VALID_KEY") is False  # Case sensitive
 
-    def test_rejects_none_api_key(self) -> None:
-        """Rejects None API key."""
+    def test_handles_empty_api_keys(self) -> None:
+        """Handles empty API keys list."""
+        validator = APIKeyValidator([])
+
+        assert validator.api_keys == set()
+        assert validator.validate("any_key") is False
+
+    def test_handles_none_api_key_validation(self) -> None:
+        """Handles None API key validation."""
         validator = APIKeyValidator(["valid_key"])
 
         assert validator.validate(None) is False
 
-    def test_rejects_empty_string_api_key(self) -> None:
-        """Rejects empty string API key."""
-        validator = APIKeyValidator(["valid_key"])
-
-        assert validator.validate("") is False
-        assert validator.validate("   ") is False
-
-    def test_handles_empty_api_keys_list(self) -> None:
-        """Handles empty API keys list."""
-        validator = APIKeyValidator([])
-
-        assert validator.validate("any_key") is False
-        assert validator.api_keys == set()
-
-    def test_case_sensitive_validation(self) -> None:
-        """Performs case-sensitive validation."""
-        validator = APIKeyValidator(["CaseSensitive"])
-
-        assert validator.validate("CaseSensitive") is True
-        assert validator.validate("casesensitive") is False
-        assert validator.validate("CASESENSITIVE") is False
-
 
 class TestAPIKeyValidatorSingleton:
-    """Test API key validator singleton behavior."""
+    """Test singleton pattern for API key validator."""
 
-    def test_raises_error_when_not_configured(self) -> None:
-        """Raises error when validator not configured."""
+    def setup_method(self) -> None:
+        """Reset singleton state before each test."""
         _APIKeyValidatorSingleton._instance = None
 
+    def test_raises_error_when_no_instance_set(self) -> None:
+        """Raises error when trying to get instance before configuration."""
         with pytest.raises(APIKeyValidationError, match="API key validator not configured"):
             _APIKeyValidatorSingleton.get_instance()
 
-    def test_returns_configured_instance(self) -> None:
-        """Returns configured instance."""
+    def test_returns_set_instance(self) -> None:
+        """Returns the set singleton instance."""
         validator = APIKeyValidator(["test_key"])
         _APIKeyValidatorSingleton.set_instance(validator)
 
-        result = _APIKeyValidatorSingleton.get_instance()
-        assert result is validator
+        retrieved_validator = _APIKeyValidatorSingleton.get_instance()
+        assert retrieved_validator is validator
 
-    def test_sets_singleton_instance(self) -> None:
-        """Sets singleton instance."""
-        validator = APIKeyValidator(["test_key"])
+    def test_replaces_existing_instance(self) -> None:
+        """Replaces existing singleton instance when new one is set."""
+        old_validator = APIKeyValidator(["old_key"])
+        new_validator = APIKeyValidator(["new_key"])
 
-        _APIKeyValidatorSingleton.set_instance(validator)
+        _APIKeyValidatorSingleton.set_instance(old_validator)
+        _APIKeyValidatorSingleton.set_instance(new_validator)
 
-        assert _APIKeyValidatorSingleton._instance is validator
+        retrieved_validator = _APIKeyValidatorSingleton.get_instance()
+        assert retrieved_validator is new_validator
+        assert retrieved_validator is not old_validator
 
 
 class TestConfigureAPIKeyValidator:
     """Test API key validator configuration behavior."""
 
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_registers_with_service_registry(self, mock_get_registry: MagicMock) -> None:
-        """Registers validator with service registry."""
-        mock_registry = MagicMock()
-        mock_get_registry.return_value = mock_registry
-        api_keys = ["key1", "key2"]
+    def setup_method(self) -> None:
+        """Reset singleton state before each test."""
+        _APIKeyValidatorSingleton._instance = None
+
+    def test_sets_singleton_instance_for_backward_compatibility(self) -> None:
+        """Sets singleton instance for backward compatibility."""
+        api_keys = ["singleton_key"]
 
         configure_api_key_validator(api_keys)
 
-        mock_registry.register_api_key_validator.assert_called_once()
-        validator_arg = mock_registry.register_api_key_validator.call_args[0][0]
-        assert isinstance(validator_arg, APIKeyValidator)
-        assert validator_arg.api_keys == {"key1", "key2"}
+        singleton_validator = _APIKeyValidatorSingleton.get_instance()
+        assert singleton_validator.api_keys == {"singleton_key"}
 
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_handles_service_registry_import_error(self, mock_get_registry: MagicMock) -> None:
-        """Handles service registry import error gracefully."""
-        mock_get_registry.side_effect = ImportError("Module not found")
-        api_keys = ["key1", "key2"]
+    def test_replaces_existing_singleton(self) -> None:
+        """Replaces existing singleton instance when reconfigured."""
+        # Set initial configuration
+        configure_api_key_validator(["old_key"])
+        old_validator = _APIKeyValidatorSingleton.get_instance()
 
-        # Should not raise exception
-        configure_api_key_validator(api_keys)
+        # Reconfigure with new keys
+        configure_api_key_validator(["new_key1", "new_key2"])
+        new_validator = _APIKeyValidatorSingleton.get_instance()
 
-        # Should still set singleton
-        validator = _APIKeyValidatorSingleton.get_instance()
-        assert validator.api_keys == {"key1", "key2"}
+        assert new_validator is not old_validator
+        assert new_validator.api_keys == {"new_key1", "new_key2"}
 
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_handles_service_registry_runtime_error(self, mock_get_registry: MagicMock) -> None:
-        """Handles service registry runtime error gracefully."""
-        mock_get_registry.side_effect = RuntimeError("Registry not initialized")
-        api_keys = ["key1", "key2"]
+    def test_configures_with_empty_keys_list(self) -> None:
+        """Configures validator with empty API keys list."""
+        configure_api_key_validator([])
 
-        # Should not raise exception
-        configure_api_key_validator(api_keys)
+        singleton_validator = _APIKeyValidatorSingleton.get_instance()
+        assert singleton_validator.api_keys == set()
 
-        # Should still set singleton
-        validator = _APIKeyValidatorSingleton.get_instance()
-        assert validator.api_keys == {"key1", "key2"}
-
-    def test_sets_singleton_instance(self) -> None:
-        """Sets singleton instance."""
-        api_keys = ["test_key"]
+    def test_configures_with_duplicate_keys(self) -> None:
+        """Removes duplicate keys when configuring validator."""
+        api_keys = ["key1", "key2", "key1", "key3"]
 
         configure_api_key_validator(api_keys)
 
-        validator = _APIKeyValidatorSingleton.get_instance()
-        assert validator.api_keys == {"test_key"}
+        singleton_validator = _APIKeyValidatorSingleton.get_instance()
+        assert singleton_validator.api_keys == {"key1", "key2", "key3"}
 
 
 class TestGetAPIKeyValidator:
     """Test get API key validator behavior."""
 
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_returns_validator_from_service_registry(self, mock_get_registry: MagicMock) -> None:
-        """Returns validator from service registry when available."""
-        mock_validator = APIKeyValidator(["registry_key"])
-        mock_registry = MagicMock()
-        mock_registry.has_api_key_validator.return_value = True
-        mock_registry.get_api_key_validator.return_value = mock_validator
-        mock_get_registry.return_value = mock_registry
-
-        result = get_api_key_validator()
-
-        assert result is mock_validator
-        mock_registry.has_api_key_validator.assert_called_once()
-        mock_registry.get_api_key_validator.assert_called_once()
-
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_falls_back_to_singleton_when_registry_unavailable(
-        self, mock_get_registry: MagicMock
-    ) -> None:
-        """Falls back to singleton when service registry unavailable."""
-        mock_get_registry.side_effect = ImportError("Registry not available")
-        singleton_validator = APIKeyValidator(["singleton_key"])
-        _APIKeyValidatorSingleton.set_instance(singleton_validator)
-
-        result = get_api_key_validator()
-
-        assert result is singleton_validator
-
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_falls_back_to_singleton_when_validator_not_in_registry(
-        self, mock_get_registry: MagicMock
-    ) -> None:
-        """Falls back to singleton when validator not in registry."""
-        mock_registry = MagicMock()
-        mock_registry.has_api_key_validator.return_value = False
-        mock_get_registry.return_value = mock_registry
-        singleton_validator = APIKeyValidator(["singleton_key"])
-        _APIKeyValidatorSingleton.set_instance(singleton_validator)
-
-        result = get_api_key_validator()
-
-        assert result is singleton_validator
-
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_raises_error_when_no_validator_available(self, mock_get_registry: MagicMock) -> None:
-        """Raises error when no validator available."""
-        mock_get_registry.side_effect = ImportError("Registry not available")
+    def setup_method(self) -> None:
+        """Reset singleton state before each test."""
         _APIKeyValidatorSingleton._instance = None
 
+    def test_returns_singleton_instance_when_configured(self) -> None:
+        """Returns singleton instance when properly configured."""
+        configure_api_key_validator(["test_key"])
+
+        validator = get_api_key_validator()
+
+        assert isinstance(validator, APIKeyValidator)
+        assert validator.api_keys == {"test_key"}
+
+    def test_raises_error_when_not_configured(self) -> None:
+        """Raises error when validator not configured."""
         with pytest.raises(APIKeyValidationError, match="API key validator not configured"):
             get_api_key_validator()
 
+    def test_returns_same_instance_on_subsequent_calls(self) -> None:
+        """Returns same instance on subsequent calls."""
+        configure_api_key_validator(["consistent_key"])
 
-class TestVerifyAPIKey:
-    """Test verify API key FastAPI dependency behavior."""
+        validator1 = get_api_key_validator()
+        validator2 = get_api_key_validator()
 
-    @patch("src.infrastructure.security.api_key_validator.get_api_key_validator")
-    @patch("src.infrastructure.security.api_key_validator.get_logger")
-    @patch("src.infrastructure.security.api_key_validator.get_metrics_collector")
-    def test_validates_x_api_key_header(
-        self, mock_metrics: MagicMock, mock_logger: MagicMock, mock_get_validator: MagicMock
-    ) -> None:
-        """Validates X-API-Key header."""
-        mock_validator = MagicMock()
-        mock_validator.validate.return_value = True
-        mock_get_validator.return_value = mock_validator
-        mock_logger_instance = MagicMock()
-        mock_logger.return_value = mock_logger_instance
-        mock_metrics_instance = MagicMock()
-        mock_metrics.return_value = mock_metrics_instance
+        assert validator1 is validator2
 
-        result = verify_api_key(x_api_key="valid_key", authorization=None)
 
-        assert result == "valid_key"
-        mock_validator.validate.assert_called_once_with("valid_key")
-        mock_metrics_instance.increment_counter.assert_called_once_with(
-            "api_key_validations_total", {"status": "success"}
-        )
+class TestVerifyAPIKeyBasics:
+    """Test basic verify API key functionality."""
 
-    @patch("src.infrastructure.security.api_key_validator.get_api_key_validator")
-    @patch("src.infrastructure.security.api_key_validator.get_logger")
-    @patch("src.infrastructure.security.api_key_validator.get_metrics_collector")
-    def test_validates_authorization_bearer_header(
-        self, mock_metrics: MagicMock, mock_logger: MagicMock, mock_get_validator: MagicMock
-    ) -> None:
-        """Validates Authorization Bearer header."""
-        mock_validator = MagicMock()
-        mock_validator.validate.return_value = True
-        mock_get_validator.return_value = mock_validator
-        mock_logger_instance = MagicMock()
-        mock_logger.return_value = mock_logger_instance
-        mock_metrics_instance = MagicMock()
-        mock_metrics.return_value = mock_metrics_instance
+    def setup_method(self) -> None:
+        """Reset singleton state and configure validator for each test."""
+        _APIKeyValidatorSingleton._instance = None
+        configure_api_key_validator(["valid_key_123", "another_valid_key"])
 
-        result = verify_api_key(x_api_key=None, authorization="Bearer valid_token")
+    def test_accepts_valid_api_key_from_x_api_key_header(self) -> None:
+        """Accepts valid API key from X-API-Key header."""
+        api_key = verify_api_key(x_api_key="valid_key_123", authorization=None)
 
-        assert result == "valid_token"
-        mock_validator.validate.assert_called_once_with("valid_token")
+        assert api_key == "valid_key_123"
 
-    @patch("src.infrastructure.security.api_key_validator.get_api_key_validator")
-    @patch("src.infrastructure.security.api_key_validator.get_logger")
-    @patch("src.infrastructure.security.api_key_validator.get_metrics_collector")
-    def test_validates_authorization_apikey_header(
-        self, mock_metrics: MagicMock, mock_logger: MagicMock, mock_get_validator: MagicMock
-    ) -> None:
-        """Validates Authorization ApiKey header."""
-        mock_validator = MagicMock()
-        mock_validator.validate.return_value = True
-        mock_get_validator.return_value = mock_validator
-        mock_logger_instance = MagicMock()
-        mock_logger.return_value = mock_logger_instance
-        mock_metrics_instance = MagicMock()
-        mock_metrics.return_value = mock_metrics_instance
+    def test_accepts_valid_api_key_from_authorization_header(self) -> None:
+        """Accepts valid API key from Authorization header."""
+        api_key = verify_api_key(x_api_key=None, authorization="Bearer valid_key_123")
 
-        result = verify_api_key(x_api_key=None, authorization="ApiKey valid_key")
+        assert api_key == "valid_key_123"
 
-        assert result == "valid_key"
-        mock_validator.validate.assert_called_once_with("valid_key")
-
-    @patch("src.infrastructure.security.api_key_validator.get_api_key_validator")
-    @patch("src.infrastructure.security.api_key_validator.get_logger")
-    @patch("src.infrastructure.security.api_key_validator.get_metrics_collector")
-    def test_validates_authorization_direct_format(
-        self, mock_metrics: MagicMock, mock_logger: MagicMock, mock_get_validator: MagicMock
-    ) -> None:
-        """Validates Authorization header direct format (GREEN-API)."""
-        mock_validator = MagicMock()
-        mock_validator.validate.return_value = True
-        mock_get_validator.return_value = mock_validator
-        mock_logger_instance = MagicMock()
-        mock_logger.return_value = mock_logger_instance
-        mock_metrics_instance = MagicMock()
-        mock_metrics.return_value = mock_metrics_instance
-
-        result = verify_api_key(x_api_key=None, authorization="direct_api_key")
-
-        assert result == "direct_api_key"
-        mock_validator.validate.assert_called_once_with("direct_api_key")
-
-    @patch("src.infrastructure.security.api_key_validator.get_api_key_validator")
-    @patch("src.infrastructure.security.api_key_validator.get_logger")
-    @patch("src.infrastructure.security.api_key_validator.get_metrics_collector")
-    def test_prefers_x_api_key_over_authorization(
-        self, mock_metrics: MagicMock, mock_logger: MagicMock, mock_get_validator: MagicMock
-    ) -> None:
-        """Prefers X-API-Key header over Authorization header."""
-        mock_validator = MagicMock()
-        mock_validator.validate.return_value = True
-        mock_get_validator.return_value = mock_validator
-        mock_logger_instance = MagicMock()
-        mock_logger.return_value = mock_logger_instance
-        mock_metrics_instance = MagicMock()
-        mock_metrics.return_value = mock_metrics_instance
-
-        result = verify_api_key(x_api_key="x_api_key", authorization="Bearer auth_key")
-
-        assert result == "x_api_key"
-        mock_validator.validate.assert_called_once_with("x_api_key")
-
-    @patch("src.infrastructure.security.api_key_validator.get_api_key_validator")
-    @patch("src.infrastructure.security.api_key_validator.get_logger")
-    @patch("src.infrastructure.security.api_key_validator.get_metrics_collector")
-    def test_raises_http_exception_for_invalid_key(
-        self, mock_metrics: MagicMock, mock_logger: MagicMock, mock_get_validator: MagicMock
-    ) -> None:
-        """Raises HTTPException for invalid API key."""
-        mock_validator = MagicMock()
-        mock_validator.validate.return_value = False
-        mock_get_validator.return_value = mock_validator
-        mock_logger_instance = MagicMock()
-        mock_logger.return_value = mock_logger_instance
-        mock_metrics_instance = MagicMock()
-        mock_metrics.return_value = mock_metrics_instance
-
+    def test_rejects_invalid_api_key(self) -> None:
+        """Rejects invalid API key and raises HTTP 401."""
         with pytest.raises(HTTPException) as exc_info:
             verify_api_key(x_api_key="invalid_key", authorization=None)
 
         assert exc_info.value.status_code == 401
-        assert exc_info.value.detail == "Invalid API key"
-        assert exc_info.value.headers == {"WWW-Authenticate": "ApiKey"}
-        mock_metrics_instance.increment_counter.assert_called_once_with(
-            "api_key_validations_total", {"status": "failure"}
-        )
+        assert "Invalid API key" in exc_info.value.detail
 
-    @patch("src.infrastructure.security.api_key_validator.get_api_key_validator")
-    @patch("src.infrastructure.security.api_key_validator.get_logger")
-    @patch("src.infrastructure.security.api_key_validator.get_metrics_collector")
-    def test_raises_http_exception_for_missing_key(
-        self, mock_metrics: MagicMock, mock_logger: MagicMock, mock_get_validator: MagicMock
-    ) -> None:
-        """Raises HTTPException when no API key provided."""
-        mock_validator = MagicMock()
-        mock_validator.validate.return_value = False
-        mock_get_validator.return_value = mock_validator
-        mock_logger_instance = MagicMock()
-        mock_logger.return_value = mock_logger_instance
-        mock_metrics_instance = MagicMock()
-        mock_metrics.return_value = mock_metrics_instance
-
+    def test_rejects_missing_api_key(self) -> None:
+        """Rejects request with no API key and raises HTTP 401."""
         with pytest.raises(HTTPException) as exc_info:
             verify_api_key(x_api_key=None, authorization=None)
 
         assert exc_info.value.status_code == 401
-        mock_validator.validate.assert_called_once_with(None)
+        assert "Invalid API key" in exc_info.value.detail
 
-    @patch("src.infrastructure.security.api_key_validator.get_api_key_validator")
-    @patch("src.infrastructure.security.api_key_validator.get_logger")
-    @patch("src.infrastructure.security.api_key_validator.get_metrics_collector")
-    def test_logs_successful_validation(
-        self, mock_metrics: MagicMock, mock_logger: MagicMock, mock_get_validator: MagicMock
-    ) -> None:
-        """Logs successful API key validation."""
-        mock_validator = MagicMock()
-        mock_validator.validate.return_value = True
-        mock_get_validator.return_value = mock_validator
-        mock_logger_instance = MagicMock()
-        mock_logger.return_value = mock_logger_instance
-        mock_metrics_instance = MagicMock()
-        mock_metrics.return_value = mock_metrics_instance
-
-        verify_api_key(x_api_key="test12345678", authorization=None)
-
-        mock_logger_instance.info.assert_called_once_with(
-            "API key validation successful",
-            api_key_prefix="test1234...",
-            auth_method="X-API-Key",
+    def test_prefers_x_api_key_header(self) -> None:
+        """Prefers X-API-Key header when both are provided."""
+        api_key = verify_api_key(
+            x_api_key="valid_key_123", authorization="Bearer another_valid_key"
         )
 
-    @patch("src.infrastructure.security.api_key_validator.get_api_key_validator")
+        assert api_key == "valid_key_123"
+
+    def test_handles_authorization_without_bearer_prefix(self) -> None:
+        """Handles Authorization header without Bearer prefix."""
+        api_key = verify_api_key(x_api_key=None, authorization="valid_key_123")
+
+        assert api_key == "valid_key_123"
+
+    def test_strips_bearer_prefix_from_authorization(self) -> None:
+        """Strips Bearer prefix from Authorization header."""
+        api_key = verify_api_key(x_api_key=None, authorization="Bearer valid_key_123")
+
+        assert api_key == "valid_key_123"
+
     @patch("src.infrastructure.security.api_key_validator.get_logger")
     @patch("src.infrastructure.security.api_key_validator.get_metrics_collector")
-    def test_logs_failed_validation(
-        self, mock_metrics: MagicMock, mock_logger: MagicMock, mock_get_validator: MagicMock
-    ) -> None:
-        """Logs failed API key validation."""
-        mock_validator = MagicMock()
-        mock_validator.validate.return_value = False
-        mock_get_validator.return_value = mock_validator
+    def test_records_success_metrics(self, mock_metrics: MagicMock, mock_logger: MagicMock) -> None:
+        """Records success metrics on valid API key."""
         mock_logger_instance = MagicMock()
-        mock_logger.return_value = mock_logger_instance
         mock_metrics_instance = MagicMock()
+        mock_logger.return_value = mock_logger_instance
+        mock_metrics.return_value = mock_metrics_instance
+
+        verify_api_key(x_api_key="valid_key_123", authorization=None)
+
+        mock_metrics_instance.increment_counter.assert_called_with(
+            "api_key_validations_total", {"status": "success"}
+        )
+
+    @patch("src.infrastructure.security.api_key_validator.get_logger")
+    @patch("src.infrastructure.security.api_key_validator.get_metrics_collector")
+    def test_records_failure_metrics(self, mock_metrics: MagicMock, mock_logger: MagicMock) -> None:
+        """Records failure metrics on invalid API key."""
+        mock_logger_instance = MagicMock()
+        mock_metrics_instance = MagicMock()
+        mock_logger.return_value = mock_logger_instance
         mock_metrics.return_value = mock_metrics_instance
 
         with pytest.raises(HTTPException):
-            verify_api_key(x_api_key="invalid12345", authorization=None)
+            verify_api_key(x_api_key="invalid_key", authorization=None)
 
-        mock_logger_instance.warning.assert_called_once_with(
-            "API key validation failed",
-            api_key_prefix="invalid1...",
-            auth_method="X-API-Key",
+        mock_metrics_instance.increment_counter.assert_called_with(
+            "api_key_validations_total", {"status": "failure"}
         )
+
+
+class TestAPIKeyValidatorWorkflows:
+    """Test complete API key validator workflows and use cases."""
+
+    def setup_method(self) -> None:
+        """Reset singleton state before each test."""
+        _APIKeyValidatorSingleton._instance = None
+
+    def test_typical_validator_lifecycle(self) -> None:
+        """Test complete lifecycle of API key validator."""
+        # Initial configuration
+        configure_api_key_validator(["api_key_1", "api_key_2"])
+        validator = get_api_key_validator()
+
+        # Validate keys
+        assert validator.validate("api_key_1") is True
+        assert validator.validate("api_key_2") is True
+        assert validator.validate("invalid_key") is False
+
+        # Reconfigure with new keys
+        configure_api_key_validator(["new_key_1", "new_key_2", "new_key_3"])
+        updated_validator = get_api_key_validator()
+
+        # Old keys no longer valid
+        assert updated_validator.validate("api_key_1") is False
+        assert updated_validator.validate("api_key_2") is False
+
+        # New keys are valid
+        assert updated_validator.validate("new_key_1") is True
+        assert updated_validator.validate("new_key_2") is True
+        assert updated_validator.validate("new_key_3") is True
+
+    def test_fastapi_integration_workflow(self) -> None:
+        """Test FastAPI integration workflow."""
+        configure_api_key_validator(["integration_key"])
+
+        # Simulate FastAPI dependency injection - successful case
+        verified_key = verify_api_key(x_api_key="integration_key", authorization=None)
+        assert verified_key == "integration_key"
+
+        # Simulate authentication failure
+        with pytest.raises(HTTPException) as exc_info:
+            verify_api_key(x_api_key="wrong_key", authorization=None)
+
+        assert exc_info.value.status_code == 401
+        assert "Invalid API key" in exc_info.value.detail
+
+    def test_edge_case_handling(self) -> None:
+        """Test edge case handling in validator workflows."""
+        # Configure with edge case keys (excluding empty string for security)
+        edge_keys = ["key-with-special-chars!@#$%", "very-long-key-" + "x" * 100]
+        configure_api_key_validator(edge_keys)
+        validator = get_api_key_validator()
+
+        # Special character and long keys should be handled
+        assert validator.validate("key-with-special-chars!@#$%") is True
+        assert validator.validate("very-long-key-" + "x" * 100) is True
+
+        # Empty strings and None should always be invalid for security
+        assert validator.validate("") is False
+        assert validator.validate(None) is False

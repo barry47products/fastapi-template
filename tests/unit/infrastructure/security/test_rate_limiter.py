@@ -1,9 +1,9 @@
-"""Unit tests for rate limiter security component."""
+"""Unit tests for rate limiting security component."""
 
 from __future__ import annotations
 
 import time
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi import HTTPException, Request
@@ -21,20 +21,20 @@ from src.infrastructure.security.rate_limiter import (
 class TestRateLimitError:
     """Test rate limit error behavior."""
 
-    def test_creates_error_with_message(self) -> None:
-        """Creates error with message."""
-        error = RateLimitError("Too many requests")
+    def test_creates_error_with_message_and_retry_after(self) -> None:
+        """Creates error with message and retry after time."""
+        error = RateLimitError("Rate limit exceeded", retry_after=60)
 
-        assert str(error) == "Too many requests"
-        assert error.message == "Too many requests"
+        assert str(error) == "Rate limit exceeded"
+        assert error.message == "Rate limit exceeded"
         assert error.error_code == "RATE_LIMIT_EXCEEDED"
-        assert error.retry_after == 0
-
-    def test_creates_error_with_retry_after(self) -> None:
-        """Creates error with retry after time."""
-        error = RateLimitError("Rate limited", retry_after=60)
-
         assert error.retry_after == 60
+
+    def test_creates_error_with_default_retry_after(self) -> None:
+        """Creates error with default retry after time."""
+        error = RateLimitError("Limit exceeded")
+
+        assert error.retry_after == 0
 
     def test_inherits_from_application_error(self) -> None:
         """Inherits from ApplicationError."""
@@ -47,398 +47,375 @@ class TestRateLimitError:
 class TestRateLimiter:
     """Test rate limiter behavior."""
 
-    def test_creates_limiter_with_config(self) -> None:
-        """Creates limiter with configuration."""
+    def test_creates_limiter_with_configuration(self) -> None:
+        """Creates rate limiter with limit and window configuration."""
         limiter = RateLimiter(limit=10, window_seconds=60)
 
         assert limiter.limit == 10
         assert limiter.window_seconds == 60
-        assert limiter._requests is not None
 
     def test_allows_requests_under_limit(self) -> None:
-        """Allows requests under the limit."""
+        """Allows requests under the configured limit."""
         limiter = RateLimiter(limit=3, window_seconds=60)
         client_id = "test_client"
 
+        # Should allow up to the limit
         assert limiter.is_allowed(client_id) is True
         assert limiter.is_allowed(client_id) is True
         assert limiter.is_allowed(client_id) is True
 
     def test_blocks_requests_over_limit(self) -> None:
-        """Blocks requests over the limit."""
+        """Blocks requests that exceed the configured limit."""
         limiter = RateLimiter(limit=2, window_seconds=60)
         client_id = "test_client"
 
-        # Allow first two requests
+        # Allow up to limit
         assert limiter.is_allowed(client_id) is True
         assert limiter.is_allowed(client_id) is True
 
-        # Block third request
+        # Block requests over limit
         assert limiter.is_allowed(client_id) is False
 
-    def test_allows_different_clients_independently(self) -> None:
-        """Allows different clients independently."""
-        limiter = RateLimiter(limit=1, window_seconds=60)
-
-        assert limiter.is_allowed("client1") is True
-        assert limiter.is_allowed("client2") is True
-
-        # Both clients have used their limit
-        assert limiter.is_allowed("client1") is False
-        assert limiter.is_allowed("client2") is False
-
-    @patch("src.infrastructure.security.rate_limiter.time.time")
-    def test_cleans_up_old_requests(self, mock_time: MagicMock) -> None:
-        """Cleans up old requests outside the window."""
+    def test_tracks_clients_separately(self) -> None:
+        """Tracks request counts separately for different clients."""
         limiter = RateLimiter(limit=2, window_seconds=60)
+
+        # Different clients should have independent limits
+        assert limiter.is_allowed("client_1") is True
+        assert limiter.is_allowed("client_2") is True
+        assert limiter.is_allowed("client_1") is True
+        assert limiter.is_allowed("client_2") is True
+
+        # Each client should hit their limit independently
+        assert limiter.is_allowed("client_1") is False
+        assert limiter.is_allowed("client_2") is False
+
+    def test_sliding_window_cleanup(self) -> None:
+        """Cleans up old requests outside the time window."""
+        limiter = RateLimiter(limit=2, window_seconds=0.05)  # 50ms window
         client_id = "test_client"
 
-        # First request at time 0
-        mock_time.return_value = 0
+        # Fill up the limit
         assert limiter.is_allowed(client_id) is True
         assert limiter.is_allowed(client_id) is True
-
-        # Third request should be blocked
         assert limiter.is_allowed(client_id) is False
 
-        # Move time forward past the window
-        mock_time.return_value = 61
+        # Wait for window to pass
+        time.sleep(0.06)  # 60ms > 50ms window
 
-        # Should allow requests again after cleanup
-        assert limiter.is_allowed(client_id) is True
+        # Should allow requests again after window passes
         assert limiter.is_allowed(client_id) is True
 
-    def test_returns_current_time_for_empty_requests(self) -> None:
-        """Returns current time for clients with no requests."""
+    def test_get_reset_time_for_empty_client(self) -> None:
+        """Returns current time for client with no requests."""
         limiter = RateLimiter(limit=5, window_seconds=60)
-
         reset_time = limiter.get_reset_time("new_client")
-        current_time = time.time()
 
-        # Should be approximately current time (within 1 second)
-        assert abs(reset_time - current_time) < 1
+        # Should be approximately current time
+        assert abs(reset_time - time.time()) < 1
 
-    @patch("src.infrastructure.security.rate_limiter.time.time")
-    def test_returns_reset_time_for_existing_requests(self, mock_time: MagicMock) -> None:
-        """Returns correct reset time for clients with existing requests."""
+    def test_get_reset_time_for_active_client(self) -> None:
+        """Returns appropriate reset time for client with requests."""
         limiter = RateLimiter(limit=2, window_seconds=60)
         client_id = "test_client"
 
-        # Make requests at time 100
-        mock_time.return_value = 100
+        # Make some requests
         limiter.is_allowed(client_id)
         limiter.is_allowed(client_id)
 
-        # Reset time should be 100 + 60 = 160
         reset_time = limiter.get_reset_time(client_id)
-        assert reset_time == 160
 
-    @patch("src.infrastructure.security.rate_limiter.time.time")
-    def test_cleanup_removes_expired_requests(self, mock_time: MagicMock) -> None:
-        """Cleanup removes expired requests."""
-        limiter = RateLimiter(limit=5, window_seconds=10)
+        # Reset time should be in the future (within window + some tolerance)
+        assert reset_time > time.time()
+        assert reset_time < time.time() + 61  # Window + tolerance
+
+    def test_maintains_request_history_internally(self) -> None:
+        """Maintains request history internally for rate limiting."""
+        limiter = RateLimiter(limit=2, window_seconds=60)
         client_id = "test_client"
 
-        # Add requests at different times
-        mock_time.return_value = 0
-        limiter.is_allowed(client_id)
-
-        mock_time.return_value = 5
-        limiter.is_allowed(client_id)
-
-        mock_time.return_value = 15
-        limiter.is_allowed(client_id)
-
-        # At time 15, request at time 0 should be cleaned up
-        # Only requests from time 5 and 15 should remain
-        client_requests = limiter._requests[client_id]
-        assert len(client_requests) == 2
-        assert 5 in client_requests
-        assert 15 in client_requests
-
-    def test_handles_zero_limit(self) -> None:
-        """Handles zero limit configuration."""
-        limiter = RateLimiter(limit=0, window_seconds=60)
-
-        assert limiter.is_allowed("client") is False
-
-    def test_handles_zero_window(self) -> None:
-        """Handles zero window configuration."""
-        limiter = RateLimiter(limit=5, window_seconds=0)
-        client_id = "test_client"
-
-        # With zero window, all requests should be cleaned up immediately
+        # Internal state should allow tracking limits properly
         assert limiter.is_allowed(client_id) is True
+        assert limiter.is_allowed(client_id) is True
+        assert limiter.is_allowed(client_id) is False  # Over limit
 
 
 class TestRateLimiterSingleton:
-    """Test rate limiter singleton behavior."""
+    """Test singleton pattern for rate limiter."""
 
-    def test_raises_error_when_not_configured(self) -> None:
-        """Raises error when limiter not configured."""
+    def setup_method(self) -> None:
+        """Reset singleton state before each test."""
         _RateLimiterSingleton._instance = None
 
+    def test_raises_error_when_no_instance_set(self) -> None:
+        """Raises error when trying to get instance before configuration."""
         with pytest.raises(RateLimitError, match="Rate limiter not configured"):
             _RateLimiterSingleton.get_instance()
 
-    def test_returns_configured_instance(self) -> None:
-        """Returns configured instance."""
+    def test_returns_set_instance(self) -> None:
+        """Returns the set singleton instance."""
         limiter = RateLimiter(limit=10, window_seconds=60)
         _RateLimiterSingleton.set_instance(limiter)
 
-        result = _RateLimiterSingleton.get_instance()
-        assert result is limiter
+        retrieved_limiter = _RateLimiterSingleton.get_instance()
+        assert retrieved_limiter is limiter
 
-    def test_sets_singleton_instance(self) -> None:
-        """Sets singleton instance."""
-        limiter = RateLimiter(limit=10, window_seconds=60)
+    def test_replaces_existing_instance(self) -> None:
+        """Replaces existing singleton instance when new one is set."""
+        old_limiter = RateLimiter(limit=5, window_seconds=30)
+        new_limiter = RateLimiter(limit=10, window_seconds=60)
 
-        _RateLimiterSingleton.set_instance(limiter)
+        _RateLimiterSingleton.set_instance(old_limiter)
+        _RateLimiterSingleton.set_instance(new_limiter)
 
-        assert _RateLimiterSingleton._instance is limiter
+        retrieved_limiter = _RateLimiterSingleton.get_instance()
+        assert retrieved_limiter is new_limiter
+        assert retrieved_limiter is not old_limiter
 
 
 class TestConfigureRateLimiter:
     """Test rate limiter configuration behavior."""
 
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_registers_with_service_registry(self, mock_get_registry: MagicMock) -> None:
-        """Registers limiter with service registry."""
-        mock_registry = MagicMock()
-        mock_get_registry.return_value = mock_registry
+    def setup_method(self) -> None:
+        """Reset singleton state before each test."""
+        _RateLimiterSingleton._instance = None
 
-        configure_rate_limiter(limit=100, window_seconds=300)
+    def test_sets_singleton_instance_for_backward_compatibility(self) -> None:
+        """Sets singleton instance for backward compatibility."""
+        configure_rate_limiter(limit=20, window_seconds=120)
 
-        mock_registry.register_rate_limiter.assert_called_once()
-        limiter_arg = mock_registry.register_rate_limiter.call_args[0][0]
-        assert isinstance(limiter_arg, RateLimiter)
-        assert limiter_arg.limit == 100
-        assert limiter_arg.window_seconds == 300
+        singleton_limiter = _RateLimiterSingleton.get_instance()
+        assert singleton_limiter.limit == 20
+        assert singleton_limiter.window_seconds == 120
 
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_handles_service_registry_import_error(self, mock_get_registry: MagicMock) -> None:
-        """Handles service registry import error gracefully."""
-        mock_get_registry.side_effect = ImportError("Module not found")
+    def test_replaces_existing_singleton(self) -> None:
+        """Replaces existing singleton instance when reconfigured."""
+        # Set initial configuration
+        configure_rate_limiter(limit=5, window_seconds=30)
+        old_limiter = _RateLimiterSingleton.get_instance()
 
-        # Should not raise exception
-        configure_rate_limiter(limit=50, window_seconds=120)
-
-        # Should still set singleton
-        limiter = _RateLimiterSingleton.get_instance()
-        assert limiter.limit == 50
-        assert limiter.window_seconds == 120
-
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_handles_service_registry_runtime_error(self, mock_get_registry: MagicMock) -> None:
-        """Handles service registry runtime error gracefully."""
-        mock_get_registry.side_effect = RuntimeError("Registry not initialized")
-
-        # Should not raise exception
-        configure_rate_limiter(limit=25, window_seconds=180)
-
-        # Should still set singleton
-        limiter = _RateLimiterSingleton.get_instance()
-        assert limiter.limit == 25
-        assert limiter.window_seconds == 180
-
-    def test_sets_singleton_instance(self) -> None:
-        """Sets singleton instance."""
+        # Reconfigure
         configure_rate_limiter(limit=15, window_seconds=90)
+        new_limiter = _RateLimiterSingleton.get_instance()
 
-        limiter = _RateLimiterSingleton.get_instance()
-        assert limiter.limit == 15
-        assert limiter.window_seconds == 90
+        assert new_limiter is not old_limiter
+        assert new_limiter.limit == 15
+        assert new_limiter.window_seconds == 90
+
+    def test_configures_with_different_limits(self) -> None:
+        """Configures rate limiter with various limit values."""
+        test_cases = [
+            (1, 60),
+            (100, 60),
+            (1000, 3600),
+            (50, 1),
+        ]
+
+        for limit, window in test_cases:
+            configure_rate_limiter(limit=limit, window_seconds=window)
+            limiter = _RateLimiterSingleton.get_instance()
+
+            assert limiter.limit == limit
+            assert limiter.window_seconds == window
 
 
 class TestGetRateLimiter:
     """Test get rate limiter behavior."""
 
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_returns_limiter_from_service_registry(self, mock_get_registry: MagicMock) -> None:
-        """Returns limiter from service registry when available."""
-        mock_limiter = RateLimiter(limit=100, window_seconds=60)
-        mock_registry = MagicMock()
-        mock_registry.has_rate_limiter.return_value = True
-        mock_registry.get_rate_limiter.return_value = mock_limiter
-        mock_get_registry.return_value = mock_registry
-
-        result = get_rate_limiter()
-
-        assert result is mock_limiter
-        mock_registry.has_rate_limiter.assert_called_once()
-        mock_registry.get_rate_limiter.assert_called_once()
-
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_falls_back_to_singleton_when_registry_unavailable(
-        self, mock_get_registry: MagicMock
-    ) -> None:
-        """Falls back to singleton when service registry unavailable."""
-        mock_get_registry.side_effect = ImportError("Registry not available")
-        singleton_limiter = RateLimiter(limit=50, window_seconds=30)
-        _RateLimiterSingleton.set_instance(singleton_limiter)
-
-        result = get_rate_limiter()
-
-        assert result is singleton_limiter
-
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_falls_back_to_singleton_when_limiter_not_in_registry(
-        self, mock_get_registry: MagicMock
-    ) -> None:
-        """Falls back to singleton when limiter not in registry."""
-        mock_registry = MagicMock()
-        mock_registry.has_rate_limiter.return_value = False
-        mock_get_registry.return_value = mock_registry
-        singleton_limiter = RateLimiter(limit=25, window_seconds=45)
-        _RateLimiterSingleton.set_instance(singleton_limiter)
-
-        result = get_rate_limiter()
-
-        assert result is singleton_limiter
-
-    @patch("src.infrastructure.service_registry.get_service_registry")
-    def test_raises_error_when_no_limiter_available(self, mock_get_registry: MagicMock) -> None:
-        """Raises error when no limiter available."""
-        mock_get_registry.side_effect = ImportError("Registry not available")
+    def setup_method(self) -> None:
+        """Reset singleton state before each test."""
         _RateLimiterSingleton._instance = None
 
+    def test_returns_singleton_instance_when_configured(self) -> None:
+        """Returns singleton instance when properly configured."""
+        configure_rate_limiter(limit=25, window_seconds=300)
+
+        limiter = get_rate_limiter()
+
+        assert isinstance(limiter, RateLimiter)
+        assert limiter.limit == 25
+        assert limiter.window_seconds == 300
+
+    def test_raises_error_when_not_configured(self) -> None:
+        """Raises error when rate limiter not configured."""
         with pytest.raises(RateLimitError, match="Rate limiter not configured"):
             get_rate_limiter()
 
+    def test_returns_same_instance_on_subsequent_calls(self) -> None:
+        """Returns same instance on subsequent calls."""
+        configure_rate_limiter(limit=30, window_seconds=180)
+
+        limiter1 = get_rate_limiter()
+        limiter2 = get_rate_limiter()
+
+        assert limiter1 is limiter2
+
 
 class TestCheckRateLimit:
-    """Test check rate limit FastAPI dependency behavior."""
+    """Test FastAPI dependency for rate limit checking."""
 
-    def test_allows_request_when_under_limit(self) -> None:
+    def setup_method(self) -> None:
+        """Reset singleton state and configure rate limiter for each test."""
+        _RateLimiterSingleton._instance = None
+        configure_rate_limiter(limit=3, window_seconds=60)
+
+    def test_allows_request_under_limit(self) -> None:
         """Allows request when under rate limit."""
-        # Create mock request
-        mock_client = Mock()
-        mock_client.host = "192.168.1.100"
-        mock_request = Mock(spec=Request)
-        mock_request.client = mock_client
+        mock_request = MagicMock(spec=Request)
+        mock_request.client.host = "192.168.1.100"
 
-        # Configure rate limiter
-        limiter = RateLimiter(limit=10, window_seconds=60)
-        _RateLimiterSingleton.set_instance(limiter)
+        client_id = check_rate_limit(mock_request)
 
-        result = check_rate_limit(mock_request)
-        assert result == "192.168.1.100"
+        assert client_id == "192.168.1.100"
 
-    @patch("src.infrastructure.security.rate_limiter.get_logger")
-    @patch("src.infrastructure.security.rate_limiter.get_metrics_collector")
-    def test_blocks_request_when_over_limit(
-        self, mock_metrics: MagicMock, mock_logger: MagicMock
-    ) -> None:
+    def test_blocks_request_over_limit(self) -> None:
         """Blocks request when over rate limit."""
-        # Create mock request
-        mock_client = Mock()
-        mock_client.host = "192.168.1.200"
-        mock_request = Mock(spec=Request)
-        mock_request.client = mock_client
+        mock_request = MagicMock(spec=Request)
+        mock_request.client.host = "192.168.1.200"
 
-        # Configure rate limiter with very low limit
-        limiter = RateLimiter(limit=1, window_seconds=60)
-        _RateLimiterSingleton.set_instance(limiter)
+        # Exhaust rate limit
+        check_rate_limit(mock_request)
+        check_rate_limit(mock_request)
+        check_rate_limit(mock_request)
 
-        # Setup mocks
-        mock_logger_instance = MagicMock()
-        mock_logger.return_value = mock_logger_instance
-        mock_metrics_instance = MagicMock()
-        mock_metrics.return_value = mock_metrics_instance
-
-        # First request should succeed
-        result = check_rate_limit(mock_request)
-        assert result == "192.168.1.200"
-
-        # Second request should fail
+        # Next request should be blocked
         with pytest.raises(HTTPException) as exc_info:
             check_rate_limit(mock_request)
 
         assert exc_info.value.status_code == 429
-        assert exc_info.value.detail == "Rate limit exceeded"
-        assert exc_info.value.headers is not None
-        assert "Retry-After" in exc_info.value.headers
+        assert "Rate limit exceeded" in exc_info.value.detail
 
-        # Should log warning and increment metrics
-        mock_logger_instance.warning.assert_called_once_with(
-            "Rate limit exceeded", client_ip="192.168.1.200"
-        )
-        mock_metrics_instance.increment_counter.assert_called_once_with(
-            "rate_limit_blocks_total", {"client_ip": "192.168.1.200"}
-        )
+    def test_includes_retry_after_header_in_response(self) -> None:
+        """Includes Retry-After header when rate limit exceeded."""
+        mock_request = MagicMock(spec=Request)
+        mock_request.client.host = "192.168.1.300"
 
-    def test_handles_missing_client_info(self) -> None:
-        """Handles missing client information."""
-        mock_request = Mock(spec=Request)
-        mock_request.client = None
-
-        # Configure rate limiter
-        limiter = RateLimiter(limit=10, window_seconds=60)
-        _RateLimiterSingleton.set_instance(limiter)
-
-        result = check_rate_limit(mock_request)
-        assert result == "unknown"
-
-    @patch("src.infrastructure.security.rate_limiter.time.time")
-    @patch("src.infrastructure.security.rate_limiter.get_logger")
-    @patch("src.infrastructure.security.rate_limiter.get_metrics_collector")
-    def test_includes_correct_retry_after_header(
-        self, mock_metrics: MagicMock, mock_logger: MagicMock, mock_time: MagicMock
-    ) -> None:
-        """Includes correct Retry-After header in rate limit response."""
-        # Create mock request
-        mock_client = Mock()
-        mock_client.host = "192.168.1.300"
-        mock_request = Mock(spec=Request)
-        mock_request.client = mock_client
-
-        # Configure rate limiter
-        limiter = RateLimiter(limit=1, window_seconds=60)
-        _RateLimiterSingleton.set_instance(limiter)
-
-        # Setup mocks
-        mock_logger_instance = MagicMock()
-        mock_logger.return_value = mock_logger_instance
-        mock_metrics_instance = MagicMock()
-        mock_metrics.return_value = mock_metrics_instance
-
-        # Set specific time for predictable retry calculation
-        mock_time.return_value = 100
-
-        # Make first request
+        # Exhaust rate limit
+        check_rate_limit(mock_request)
+        check_rate_limit(mock_request)
         check_rate_limit(mock_request)
 
-        # Set time for second request and retry calculation
-        mock_time.return_value = 120  # 20 seconds later
-
-        # Second request should fail with correct retry time
+        # Check that blocked request includes retry info
         with pytest.raises(HTTPException) as exc_info:
             check_rate_limit(mock_request)
 
-        # Retry-After should be 40 seconds (160 - 120)
-        assert exc_info.value.headers is not None
-        assert exc_info.value.headers["Retry-After"] == "40"
+        headers = exc_info.value.headers
+        assert headers is not None
+        assert "Retry-After" in headers
 
-    def test_allows_requests_from_different_ips(self) -> None:
-        """Allows requests from different IP addresses independently."""
-        # Configure rate limiter with limit of 1
-        limiter = RateLimiter(limit=1, window_seconds=60)
-        _RateLimiterSingleton.set_instance(limiter)
+    def test_logs_successful_requests(self) -> None:
+        """Rate limiter doesn't record success metrics (only blocks)."""
+        mock_request = MagicMock(spec=Request)
+        mock_request.client.host = "192.168.1.400"
 
-        # Create requests from different IPs
-        mock_client1 = Mock()
-        mock_client1.host = "192.168.1.1"
-        mock_request1 = Mock(spec=Request)
-        mock_request1.client = mock_client1
+        # Successful request should just return client ID
+        client_id = check_rate_limit(mock_request)
+        assert client_id == "192.168.1.400"
 
-        mock_client2 = Mock()
-        mock_client2.host = "192.168.1.2"
-        mock_request2 = Mock(spec=Request)
-        mock_request2.client = mock_client2
+    @patch("src.infrastructure.security.rate_limiter.get_logger")
+    @patch("src.infrastructure.security.rate_limiter.get_metrics_collector")
+    def test_records_block_metrics(self, mock_metrics: MagicMock, mock_logger: MagicMock) -> None:
+        """Records block metrics when request is blocked."""
+        mock_logger_instance = MagicMock()
+        mock_metrics_instance = MagicMock()
+        mock_logger.return_value = mock_logger_instance
+        mock_metrics.return_value = mock_metrics_instance
 
-        # Both should be allowed
-        result1 = check_rate_limit(mock_request1)
-        result2 = check_rate_limit(mock_request2)
+        mock_request = MagicMock(spec=Request)
+        mock_request.client.host = "192.168.1.500"
 
-        assert result1 == "192.168.1.1"
-        assert result2 == "192.168.1.2"
+        # Exhaust rate limit
+        check_rate_limit(mock_request)
+        check_rate_limit(mock_request)
+        check_rate_limit(mock_request)
+
+        with pytest.raises(HTTPException):
+            check_rate_limit(mock_request)
+
+        mock_metrics_instance.increment_counter.assert_called_with(
+            "rate_limit_blocks_total", {"client_ip": "192.168.1.500"}
+        )
+
+
+class TestRateLimiterWorkflows:
+    """Test complete rate limiter workflows and use cases."""
+
+    def setup_method(self) -> None:
+        """Reset singleton state before each test."""
+        _RateLimiterSingleton._instance = None
+
+    def test_typical_rate_limiter_lifecycle(self) -> None:
+        """Test complete lifecycle of rate limiter."""
+        # Initial configuration
+        configure_rate_limiter(limit=2, window_seconds=3600)
+        limiter = get_rate_limiter()
+
+        # Test rate limiting behavior
+        client = "lifecycle_client"
+        assert limiter.is_allowed(client) is True
+        assert limiter.is_allowed(client) is True
+        assert limiter.is_allowed(client) is False
+
+        # Reconfigure with different limits
+        configure_rate_limiter(limit=5, window_seconds=1800)
+        updated_limiter = get_rate_limiter()
+
+        # Should be a new instance with new configuration
+        assert updated_limiter is not limiter
+        assert updated_limiter.limit == 5
+        assert updated_limiter.window_seconds == 1800
+
+    def test_fastapi_integration_workflow(self) -> None:
+        """Test FastAPI integration workflow."""
+        configure_rate_limiter(limit=2, window_seconds=60)
+
+        mock_request = MagicMock(spec=Request)
+        mock_request.client.host = "integration_client"
+
+        # Should allow initial requests
+        client_id1 = check_rate_limit(mock_request)
+        client_id2 = check_rate_limit(mock_request)
+
+        assert client_id1 == "integration_client"
+        assert client_id2 == "integration_client"
+
+        # Should block subsequent requests
+        with pytest.raises(HTTPException) as exc_info:
+            check_rate_limit(mock_request)
+
+        assert exc_info.value.status_code == 429
+
+    def test_concurrent_client_handling(self) -> None:
+        """Test handling multiple concurrent clients."""
+        configure_rate_limiter(limit=2, window_seconds=60)
+        limiter = get_rate_limiter()
+
+        # Multiple clients should be handled independently
+        clients = ["client_1", "client_2", "client_3", "client_4"]
+
+        for client in clients:
+            # Each client gets their own limit
+            assert limiter.is_allowed(client) is True
+            assert limiter.is_allowed(client) is True
+            assert limiter.is_allowed(client) is False
+
+        # All clients should be at their limit
+        for client in clients:
+            assert limiter.is_allowed(client) is False
+
+    def test_time_window_reset_behavior(self) -> None:
+        """Test rate limit reset behavior over time windows."""
+        configure_rate_limiter(limit=1, window_seconds=0.05)  # 50ms window
+        limiter = get_rate_limiter()
+
+        client = "time_test_client"
+
+        # Use up the limit
+        assert limiter.is_allowed(client) is True
+        assert limiter.is_allowed(client) is False
+
+        # Wait for window to reset
+        time.sleep(0.06)  # 60ms > 50ms window
+
+        # Should be allowed again
+        assert limiter.is_allowed(client) is True

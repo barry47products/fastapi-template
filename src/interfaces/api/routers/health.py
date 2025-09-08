@@ -2,28 +2,15 @@
 
 from fastapi import APIRouter, Depends
 
+from src.infrastructure.dependencies import get_health_checker
 from src.infrastructure.observability.health_checker import HealthChecker
 from src.infrastructure.security import check_rate_limit
-from src.infrastructure.service_registry import get_service_registry as _get_service_registry
-from src.infrastructure.service_registry import ServiceRegistry
 from src.interfaces.api.schemas import DetailedHealthResponse, HealthCheckDetail, HealthResponse
 
 router = APIRouter(
     prefix="/health",
     tags=["health"],
 )
-
-
-def get_service_registry() -> ServiceRegistry:
-    """Get service registry singleton instance."""
-    return _get_service_registry()
-
-
-def get_health_checker(
-    registry: ServiceRegistry = Depends(get_service_registry),
-) -> HealthChecker:
-    """Dependency to get health checker service from registry."""
-    return registry.get_health_checker()
 
 
 @router.get("/")

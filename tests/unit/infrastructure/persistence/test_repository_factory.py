@@ -246,60 +246,36 @@ class TestRepositoryFactoryRegistry:
         """Reset registry state before each test."""
         RepositoryFactoryRegistry._instance = None
 
-    @patch("src.infrastructure.persistence.repository_factory.get_service_registry")
-    def test_configure_with_provided_factory(self, mock_get_service_registry: MagicMock) -> None:
-        """Configure sets provided factory and registers with service registry."""
-        mock_registry = MagicMock()
-        mock_registry.register_repository_factory = MagicMock()
-        mock_get_service_registry.return_value = mock_registry
-
+    def test_configure_with_provided_factory(self) -> None:
+        """Configure sets provided factory instance."""
         mock_factory = MockRepositoryFactory()
         RepositoryFactoryRegistry.configure(mock_factory)
 
         assert RepositoryFactoryRegistry._instance is mock_factory
-        mock_registry.register_repository_factory.assert_called_once_with(mock_factory)
 
-    @patch("src.infrastructure.persistence.repository_factory.get_service_registry")
-    def test_configure_with_none_creates_sample_factory(
-        self, mock_get_service_registry: MagicMock
-    ) -> None:
+    def test_configure_with_none_creates_sample_factory(self) -> None:
         """Configure with None creates SampleRepositoryFactory."""
-        mock_registry = MagicMock()
-        mock_registry.register_repository_factory = MagicMock()
-        mock_get_service_registry.return_value = mock_registry
-
         RepositoryFactoryRegistry.configure(None)
 
         assert isinstance(RepositoryFactoryRegistry._instance, SampleRepositoryFactory)
-        mock_registry.register_repository_factory.assert_called_once()
 
-    @patch("src.infrastructure.persistence.repository_factory.get_service_registry")
-    def test_configure_ignores_service_registry_errors(
-        self, mock_get_service_registry: MagicMock
-    ) -> None:
-        """Configure ignores service registry errors gracefully."""
-        mock_get_service_registry.side_effect = ImportError("Service registry not available")
-
-        mock_factory = MockRepositoryFactory()
-        RepositoryFactoryRegistry.configure(mock_factory)
-
-        # Should still set the instance despite service registry error
-        assert RepositoryFactoryRegistry._instance is mock_factory
-
-    @patch("src.infrastructure.persistence.repository_factory.get_service_registry")
-    def test_configure_handles_service_registry_without_method(
-        self, mock_get_service_registry: MagicMock
-    ) -> None:
-        """Configure handles service registry that doesn't have register method."""
-        mock_registry = MagicMock()
-        # Don't add the register_repository_factory method
-        mock_registry.configure_mock()
-        mock_get_service_registry.return_value = mock_registry
-
+    def test_configure_sets_instance_correctly(self) -> None:
+        """Configure sets instance correctly."""
         mock_factory = MockRepositoryFactory()
         RepositoryFactoryRegistry.configure(mock_factory)
 
         assert RepositoryFactoryRegistry._instance is mock_factory
+
+    def test_configure_replaces_existing_instance(self) -> None:
+        """Configure replaces existing factory instance."""
+        old_factory = MockRepositoryFactory()
+        new_factory = SampleRepositoryFactory()
+
+        RepositoryFactoryRegistry.configure(old_factory)
+        assert RepositoryFactoryRegistry._instance is old_factory
+
+        RepositoryFactoryRegistry.configure(new_factory)
+        assert RepositoryFactoryRegistry._instance is new_factory
 
     def test_get_instance_returns_configured_factory(self) -> None:
         """Get instance returns previously configured factory."""
@@ -358,110 +334,66 @@ class TestGetRepositoryFactory:
         """Reset registry state before each test."""
         RepositoryFactoryRegistry._instance = None
 
-    @patch("src.infrastructure.persistence.repository_factory.get_service_registry")
-    def test_returns_factory_from_service_registry_when_available(
-        self, mock_get_service_registry: MagicMock
-    ) -> None:
-        """Returns factory from service registry when available and valid."""
+    def test_returns_configured_factory_instance(self) -> None:
+        """Returns configured factory instance."""
         mock_factory = MockRepositoryFactory()
-        mock_registry = MagicMock()
-        mock_registry.get_repository_factory.return_value = mock_factory
-        mock_get_service_registry.return_value = mock_registry
+        RepositoryFactoryRegistry.configure(mock_factory)
 
         result = get_repository_factory()
 
         assert result is mock_factory
 
-    @patch("src.infrastructure.persistence.repository_factory.get_service_registry")
-    def test_falls_back_to_registry_when_service_registry_unavailable(
-        self, mock_get_service_registry: MagicMock
-    ) -> None:
-        """Falls back to registry when service registry is unavailable."""
-        mock_get_service_registry.side_effect = ImportError("No service registry")
-
-        result = get_repository_factory()
-
-        # Should get SampleRepositoryFactory from registry fallback
-        assert isinstance(result, SampleRepositoryFactory)
-
-    @patch("src.infrastructure.persistence.repository_factory.get_service_registry")
-    def test_falls_back_when_service_registry_has_no_method(
-        self, mock_get_service_registry: MagicMock
-    ) -> None:
-        """Falls back when service registry doesn't have get_repository_factory method."""
-        mock_registry = MagicMock()
-        # Remove the get_repository_factory method
-        del mock_registry.get_repository_factory
-        mock_get_service_registry.return_value = mock_registry
-
+    def test_auto_configures_when_no_factory_set(self) -> None:
+        """Auto-configures SampleRepositoryFactory when none set."""
         result = get_repository_factory()
 
         assert isinstance(result, SampleRepositoryFactory)
 
-    @patch("src.infrastructure.persistence.repository_factory.get_service_registry")
-    def test_falls_back_when_service_registry_method_fails(
-        self, mock_get_service_registry: MagicMock
-    ) -> None:
-        """Falls back when service registry method raises exception."""
-        mock_registry = MagicMock()
-        mock_registry.get_repository_factory.side_effect = RuntimeError("Registry error")
-        mock_get_service_registry.return_value = mock_registry
+    def test_returns_same_factory_on_subsequent_calls(self) -> None:
+        """Returns same factory instance on subsequent calls."""
+        result1 = get_repository_factory()
+        result2 = get_repository_factory()
+
+        assert result1 is result2
+
+    def test_uses_configured_factory_over_default(self) -> None:
+        """Uses configured factory over default auto-configuration."""
+        mock_factory = MockRepositoryFactory()
+        RepositoryFactoryRegistry.configure(mock_factory)
 
         result = get_repository_factory()
 
-        assert isinstance(result, SampleRepositoryFactory)
+        assert result is mock_factory
 
-    @patch("src.infrastructure.persistence.repository_factory.get_service_registry")
-    def test_falls_back_when_service_registry_returns_none(
-        self, mock_get_service_registry: MagicMock
-    ) -> None:
-        """Falls back when service registry returns None."""
-        mock_registry = MagicMock()
-        mock_registry.get_repository_factory.return_value = None
-        mock_get_service_registry.return_value = mock_registry
+    def test_raises_error_when_configuration_fails(self) -> None:
+        """Raises RuntimeError when factory configuration fails."""
+        # Mock configure to fail in setting instance
+        with patch.object(RepositoryFactoryRegistry, "configure") as mock_configure:
+            mock_configure.side_effect = Exception("Configuration failed")
+            RepositoryFactoryRegistry._instance = None
 
+            with pytest.raises(Exception, match="Configuration failed"):
+                get_repository_factory()
+
+    def test_factory_implements_protocol_correctly(self) -> None:
+        """Factory from registry implements RepositoryFactory protocol correctly."""
         result = get_repository_factory()
 
-        assert isinstance(result, SampleRepositoryFactory)
+        # Should have required methods
+        assert hasattr(result, "create_user_repository")
+        assert hasattr(result, "create_product_repository")
+        assert callable(result.create_user_repository)
+        assert callable(result.create_product_repository)
 
-    @patch("src.infrastructure.persistence.repository_factory.get_service_registry")
-    def test_falls_back_when_service_registry_returns_invalid_factory(
-        self, mock_get_service_registry: MagicMock
-    ) -> None:
-        """Falls back when service registry returns object without required methods."""
-        invalid_factory = MagicMock()
-        # Remove the required methods
-        # Remove the required methods to make factory invalid
-        if hasattr(invalid_factory, "create_user_repository"):
-            del invalid_factory.create_user_repository
-        if hasattr(invalid_factory, "create_product_repository"):
-            del invalid_factory.create_product_repository
-        mock_registry = MagicMock()
-        mock_registry.get_repository_factory.return_value = invalid_factory
-        mock_get_service_registry.return_value = mock_registry
-
+    def test_factory_methods_return_correct_types(self) -> None:
+        """Factory methods return correct repository types."""
         result = get_repository_factory()
 
-        # Should fall back to creating a new SampleRepositoryFactory
-        assert isinstance(result, SampleRepositoryFactory)
+        user_repo = result.create_user_repository()
+        product_repo = result.create_product_repository()
 
-    @patch("src.infrastructure.persistence.repository_factory.get_service_registry")
-    def test_validates_factory_protocol_compliance(
-        self, mock_get_service_registry: MagicMock
-    ) -> None:
-        """Validates that factory from service registry implements RepositoryFactory protocol."""
-        # Create factory with required methods
-        valid_factory = MagicMock()
-        valid_factory.create_user_repository = MagicMock()
-        valid_factory.create_product_repository = MagicMock()
-
-        mock_registry = MagicMock()
-        mock_registry.get_repository_factory.return_value = valid_factory
-        mock_get_service_registry.return_value = mock_registry
-
-        result = get_repository_factory()
-
-        assert result is valid_factory
+        assert isinstance(user_repo, InMemoryUserRepository)
+        assert isinstance(product_repo, InMemoryProductRepository)
 
     def test_integration_with_configure_and_get(self) -> None:
         """Integration test: configure factory then retrieve it."""
@@ -581,19 +513,14 @@ class TestRepositoryFactoryWorkflows:
         retrieved_factory = get_repository_factory()
         assert retrieved_factory is failing_factory
 
-    @patch("src.infrastructure.persistence.repository_factory.get_service_registry")
-    def test_service_registry_integration_workflow(
-        self, mock_get_service_registry: MagicMock
-    ) -> None:
-        """Test complete workflow with service registry integration."""
-        mock_registry = MagicMock()
+    def test_factory_configuration_workflow(self) -> None:
+        """Test complete workflow with factory configuration."""
         mock_factory = MockRepositoryFactory()
 
-        # Setup service registry to return factory
-        mock_registry.get_repository_factory.return_value = mock_factory
-        mock_get_service_registry.return_value = mock_registry
+        # Configure factory
+        configure_repository_factory(mock_factory)
 
-        # Get factory should return from service registry
+        # Get factory should return configured instance
         result = get_repository_factory()
         assert result is mock_factory
 
