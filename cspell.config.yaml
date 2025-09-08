@@ -107,6 +107,7 @@ words:
   - centre
   - centred
   - centres
+  - chatterbridge
   - choreography
   - cicd
   - circleci
@@ -165,6 +166,7 @@ words:
   - deleter
   - dependency
   - depends
+  - Deployability
   - deprecated
   - deserialisable
   - deserialisation
@@ -177,6 +179,7 @@ words:
   - docker
   - dockerfile
   - dockerignore
+  - docstrings
   - doi
   - domainmodel
   - dos
@@ -239,6 +242,7 @@ words:
   - gradle
   - grafana
   - graphql
+  - greenapi
   - greenlet
   - grpc
   - guid
@@ -398,6 +402,7 @@ words:
   - ospf
   - otel
   - otlp
+  - Overengineered
   - param
   - parametrize
   - parametrized

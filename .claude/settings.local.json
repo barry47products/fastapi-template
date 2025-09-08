@@ -17,7 +17,8 @@
       "Bash(poetry run:*)",
       "mcp__ide__getDiagnostics",
       "WebSearch",
-      "WebFetch(domain:green-api.com)"
+      "WebFetch(domain:green-api.com)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []
