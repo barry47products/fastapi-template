@@ -291,13 +291,47 @@ Enables developer-focused test commands (unit, integration, behaviour) while mai
 Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
-### 2.2 Improve Test Documentation
+### 2.2 Improve Test Documentation ✅ **COMPLETED**
 
-**Actions**:
+**Actions**: ✅ **ALL COMPLETED**
 
-1. Add test strategy document explaining the markers
-2. Create test matrix showing what each role should care about
-3. Add examples of good vs bad tests
+1. ✅ Add test strategy document explaining the markers
+2. ✅ Create test matrix showing what each role should care about  
+3. ✅ Add examples of good vs bad tests
+
+**Completed Work**:
+
+- **Comprehensive Test Strategy Document**: Created `docs/testing-strategy.md` with complete testing guidelines including:
+  - Pytest marker definitions and usage patterns
+  - Role-specific test execution matrix for developers, DevOps, and QA teams
+  - Test category explanations (unit, integration, behaviour, security, etc.)
+  - Command reference for marker-based test execution
+- **Good vs Bad Test Examples**: Provided concrete examples showing:
+  - Behaviour-focused testing vs mock-testing-mock anti-patterns
+  - Legitimate external dependency mocking vs over-mocking
+  - Clear business rule validation vs implementation testing
+  - Domain-focused test organisation vs coverage-focused approaches
+- **Test Organisation Guidelines**: Established conventions for:
+  - Directory structure mirroring source code
+  - Test class and method naming that describes behaviour
+  - Coverage requirements and CI/CD integration patterns
+- **Role-Specific Test Matrix**: Clear guidance on which tests each team role should focus on during development workflows
+
+**Impact**: Development teams now have comprehensive documentation explaining the testing strategy, marker system, and anti-pattern avoidance. The test matrix enables role-specific workflows while the examples provide concrete guidance on writing effective tests.
+
+**Commit Message**:
+
+```bash
+docs: add comprehensive testing strategy with role-specific guidance
+
+Provides complete testing documentation including pytest marker usage, role-specific test matrices, and behaviour-focused testing examples.
+
+Enables teams to understand when and how to use different test categories while avoiding common anti-patterns like mock-testing-mock scenarios.
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
 
 ## Phase 3: Infrastructure Enhancements (Week 2)
 
