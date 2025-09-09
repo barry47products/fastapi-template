@@ -86,6 +86,7 @@ jobs:
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
+          category: 'trivy-vulnerabilities'
 
       - name: Run Trivy scan for summary
         uses: aquasecurity/trivy-action@master
@@ -109,6 +110,7 @@ jobs:
         if: always()
         with:
           sarif_file: 'trivy-secrets.sarif'
+          category: 'trivy-secrets'
 
   image-size-check:
     runs-on: ubuntu-latest

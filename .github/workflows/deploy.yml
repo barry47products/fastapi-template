@@ -173,6 +173,7 @@ jobs:
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
+          category: 'trivy-deploy-scan'
 
   # Deploy to staging
   deploy-staging:
