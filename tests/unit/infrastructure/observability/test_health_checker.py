@@ -88,7 +88,10 @@ class TestHealthChecker:
 
         checker.register_health_check("database", check_func)
 
-        with pytest.raises(HealthCheckError, match="Health check 'test_app_postgresql_primary_connection' already registered"):
+        with pytest.raises(
+            HealthCheckError,
+            match="Health check 'test_app_postgresql_primary_connection' already registered",
+        ):
             checker.register_health_check("database", check_func)
 
     @pytest.mark.asyncio
@@ -223,11 +226,8 @@ class TestHealthChecker:
 
         # Verify metrics recording
         mock_metrics_instance.increment_counter.assert_called_with(
-            "health_checks_completed_total", {
-                "status": "healthy",
-                "checks_total": "1", 
-                "checks_healthy": "1"
-            }
+            "health_checks_completed_total",
+            {"status": "healthy", "checks_total": "1", "checks_healthy": "1"},
         )
 
     @pytest.mark.asyncio
