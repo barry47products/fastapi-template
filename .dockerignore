@@ -7,9 +7,10 @@
 .gitattributes
 
 # Documentation and README files
-README.md
+# Allow README.md for Poetry package installation
 docs/
 *.md
+!README.md
 !DOCKER.md
 
 # Docker files (except production Dockerfile)

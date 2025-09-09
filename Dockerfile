@@ -7,7 +7,7 @@
 FROM python:3.13-slim AS builder
 
 # Set build arguments with security considerations
-ARG POETRY_VERSION=1.8.3
+ARG POETRY_VERSION=2.1.4
 ARG BUILD_ENV=production
 
 # Install build dependencies with latest security patches
@@ -36,7 +36,7 @@ COPY pyproject.toml poetry.lock ./
 # Install dependencies with production optimisations
 RUN poetry config virtualenvs.create true && \
     poetry config virtualenvs.in-project true && \
-    poetry install --only=main --no-root --no-dev && \
+    poetry install --only=main --no-root && \
     # Remove unnecessary files to reduce image size
     find /app/.venv -name "*.pyc" -delete && \
     find /app/.venv -name "__pycache__" -type d -exec rm -rf {} + && \
