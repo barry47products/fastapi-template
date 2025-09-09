@@ -16,7 +16,7 @@ T = TypeVar("T")  # Entity type
 ID = TypeVar("ID")  # ID type - contravariance removed for simplicity
 
 
-class Repository(Protocol, Generic[T, ID]):  # type: ignore[misc]
+class Repository(Protocol[T, ID]):  # type: ignore[misc]
     """Base repository protocol for CRUD operations."""
 
     async def create(self, entity: T) -> T:

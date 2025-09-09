@@ -84,9 +84,9 @@ class RepositoryProvider:
     def _create_in_memory_repository(self, repo_type: type[T]) -> T:
         """Create in-memory repository."""
         if repo_type == InMemoryUserRepository:
-            return cast(T, InMemoryUserRepository())
+            return cast("T", InMemoryUserRepository())
         if repo_type == InMemoryProductRepository:
-            return cast(T, InMemoryProductRepository())
+            return cast("T", InMemoryProductRepository())
         raise ValueError(f"Unsupported in-memory repository type: {repo_type}")
 
     def _create_postgresql_repository(self, repo_type: type[T]) -> T:
@@ -97,7 +97,7 @@ class RepositoryProvider:
             if repo_type == InMemoryUserRepository:
                 # Map to PostgreSQL equivalent
                 return cast(
-                    T,
+                    "T",
                     PostgreSQLRepository(
                         connection_url=self.database_url,
                         table_name="users",
@@ -109,7 +109,7 @@ class RepositoryProvider:
                 )
             if repo_type == InMemoryProductRepository:
                 return cast(
-                    T,
+                    "T",
                     PostgreSQLRepository(
                         connection_url=self.database_url,
                         table_name="products",
@@ -133,7 +133,7 @@ class RepositoryProvider:
 
             if repo_type == InMemoryUserRepository:
                 return cast(
-                    T,
+                    "T",
                     FirestoreRepository(
                         connection_url=self.database_url,
                         collection_name="users",
@@ -144,7 +144,7 @@ class RepositoryProvider:
                 )
             if repo_type == InMemoryProductRepository:
                 return cast(
-                    T,
+                    "T",
                     FirestoreRepository(
                         connection_url=self.database_url,
                         collection_name="products",
@@ -167,7 +167,7 @@ class RepositoryProvider:
 
             if repo_type == InMemoryUserRepository:
                 return cast(
-                    T,
+                    "T",
                     RedisCacheRepository(
                         connection_url=self.cache_url or self.database_url,
                         key_prefix="users",
@@ -178,7 +178,7 @@ class RepositoryProvider:
                 )
             if repo_type == InMemoryProductRepository:
                 return cast(
-                    T,
+                    "T",
                     RedisCacheRepository(
                         connection_url=self.cache_url or self.database_url,
                         key_prefix="products",

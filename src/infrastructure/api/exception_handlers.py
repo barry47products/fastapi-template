@@ -2,7 +2,7 @@
 
 import asyncio
 from datetime import datetime
-from typing import cast
+from typing import cast, TYPE_CHECKING
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -10,11 +10,13 @@ from pydantic import BaseModel
 
 from config.settings import get_settings
 from src.infrastructure.observability import get_logger, get_metrics_collector
-from src.shared.exceptions import (
-    ApplicationError,
-    RateLimitExceededException,
-    ValidationException,
-)
+
+if TYPE_CHECKING:
+    from src.shared.exceptions import (
+        ApplicationError,
+        RateLimitExceededException,
+        ValidationException,
+    )
 
 
 # Error Response Models
@@ -175,7 +177,7 @@ async def infrastructure_exception_handler(
     settings = get_settings()
 
     # Cast to ApplicationError for type safety
-    infra_exc = cast(ApplicationError, exc)
+    infra_exc = cast("ApplicationError", exc)
 
     # Log infrastructure error
     logger.error(
