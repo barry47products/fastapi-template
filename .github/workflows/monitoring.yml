@@ -1,9 +1,10 @@
 name: Production Monitoring
 
 on:
-  schedule:
-    # Run health checks every 15 minutes
-    - cron: '*/15 * * * *'
+  # Schedule disabled for template - enable after deployment
+  # schedule:
+  #   # Run health checks every 15 minutes
+  #   - cron: '*/15 * * * *'
   workflow_dispatch:
     inputs:
       environment:
@@ -26,6 +27,7 @@ on:
           - all
 
 env:
+  # TODO: Update these URLs after deployment
   STAGING_URL: https://staging-api.yourapp.com
   PRODUCTION_URL: https://api.yourapp.com
 
@@ -49,6 +51,23 @@ jobs:
       - name: Application health check
         run: |
           echo "🩺 Checking application health for ${{ steps.env.outputs.env }}"
+
+          # Template mode - URLs not yet configured
+          if [[ "${{ steps.env.outputs.url }}" == *"yourapp.com"* ]]; then
+            echo "ℹ️ Template mode detected - URLs not yet configured"
+            echo "📋 To enable monitoring, update the following in this workflow:"
+            echo "   1. Replace placeholder URLs with your actual deployment URLs"
+            echo "   2. Enable scheduled monitoring (uncomment cron schedule)"
+            echo "   3. Add required secrets for external services"
+            echo "   4. Configure issue creation permissions if needed"
+            echo ""
+            echo "✅ Template monitoring workflow is ready for customization"
+            echo "TEMPLATE_MODE=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Production mode - check actual endpoints
+          echo "🔍 Checking real deployment endpoints"
 
           # Check main health endpoint
           if curl -f -s --max-time 30 "${{ steps.env.outputs.url }}/status"; then
@@ -292,7 +311,10 @@ jobs:
   alert-on-failure:
     runs-on: ubuntu-latest
     needs: [health-checks]
-    if: failure() && github.event_name == 'schedule'
+    if: failure() && github.event_name == 'schedule' && !contains(needs.health-checks.outputs.*, 'TEMPLATE_MODE=true')
+
+    permissions:
+      issues: write
 
     steps:
       - name: Create alert issue
