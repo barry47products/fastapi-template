@@ -101,11 +101,11 @@ test_docker_config() {
     log_info "Testing Docker configuration..."
 
     local docker_files=(
-        "Dockerfile"
-        "docker-compose.yml"
-        "docker-compose.prod.yml"
-        "docker-compose.staging.yml"
-        ".dockerignore"
+        "deployment/Dockerfile"
+        "deployment/docker-compose.yml"
+        "deployment/docker-compose.prod.yml"
+        "deployment/docker-compose.staging.yml"
+        "deployment/dockerignore"
     )
 
     for file in "${docker_files[@]}"; do
@@ -118,7 +118,7 @@ test_docker_config() {
 
     # Test docker-compose syntax
     if command -v docker-compose >/dev/null 2>&1; then
-        if docker-compose config >/dev/null 2>&1; then
+        if docker-compose -f deployment/docker-compose.yml config >/dev/null 2>&1; then
             log_success "Docker Compose configuration is valid"
         else
             log_error "Docker Compose configuration has errors"

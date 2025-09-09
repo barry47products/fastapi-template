@@ -7,8 +7,8 @@ set -euo pipefail
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-COMPOSE_FILE="${PROJECT_ROOT}/docker-compose.prod.yml"
-ENV_FILE="${PROJECT_ROOT}/.env.prod"
+COMPOSE_FILE="${PROJECT_ROOT}/deployment/docker-compose.prod.yml"
+ENV_FILE="${PROJECT_ROOT}/config/environments/.env.prod"
 
 # Colours for output
 RED='\033[0;31m'

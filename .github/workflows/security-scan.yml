@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'Dockerfile'
+      - 'deployment/Dockerfile'
       - 'pyproject.toml'
       - 'poetry.lock'
       - 'src/**'
@@ -12,7 +12,7 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'Dockerfile'
+      - 'deployment/Dockerfile'
       - 'pyproject.toml'
       - 'poetry.lock'
       - 'src/**'
@@ -144,10 +144,10 @@ jobs:
       - name: Build and analyse image size
         run: |
           # Build production image
-          docker build -t fastapi-template:prod --target production .
+          docker build -t fastapi-template:prod --target production -f deployment/Dockerfile .
 
           # Build development image for comparison
-          docker build -t fastapi-template:dev --target development .
+          docker build -t fastapi-template:dev --target development -f deployment/Dockerfile .
 
           # Get image sizes
           PROD_SIZE=$(docker images fastapi-template:prod --format "{{.Size}}")
@@ -176,7 +176,7 @@ jobs:
       - name: Lint Dockerfile with Hadolint
         uses: hadolint/hadolint-action@v3.1.0
         with:
-          dockerfile: Dockerfile
+          dockerfile: deployment/Dockerfile
           format: sarif
           output-file: hadolint-results.sarif
           no-fail: true

@@ -169,7 +169,7 @@ jobs:
       - name: Test Docker image
         run: |
           # Build and run a quick test
-          docker build -t test-image .
+          docker build -t test-image -f deployment/Dockerfile .
 
           # Test that the image starts correctly
           docker run --rm --name test-container -d \
@@ -193,7 +193,7 @@ jobs:
       - name: Run Docker Compose test
         run: |
           # Test docker-compose configuration
-          docker-compose config
+          docker-compose -f deployment/docker-compose.yml config
 
           # Test that services can start (without running them)
-          docker-compose -f docker-compose.yml config --services
+          docker-compose -f deployment/docker-compose.yml config --services

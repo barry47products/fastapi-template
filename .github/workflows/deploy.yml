@@ -6,8 +6,8 @@ on:
     paths:
       - 'src/**'
       - 'config/**'
-      - 'Dockerfile'
-      - 'docker-compose.prod.yml'
+      - 'deployment/Dockerfile'
+      - 'deployment/docker-compose.prod.yml'
       - 'pyproject.toml'
       - 'poetry.lock'
   workflow_dispatch:
