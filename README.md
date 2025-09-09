@@ -7,7 +7,8 @@
 [![Poetry](https://img.shields.io/badge/Poetry-package%20manager-blue)](https://python-poetry.org)
 [![Ruff](https://img.shields.io/badge/Code%20style-Ruff-black)](https://github.com/astral-sh/ruff)
 [![MyPy](https://img.shields.io/badge/Type%20checker-MyPy-blue)](https://mypy.readthedocs.io)
-[![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen)](https://pytest.org)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=barry47products_fastapi-template&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=barry47products_fastapi-template)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=barry47products_fastapi-template&metric=coverage)](https://sonarcloud.io/summary/new_code?id=barry47products_fastapi-template)
 
 ## Why This Template?
 
