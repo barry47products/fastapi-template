@@ -20,7 +20,9 @@
       "WebFetch(domain:green-api.com)",
       "Bash(tree:*)",
       "Bash(gh run view:*)",
-      "Bash(gh run list:*)"
+      "Bash(gh run list:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

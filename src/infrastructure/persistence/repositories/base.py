@@ -91,7 +91,7 @@ class Repository(Protocol[T, ID]):  # type: ignore[misc]
         ...
 
 
-class BaseRepository(ABC, Generic[T, ID]):
+class BaseRepository(ABC, Generic[T, ID]):  # noqa: UP046
     """Abstract base repository with observability and common functionality."""
 
     def __init__(self, connection_url: str) -> None:
