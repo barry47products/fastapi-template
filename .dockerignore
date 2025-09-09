@@ -1,0 +1,104 @@
+# Docker ignore file for FastAPI Template
+# Excludes files that shouldn't be in the Docker build context
+
+# Git and version control
+.git/
+.gitignore
+.gitattributes
+
+# Documentation and README files
+README.md
+docs/
+*.md
+!DOCKER.md
+
+# Docker files (except production Dockerfile)
+Dockerfile.dev
+docker-compose*.yml
+.dockerignore
+
+# Python cache and build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+*.cover
+
+# Code analysis tools
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+.pylint.d/
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment and configuration files
+.env
+.env.*
+!.env.example
+
+# Logs and temporary files
+*.log
+logs/
+tmp/
+temp/
+
+# OS generated files
+Thumbs.db
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# CI/CD specific files
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+
+# Template specific excludes
+sonar-project.properties
+.sonarqube/
+.scannerwork/
+
+# Poetry lock file is included for reproducible builds
+# pyproject.toml is included for dependency installation

@@ -176,6 +176,7 @@ words:
   - deserialising
   - dhcp
   - distutils
+  - dmypy
   - dns
   - docker
   - dockerfile
@@ -192,6 +193,7 @@ words:
   - ean
   - ece
   - editorconfig
+  - ehthumbs
   - eigrp
   - elasticsearch
   - elem
@@ -465,6 +467,7 @@ words:
   - pypi
   - pytest
   - pytestmark
+  - PYTHONUNBUFFERED
   - pyupgrade
   - pyw
   - pyx
@@ -502,6 +505,7 @@ words:
   - sanitised
   - sanitising
   - sass
+  - scannerwork
   - scss
   - sëcrët
   - secretstr
