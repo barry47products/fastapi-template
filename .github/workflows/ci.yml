@@ -134,6 +134,6 @@ jobs:
             -Dsonar.organization=barry47products
             -Dsonar.exclusions=tests/**/*
             -Dsonar.python.coverage.reportPaths=coverage.xml
-            -Dsonar.sources=src,config
+            -Dsonar.sources=src
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
