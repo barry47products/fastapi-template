@@ -12,7 +12,9 @@ This module provides example RESTful endpoints showing:
 Replace this with your own business logic and entities.
 """
 
-from datetime import datetime, UTC
+from __future__ import annotations
+
+from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
@@ -111,7 +113,10 @@ async def create_user(user_request: CreateUserRequest) -> UserResponse:
     for existing_user in _users_storage.values():
         if existing_user["email"] == user_request.email:
             logger.warning("User creation failed - email already exists", email=user_request.email)
-            metrics.increment_counter("user_creation_failures_total", {"reason": "email_exists"})
+            metrics.increment_counter(
+                "api_user_creation_failures_total",
+                {"reason": "email_exists", "endpoint": "create_user", "method": "POST"},
+            )
             raise HTTPException(status_code=400, detail="User with this email already exists")
 
     # Create new user
@@ -130,7 +135,10 @@ async def create_user(user_request: CreateUserRequest) -> UserResponse:
     _users_storage[user_id] = user_data
 
     logger.info("User created successfully", user_id=user_id, email=user_request.email)
-    metrics.increment_counter("users_created_total", {})
+    metrics.increment_counter(
+        "api_users_created_total",
+        {"endpoint": "create_user", "method": "POST", "status": "success"},
+    )
 
     return UserResponse(
         id=user_id,

@@ -1,13 +1,49 @@
 """Structured logging configuration using structlog."""
 
+from __future__ import annotations
+
 import logging
 import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import structlog
 
 if TYPE_CHECKING:
-    from structlog.typing import Processor
+    from structlog.typing import EventDict, Processor
+else:
+    EventDict = dict[str, Any]
+
+
+def add_application_context(
+    logger: structlog.stdlib.BoundLogger, name: str, event_dict: EventDict
+) -> EventDict:
+    """Add application context to all log messages.
+
+    Args:
+        logger: The structlog logger instance
+        name: The method name being called
+        event_dict: The current event dictionary
+
+    Returns:
+        Enhanced event dictionary with application context
+    """
+    try:
+        from config.settings import get_settings
+
+        settings = get_settings()
+
+        # Add application context
+        event_dict.setdefault("service", settings.app_name)
+        event_dict.setdefault("environment", settings.environment.value)
+        event_dict.setdefault("component", "api")
+
+    except Exception:
+        # Fallback to defaults if settings unavailable
+        event_dict.setdefault("service", "fastapi_template")
+        event_dict.setdefault("environment", "unknown")
+        event_dict.setdefault("component", "api")
+
+    return event_dict
 
 
 def configure_logging(log_level: str, environment: str) -> None:
@@ -30,6 +66,7 @@ def configure_logging(log_level: str, environment: str) -> None:
     # Choose processors based on environment
     processors: list[Processor] = [
         structlog.stdlib.filter_by_level,
+        add_application_context,  # Add application context first
         structlog.stdlib.add_logger_name,
         structlog.stdlib.add_log_level,
         structlog.stdlib.PositionalArgumentsFormatter(),

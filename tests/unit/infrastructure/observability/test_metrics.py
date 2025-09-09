@@ -81,10 +81,10 @@ class TestMetricsCollector:
 
         collector.increment_counter("requests_total", labels)
 
-        assert "requests_total" in collector._counters
+        assert "fastapi_template_requests_total" in collector._counters
         # Verify counter was created with correct label names
-        counter = collector._counters["requests_total"]
-        assert counter._name == "requests"  # Prometheus client strips _total suffix
+        counter = collector._counters["fastapi_template_requests_total"]
+        assert counter._name == "fastapi_template_requests"  # Prometheus client strips _total suffix
 
     def test_increments_counter_without_labels(self) -> None:
         """Increments counter without labels."""

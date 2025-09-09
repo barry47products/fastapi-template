@@ -34,13 +34,14 @@ class HealthCheckError(ApplicationError):
 
 
 class HealthChecker:
-    """Component health monitoring system for application observability."""
+    """Component health monitoring system with semantic naming for application observability."""
 
-    def __init__(self, timeout: float) -> None:
+    def __init__(self, timeout: float, application_name: str = "fastapi_template") -> None:
         """Initialize health checker with configuration.
 
         Args:
             timeout: Maximum time in seconds to wait for health checks
+            application_name: Application name for health check context
 
         Raises:
             HealthCheckError: If timeout is invalid
@@ -49,26 +50,67 @@ class HealthChecker:
             raise HealthCheckError("Timeout must be positive")
 
         self.timeout = timeout
+        self.application_name = application_name
         self._health_checks: dict[str, Callable[[], Awaitable[bool]]] = {}
+
+    def _get_semantic_check_name(self, name: str) -> str:
+        """Get semantic health check name with application context.
+
+        Args:
+            name: Base health check name
+
+        Returns:
+            Semantic health check name
+
+        Examples:
+            "database" -> "fastapi_template_postgresql_primary_connection"
+            "cache" -> "fastapi_template_redis_cache_availability"
+            "api" -> "fastapi_template_external_api_connectivity"
+        """
+        # Map common generic names to semantic names
+        name_mappings = {
+            "database": f"{self.application_name}_postgresql_primary_connection",
+            "postgres": f"{self.application_name}_postgresql_primary_connection",
+            "postgresql": f"{self.application_name}_postgresql_primary_connection",
+            "cache": f"{self.application_name}_redis_cache_availability",
+            "redis": f"{self.application_name}_redis_cache_availability",
+            "firestore": f"{self.application_name}_firestore_document_store_connectivity",
+            "api": f"{self.application_name}_external_api_connectivity",
+            "external_api": f"{self.application_name}_external_api_connectivity",
+            "queue": f"{self.application_name}_message_queue_connectivity",
+            "webhook": f"{self.application_name}_webhook_endpoint_accessibility",
+        }
+
+        # Return mapped name or construct semantic name
+        return name_mappings.get(name.lower(), f"{self.application_name}_{name}_health_check")
 
     def register_health_check(
         self,
         name: str,
         check_func: Callable[[], Awaitable[bool]],
-    ) -> None:
-        """Register a health check function.
+        use_semantic_naming: bool = True,
+    ) -> str:
+        """Register a health check function with semantic naming.
 
         Args:
-            name: Unique name for the health check
+            name: Base name for the health check (e.g., "database", "cache")
             check_func: Async function that returns True if healthy
+            use_semantic_naming: Whether to use semantic naming (default True)
+
+        Returns:
+            The actual health check name that was registered
 
         Raises:
             HealthCheckError: If check already registered
         """
-        if name in self._health_checks:
-            raise HealthCheckError(f"Health check '{name}' already registered")
+        # Use semantic naming by default for better observability
+        actual_name = self._get_semantic_check_name(name) if use_semantic_naming else name
 
-        self._health_checks[name] = check_func
+        if actual_name in self._health_checks:
+            raise HealthCheckError(f"Health check '{actual_name}' already registered")
+
+        self._health_checks[actual_name] = check_func
+        return actual_name
 
     async def check_health(self) -> dict[str, Any]:
         """Perform all registered health checks.
@@ -161,10 +203,14 @@ class HealthChecker:
         else:
             overall_status = HealthStatus.DEGRADED
 
-        # Record metrics
+        # Record metrics with semantic naming
         metrics_collector.increment_counter(
             "health_checks_completed_total",
-            {"status": overall_status.value},
+            {
+                "status": overall_status.value,
+                "checks_total": str(total_checks),
+                "checks_healthy": str(healthy_count),
+            },
         )
 
         logger.info(
@@ -199,14 +245,18 @@ def get_health_checker() -> HealthChecker:
     """Get a health checker instance via dependency injection.
 
     Returns:
-        HealthChecker instance with configured timeout (cached)
+        HealthChecker instance with configured timeout and semantic naming (cached)
 
-    Uses settings to determine timeout configuration.
+    Uses settings to determine timeout configuration and application name.
     """
     from config.settings import get_settings
 
     settings = get_settings()
-    return HealthChecker(timeout=int(settings.observability.health_check_timeout))
+    app_name = settings.app_name.replace("-", "_").replace(" ", "_").lower()
+
+    return HealthChecker(
+        timeout=int(settings.observability.health_check_timeout), application_name=app_name
+    )
 
 
 async def check_system_health() -> dict[str, Any]:
