@@ -5,8 +5,9 @@ from __future__ import annotations
 import json
 from typing import Any, TypeVar
 
-from .base import BaseRepository, RetryMixin
 from src.shared.exceptions import CacheException, ConnectionException
+
+from .base import BaseRepository, RetryMixin
 
 T = TypeVar("T")
 ID = TypeVar("ID")

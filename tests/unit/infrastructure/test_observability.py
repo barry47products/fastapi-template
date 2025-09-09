@@ -4,7 +4,7 @@
 
 import pytest
 
-from src.infrastructure.observability import get_logger, get_metrics_collector, MetricsCollector
+from src.infrastructure.observability import MetricsCollector, get_logger, get_metrics_collector
 
 
 @pytest.mark.unit

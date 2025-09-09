@@ -2,7 +2,7 @@
 
 import asyncio
 from datetime import datetime
-from typing import cast, TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from fastapi import Request
 from fastapi.responses import JSONResponse

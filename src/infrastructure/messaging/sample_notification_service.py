@@ -1,6 +1,6 @@
 """Sample notification service for template demonstration."""
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import Any
 
 from src.infrastructure.observability import get_logger, get_metrics_collector

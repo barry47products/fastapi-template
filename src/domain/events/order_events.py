@@ -1,6 +1,6 @@
 """Sample domain events for order-related operations."""
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import Any
 
 from .base import DomainEvent

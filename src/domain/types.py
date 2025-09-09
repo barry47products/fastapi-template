@@ -9,7 +9,7 @@ type safety and IDE support.
 from datetime import datetime
 from typing import TypedDict
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 # Union type for flexible metadata values
 MetadataValue = str | int | float | bool | None

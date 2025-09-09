@@ -57,144 +57,53 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
-# Global Ruff settings
+# Streamlined Ruff configuration focused on critical code quality
 line-length = 100
 target-version = "py313"
 src = ["src", "config", "tests"]
 
 [tool.ruff.lint]
-# Enable comprehensive set of rules
+# Core rules for production-ready code
 select = [
-    # Core Python errors and warnings
-    "F",      # Pyflakes (undefined names, imports)
+    # Critical errors and code quality
+    "F",      # Pyflakes (undefined names, unused imports)
     "E",      # pycodestyle errors (whitespace, indentation)
-    "W",      # pycodestyle warnings
-    "C90",    # McCabe complexity
     "I",      # isort (import sorting)
     "N",      # pep8-naming (naming conventions)
-
-    # Code quality and best practices
     "UP",     # pyupgrade (modern Python syntax)
-    "YTT",    # flake8-2020 (sys.version checks)
-    "ASYNC",  # flake8-async (async best practices)
     "S",      # flake8-bandit (security)
-    "BLE",    # flake8-blind-except (bare except)
-    "B",      # flake8-bugbear (likely bugs)
-    "A",      # flake8-builtins (shadowing builtins)
-    "COM",    # flake8-commas (trailing commas)
-    "C4",     # flake8-comprehensions (list/dict comprehensions)
-    "DTZ",    # flake8-datetimez (timezone aware)
-    "T10",    # flake8-debugger (debugger calls)
-    "EM",     # flake8-errmsg (exception messages)
-    "FA",     # flake8-future-annotations
-    "ISC",    # flake8-implicit-str-concat
-    "ICN",    # flake8-import-conventions
-    "LOG",    # flake8-logging
-    "G",      # flake8-logging-format
-    "INP",    # flake8-no-pep420 (implicit namespace)
-    "PIE",    # flake8-pie (misc lints)
-    "T20",    # flake8-print (print statements)
-    "PT",     # flake8-pytest-style
-    "Q",      # flake8-quotes
-    "RSE",    # flake8-raise (exception raising)
-    "RET",    # flake8-return (return statements)
-    "SLF",    # flake8-self (private access)
-    "SLOT",   # flake8-slots (slot usage)
+    "B",      # flake8-bugbear (likely bugs and anti-patterns)
     "SIM",    # flake8-simplify (code simplification)
-    "TID",    # flake8-tidy-imports
-    "TCH",    # flake8-type-checking (TYPE_CHECKING blocks)
-    "INT",    # flake8-gettext
-    "ARG",    # flake8-unused-arguments
-    "PTH",    # flake8-use-pathlib (pathlib over os.path)
-    "TD",     # flake8-todos (TODO formatting)
-    "FIX",    # flake8-fixme (FIXME/XXX/HACK)
-    "ERA",    # eradicate (commented code)
-
-    # Framework specific
-    "PL",     # pylint (comprehensive checks)
-    "TRY",    # tryceratops (exception handling)
-    "FLY",    # flynt (f-string conversion)
-    "PERF",   # Perflint (performance anti-patterns)
-    "FURB",   # refurb (modernization)
-    "RUF",    # Ruff-specific rules
+    "RUF",    # Ruff-specific rules (best practices)
 ]
 
-# Ignore specific rules
+# Essential ignore rules for practical development
 ignore = [
-    # Rules that conflict with formatter or are too strict
     "E501",    # Line too long (formatter handles this)
-    "ANN401",  # Dynamically typed expressions (Any)
     "S101",    # Use of assert (needed for tests)
-    "PLR0913", # Too many arguments (sometimes needed)
-    "TD003",   # Missing issue link on TODO
-    "FIX002",  # Line contains TODO
     "COM812",  # Missing trailing comma (formatter handles)
     "ISC001",  # Conflicts with formatter
-    "C901",    # Function too complex (acceptable in demo code)
-    "PLR0912", # Too many branches (acceptable in demo code)
-    "PLR0915", # Too many statements (acceptable in demo code)
-    "PLC0415", # Import outside top-level (lazy loading & circular dependency prevention)
-
-    # Template-specific ignores (remove noqa clutter)
-    "T20",     # Print statements (useful for debugging)
-    "S110",    # Try-except-pass (acceptable for service transitions)
-    "ERA001",  # Commented code (may have valid reasons)
-    "I002",    # Missing `from __future__ import annotations`
-    "I001",    # Import sorting issues (formatter can't fix all cases)
-    "TID252",  # Relative imports (acceptable in domain layer)
-    "BLE001",  # Blind exception catching (sometimes needed)
-    "EM101",   # String literals in exceptions (template examples)
-    "EM102",   # F-strings in exceptions (template examples)
-    "TRY003",  # Long exception messages (acceptable in templates)
-    "TRY301",  # Abstract raise to inner function (template clarity)
-    "TRY400",  # Use logging.exception instead of error
-    "PLR2004", # Magic values (acceptable in template examples)
-    "RUF010",  # F-strings with .format() calls
-    "RUF100",  # Unused noqa directives (will clean these up)
-    "TRY300",  # Consider moving statement to else block (verbose for templates)
-    "TRY004",  # Prefer TypeError exception (template flexibility)
-    "ARG001",  # Unused function arguments (FastAPI dependency injection)
-    "DTZ005",  # datetime.now() without timezone (acceptable for examples)
+    "RUF100",  # Unused noqa directives (template code)
     "SIM108",  # Use ternary operator (template readability)
     "B904",    # Raise from err (template simplicity)
-    "PLW0603", # Global statement discouraged (template examples)
-    "PERF401", # List comprehension performance (template readability)
 ]
 
-# Rule-specific configurations
+# Minimal per-file ignores for specific contexts
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = [
-    "S101",    # asserts are fine in tests
-    "S102",    # exec usage okay in tests
-    "S104",    # host binding okay in tests
-    "S105",    # hardcoded passwords okay in tests
-    "S106",    # hardcoded passwords in tests
-    "ANN",     # don't need type hints in tests
-    "ARG",     # unused arguments okay (fixtures)
-    "PLR2004", # magic values okay in tests
-    "PLR0913", # many arguments okay (test parametrize)
-    "SLF001",  # private access okay in tests
+    "S101",    # Asserts are fine in tests
+    "S104",    # Host binding okay in tests
+    "S105",    # Hardcoded passwords okay in tests
+    "S106",    # Hardcoded passwords in tests
 ]
+"src/main.py" = ["S104"]  # Allow binding to all interfaces for development
 "src/shared/exceptions.py" = ["N818"]  # Allow Exception suffix for domain clarity
-"src/main.py" = ["S104"]  # Allow binding to all interfaces for development server
-"src/infrastructure/observability/*" = ["S110", "T20"]  # Allow try-except-pass and prints for service transitions
-"src/infrastructure/security/*" = ["S110", "S324"]  # Allow try-except-pass and insecure hash for demo
-"src/infrastructure/persistence/*" = ["S110", "PLR0913"]  # Allow try-except-pass and many args
-"src/interfaces/api/routers/*" = ["B008", "PLR0913"]  # Allow FastAPI Depends() pattern and many args
+"src/infrastructure/observability/*" = ["S110"]  # Allow try-except-pass for service graceful degradation
+"src/interfaces/api/routers/*" = ["B008"]  # Allow FastAPI Depends() pattern
 "src/interfaces/api/dependencies/*" = ["B008"]  # Allow FastAPI Depends() pattern
-
-[tool.ruff.lint.pylint]
-max-returns = 6
-max-branches = 15
-max-statements = 50
-max-args = 10
-
-[tool.ruff.lint.mccabe]
-max-complexity = 12
 
 [tool.ruff.lint.isort]
 known-first-party = ["src", "config", "tests"]
-required-imports = ["from __future__ import annotations"]
 
 [tool.ruff.format]
 # Formatting settings (replaces Black)

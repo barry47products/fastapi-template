@@ -4,7 +4,7 @@
 # E1136: Pylint doesn't understand Pydantic's dynamic model_fields access
 # W0107: Abstract method pass statements are intentional for interface definition
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import Any, Protocol, runtime_checkable
 from uuid import UUID, uuid4
 

@@ -165,7 +165,7 @@ class SampleApplicationService:
                     errors.append("Failed to send welcome email")
                     self.logger.warning("Welcome email failed", user_email=user_email)
             except Exception as e:
-                errors.append(f"Welcome email error: {str(e)}")
+                errors.append(f"Welcome email error: {e!s}")
                 self.logger.error("Welcome email exception", error=str(e), user_email=user_email)
 
             # Step 6: Publish domain event
@@ -239,7 +239,7 @@ class SampleApplicationService:
                 user_id="",
                 welcome_email_sent=False,
                 processing_duration_seconds=processing_duration,
-                errors=[f"Unexpected error: {str(e)}"],
+                errors=[f"Unexpected error: {e!s}"],
             )
 
     def _validate_user_eligibility(

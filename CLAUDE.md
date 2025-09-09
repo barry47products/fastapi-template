@@ -44,7 +44,7 @@ make test               # pytest with 100% coverage requirement
 make test-fast          # TDD fast tests (no slow markers)
 make watch              # TDD watch mode with ptw
 
-# Code Quality (Modern Ruff + MyPy)
+# Code Quality (Streamlined Ruff + MyPy)
 make format             # ruff format + ruff check --fix (auto-fix)
 make lint               # ruff format --check + ruff check (no fixes)
 make typecheck          # mypy strict type checking
@@ -70,6 +70,23 @@ make fix                # ruff --unsafe-fixes (aggressive auto-fix)
 - **Formatting** - No lines longer than 100 characters.
 - **Formatting** - 1 empty line at the end of modules.
 - **Formatting** - No trailing whitespace.
+
+## Streamlined Ruff Configuration
+
+**Philosophy**: Focus on critical code quality checks rather than extensive rule sets.
+
+**Core Rules** (9 categories, ~47 lines total):
+- **F** - Pyflakes (critical errors, unused imports)
+- **E** - Pycodestyle (formatting consistency)
+- **I** - Import sorting and organisation
+- **N** - Naming conventions (PEP 8)
+- **UP** - Modern Python syntax upgrades
+- **S** - Security vulnerabilities (Bandit)
+- **B** - Bug-prone patterns and anti-patterns
+- **SIM** - Code simplification opportunities
+- **RUF** - Ruff-specific best practices
+
+**Rationale**: Eliminates rule fatigue while catching 95% of critical issues. Focuses developer attention on genuine problems rather than stylistic preferences.
 
 ## Infrastructure Integration (MANDATORY)
 

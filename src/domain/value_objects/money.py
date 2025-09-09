@@ -1,6 +1,6 @@
 """Money value object for financial calculations."""
 
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
 from pydantic import BaseModel, field_validator
@@ -50,7 +50,7 @@ class Money(BaseModel):
             return decimal_amount
 
         except (ValueError, TypeError) as e:
-            raise ValidationException(f"Invalid amount format: {str(e)}", field="amount") from e
+            raise ValidationException(f"Invalid amount format: {e!s}", field="amount") from e
 
     @field_validator("currency")
     @classmethod

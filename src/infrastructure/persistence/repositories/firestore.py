@@ -5,8 +5,9 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any, TypeVar
 
-from .base import CacheableRepository, RetryMixin
 from src.shared.exceptions import ConnectionException
+
+from .base import CacheableRepository, RetryMixin
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
