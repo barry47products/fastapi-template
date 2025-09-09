@@ -1,7 +1,7 @@
 services:
   # FastAPI application service
   api:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
     container_name: fastapi-template-api
@@ -13,24 +13,24 @@ services:
       - ENVIRONMENT=development
       - API_HOST=0.0.0.0
       - API_PORT=8000
-      
+
       # Database configuration
       - DATABASE_URL=postgresql://fastapi_user:fastapi_pass@postgres:5432/fastapi_db
       - DATABASE_TYPE=postgresql
-      
+
       # Redis configuration
       - REDIS_URL=redis://redis:6379/0
-      
+
       # Observability settings
       - LOG_LEVEL=INFO
       - METRICS_ENABLED=true
       - METRICS_PORT=9090
-      
+
       # Security settings (use secure values in production)
       - INTERNAL_API_KEYS=dev-key-12345
       - WEBHOOK_SECRET=dev-webhook-secret-67890
       - RATE_LIMIT_REQUESTS_PER_MINUTE=100
-      
+
       # CORS settings for development
       - CORS_ORIGINS=http://localhost:3000,http://localhost:8080
     volumes:

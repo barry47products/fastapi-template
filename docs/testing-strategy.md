@@ -1,6 +1,6 @@
 # Testing Strategy
 
-**Created**: 8 September 2025  
+**Created**: 8 September 2025
 **Purpose**: Guide developers, DevOps engineers, and QA teams on effective testing practices using pytest markers and behaviour-focused testing.
 
 ## Overview

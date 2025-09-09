@@ -17,7 +17,7 @@ Clean architecture FastAPI template with comprehensive testing, observability, a
 src/
 ├── domain/              # Pure business logic (frozen Pydantic models)
 ├── application/         # Commands & queries
-├── infrastructure/      # External integrations (WhatsApp, DB, security, observability)  
+├── infrastructure/      # External integrations (WhatsApp, DB, security, observability)
 ├── interfaces/api/      # FastAPI routes
 └── shared/             # Utilities & exceptions
 ```
@@ -38,7 +38,7 @@ src/
 # Setup
 poetry install && poetry shell
 
-# Development  
+# Development
 make run                # uvicorn src.main:app --reload --port 8000
 make test               # pytest with 100% coverage requirement
 make test-fast          # TDD fast tests (no slow markers)
@@ -87,7 +87,7 @@ def business_function(input_value: str) -> Result:
         logger.warning("Validation failed", input=input_value)
         metrics.increment_counter("validation_errors_total")
         raise DomainSpecificError("Input required")
-    
+
     logger.info("Processing completed", length=len(input_value))
     metrics.increment_counter("processing_total")
     return Result(value=input_value)

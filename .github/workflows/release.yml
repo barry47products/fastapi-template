@@ -51,11 +51,11 @@ jobs:
           if [ -z "$PREVIOUS_TAG" ]; then
             PREVIOUS_TAG=$(git rev-list --max-parents=0 HEAD)
           fi
-          
+
           # Generate changelog
           echo "## Changes" > CHANGELOG.md
           git log --pretty=format:"- %s" $PREVIOUS_TAG..${{ steps.tag.outputs.tag }} >> CHANGELOG.md
-          
+
           # Set output for release notes
           {
             echo 'changelog<<EOF'
@@ -70,19 +70,19 @@ jobs:
           name: Release ${{ steps.tag.outputs.tag }}
           body: |
             # FastAPI Template ${{ steps.tag.outputs.tag }}
-            
+
             ${{ steps.changelog.outputs.changelog }}
-            
+
             ## Installation
-            
+
             ```bash
             git clone https://github.com/barry47products/fastapi-template.git your-project-name
             cd your-project-name
             poetry install && poetry shell
             ```
-            
+
             ## What's Included
-            
+
             - 🚀 Production-ready FastAPI application
             - 🏗️ Clean Architecture with domain-driven design
             - 🔒 Security with API key authentication and rate limiting
@@ -90,8 +90,7 @@ jobs:
             - 🧪 100% test coverage with behavioural testing
             - 🐳 Docker support with multi-stage builds
             - 🗄️ Multi-database support (PostgreSQL, Firestore, Redis)
-            
+
             See the [README](https://github.com/barry47products/fastapi-template/blob/main/README.md) for complete documentation.
           draft: false
           prerelease: false
-

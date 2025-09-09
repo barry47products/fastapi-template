@@ -16,7 +16,7 @@ docker-compose ps
 echo ""
 echo "Services are starting up. They will be available at:"
 echo "  - PostgreSQL: localhost:5432"
-echo "  - Redis: localhost:6379"  
+echo "  - Redis: localhost:6379"
 echo "  - Firestore Emulator: localhost:8080"
 echo ""
 echo "To view logs: docker-compose logs -f [service_name]"

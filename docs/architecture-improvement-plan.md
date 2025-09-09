@@ -1,6 +1,6 @@
 # Architecture Improvement Plan
 
-**Created**: 9 September 2025  
+**Created**: 9 September 2025
 **Objective**: Transform the FastAPI template from an architecture showcase into a production-ready, pragmatic starting point for teams.
 
 ## Executive Summary
@@ -59,7 +59,7 @@ This plan addresses the architectural evaluation findings, focusing on simplific
 
 ### 1.1 Replace Service Registry with FastAPI Dependency Injection ✅ **COMPLETED**
 
-**Problem**: 160+ lines of boilerplate for managing 8 services  
+**Problem**: 160+ lines of boilerplate for managing 8 services
 **Solution**: Use FastAPI's native dependency injection system
 
 **Implementation Steps**:
@@ -126,7 +126,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ### 1.2 Simplify Repository Factory ✅ **COMPLETED**
 
-**Problem**: Tightly coupled to specific repository types  
+**Problem**: Tightly coupled to specific repository types
 **Solution**: Generic repository provider with type registration
 
 **Implementation**:
@@ -184,7 +184,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ### 1.3 Reduce Pattern Complexity ✅ **COMPLETED**
 
-**Problem**: Excessive pattern complexity with factory classes, ABC inheritance, and hardcoded event handlers  
+**Problem**: Excessive pattern complexity with factory classes, ABC inheritance, and hardcoded event handlers
 **Solution**: Simplify to essential patterns using Protocols, generic handlers, and remove obsolete factories
 
 **Actions**:
@@ -222,7 +222,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ### 2.1 Fix Test Theatre (Mock Testing) ✅ **COMPLETED**
 
-**Problem**: Tests that test the mocks rather than behaviour  
+**Problem**: Tests that test the mocks rather than behaviour
 **Solution**: Focus on integration tests with real implementations and add comprehensive test categorisation
 
 **Implementation**:
@@ -264,7 +264,7 @@ class TestAPIEndpoints:
 **Completed Work**:
 
 - **Mock Anti-Pattern Elimination**: Identified and fixed mock-testing-mock scenarios in observability tests, replacing them with actual behaviour verification
-- **Test Categorisation**: Added comprehensive pytest markers to key test files including domain health tests, infrastructure observability tests, and metrics tests  
+- **Test Categorisation**: Added comprehensive pytest markers to key test files including domain health tests, infrastructure observability tests, and metrics tests
 - **Makefile Enhancement**: Added new test commands supporting marker-based test execution:
   - `make test-unit` - Run unit tests only
   - `make test-integration` - Run integration tests only
@@ -296,7 +296,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 **Actions**: ✅ **ALL COMPLETED**
 
 1. ✅ Add test strategy document explaining the markers
-2. ✅ Create test matrix showing what each role should care about  
+2. ✅ Create test matrix showing what each role should care about
 3. ✅ Add examples of good vs bad tests
 
 **Completed Work**:
@@ -355,7 +355,7 @@ class DatabaseSettings(BaseModel):
     enable_redis_cache: bool = False
     enable_connection_pooling: bool = True
     enable_retry_logic: bool = True
-    
+
 # Repository implementations with base classes and mixins
 class FirestoreRepository(CacheableRepository, RetryMixin):
 class PostgreSQLRepository(TransactionalRepository, ConnectionPoolMixin, RetryMixin):
@@ -376,7 +376,7 @@ class InMemoryRepository:  # For testing
 - **Shared Configuration Integration**: Extended `config/settings.py` with comprehensive database settings including feature flags, connection pooling, retry configuration, and database type selection
 - **Multi-Database Repository Support**: Implemented complete repository infrastructure with:
   - **Base Classes**: Repository protocol, BaseRepository, CacheableRepository, TransactionalRepository
-  - **Mixins**: ConnectionPoolMixin, RetryMixin for cross-cutting concerns  
+  - **Mixins**: ConnectionPoolMixin, RetryMixin for cross-cutting concerns
   - **Database Implementations**: FirestoreRepository, PostgreSQLRepository, RedisCacheRepository
   - **Provider Pattern**: Updated RepositoryProvider with feature-flag based database selection
 - **Migration System**: Created comprehensive migration utilities with:
@@ -414,7 +414,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ### 3.2 Improve Observability Naming ✅ **COMPLETED**
 
-**Problem**: Generic metric and health check names  
+**Problem**: Generic metric and health check names
 **Solution**: Semantic naming that provides context in external tools
 
 **Implementation**: ✅ **COMPLETED**
@@ -424,10 +424,10 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 class MetricsCollector:
     def __init__(self, application_name: str = "fastapi_template"):
         self.application_name = application_name
-    
+
     def _get_metric_name(self, name: str) -> str:
         return f"{self.application_name}_{name}"
-    
+
     def _get_base_labels(self, labels: dict[str, str]) -> dict[str, str]:
         base_labels = {
             "service": self.application_name,
@@ -488,7 +488,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ### 4.1 Simplify Ruff Configuration
 
-**Current**: 200+ lines of rules  
+**Current**: 200+ lines of rules
 **Target**: 50 lines focusing on critical checks
 
 ```toml

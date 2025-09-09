@@ -32,7 +32,7 @@ updates:
         update-types:
           - "minor"
           - "patch"
-      
+
       testing-frameworks:
         patterns:
           - "pytest*"
@@ -41,7 +41,7 @@ updates:
         update-types:
           - "minor"
           - "patch"
-      
+
       linting-tools:
         patterns:
           - "ruff*"
@@ -51,7 +51,7 @@ updates:
         update-types:
           - "minor"
           - "patch"
-      
+
       observability:
         patterns:
           - "structlog*"
@@ -60,7 +60,7 @@ updates:
         update-types:
           - "minor"
           - "patch"
-      
+
       google-cloud:
         patterns:
           - "google-*"
@@ -68,7 +68,7 @@ updates:
         update-types:
           - "minor"
           - "patch"
-    
+
     # Ignore specific packages or versions if needed
     ignore:
       # Ignore major version updates for stable dependencies

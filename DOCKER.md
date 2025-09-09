@@ -80,7 +80,7 @@ ENVIRONMENT=development
 API_HOST=0.0.0.0
 API_PORT=8000
 
-# Database  
+# Database
 DATABASE_URL=postgresql://fastapi_user:fastapi_pass@postgres:5432/fastapi_db
 DATABASE_TYPE=postgresql
 

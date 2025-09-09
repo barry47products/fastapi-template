@@ -72,7 +72,7 @@ select = [
     "C90",    # McCabe complexity
     "I",      # isort (import sorting)
     "N",      # pep8-naming (naming conventions)
-    
+
     # Code quality and best practices
     "UP",     # pyupgrade (modern Python syntax)
     "YTT",    # flake8-2020 (sys.version checks)
@@ -109,7 +109,7 @@ select = [
     "TD",     # flake8-todos (TODO formatting)
     "FIX",    # flake8-fixme (FIXME/XXX/HACK)
     "ERA",    # eradicate (commented code)
-    
+
     # Framework specific
     "PL",     # pylint (comprehensive checks)
     "TRY",    # tryceratops (exception handling)
@@ -134,7 +134,7 @@ ignore = [
     "PLR0912", # Too many branches (acceptable in demo code)
     "PLR0915", # Too many statements (acceptable in demo code)
     "PLC0415", # Import outside top-level (lazy loading & circular dependency prevention)
-    
+
     # Template-specific ignores (remove noqa clutter)
     "T20",     # Print statements (useful for debugging)
     "S110",    # Try-except-pass (acceptable for service transitions)
@@ -304,30 +304,30 @@ markers = [
     # Test Speed Categories
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "fast: marks tests as fast (select with '-m fast')",
-    
-    # Test Type Categories  
+
+    # Test Type Categories
     "unit: marks tests as unit tests (isolated, no external dependencies)",
     "integration: marks tests as integration tests (multiple components)",
     "contract: marks tests as contract/API tests (external interface validation)",
     "e2e: marks tests as end-to-end tests (full system)",
-    
+
     # Test Category by Purpose
-    "behaviour: marks tests as behaviour-driven tests (business logic validation)", 
+    "behaviour: marks tests as behaviour-driven tests (business logic validation)",
     "resilience: marks tests as resilience tests (error handling, edge cases)",
     "security: marks tests as security tests (authentication, authorization)",
-    
+
     # Infrastructure Categories
     "database: marks tests that require database access",
-    "network: marks tests that require network access", 
+    "network: marks tests that require network access",
     "filesystem: marks tests that require filesystem access",
     "external_api: marks tests that call external APIs",
-    
-    # Business Domain Categories  
+
+    # Business Domain Categories
     "whatsapp: marks tests related to WhatsApp functionality",
     "nlp: marks tests related to natural language processing",
     "endorsement: marks tests related to endorsement processing",
     "provider: marks tests related to provider management",
-    
+
     # Special Test Categories
     "smoke: marks tests as smoke tests (basic functionality checks)",
     "regression: marks tests as regression tests (prevent known issues)",
@@ -338,11 +338,11 @@ markers = [
 source = ["src", "config"]
 branch = true
 omit = [
-    "*/tests/*", 
-    "*/conftest.py", 
+    "*/tests/*",
+    "*/conftest.py",
     "*/__init__.py",
     "src/infrastructure/persistence/repositories/sample_product_repository.py",
-    "src/infrastructure/persistence/repositories/sample_user_repository.py", 
+    "src/infrastructure/persistence/repositories/sample_user_repository.py",
     "src/infrastructure/messaging/sample_notification_service.py",
     "src/application/services/sample_service.py",
     "src/interfaces/api/routers/sample_routes.py"
@@ -355,4 +355,3 @@ skip_covered = false
 
 [tool.coverage.xml]
 output = "coverage.xml"
-

@@ -1,7 +1,7 @@
 # Architecture Evaluation Report
 
-**Date**: 9 September 2025  
-**Evaluator**: Senior Python Developer Perspective  
+**Date**: 9 September 2025
+**Evaluator**: Senior Python Developer Perspective
 **Project**: FastAPI Template
 
 ## Executive Summary
