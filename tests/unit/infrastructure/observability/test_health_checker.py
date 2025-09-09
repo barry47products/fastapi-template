@@ -72,28 +72,29 @@ class TestHealthChecker:
 
     def test_registers_health_check_successfully(self) -> None:
         """Registers health check successfully."""
-        checker = HealthChecker(timeout=10)
+        checker = HealthChecker(timeout=10, application_name="test_app")
         check_func = AsyncMock(return_value=True)
 
-        checker.register_health_check("database", check_func)
+        registered_name = checker.register_health_check("database", check_func)
 
-        assert "database" in checker._health_checks
-        assert checker._health_checks["database"] is check_func
+        assert registered_name == "test_app_postgresql_primary_connection"
+        assert registered_name in checker._health_checks
+        assert checker._health_checks[registered_name] is check_func
 
     def test_raises_error_for_duplicate_registration(self) -> None:
         """Raises error for duplicate health check registration."""
-        checker = HealthChecker(timeout=10)
+        checker = HealthChecker(timeout=10, application_name="test_app")
         check_func = AsyncMock(return_value=True)
 
         checker.register_health_check("database", check_func)
 
-        with pytest.raises(HealthCheckError, match="Health check 'database' already registered"):
+        with pytest.raises(HealthCheckError, match="Health check 'test_app_postgresql_primary_connection' already registered"):
             checker.register_health_check("database", check_func)
 
     @pytest.mark.asyncio
     async def test_returns_healthy_when_no_checks_registered(self) -> None:
         """Returns healthy status when no checks registered."""
-        checker = HealthChecker(timeout=10)
+        checker = HealthChecker(timeout=10, application_name="test_app")
 
         result = await checker.check_health()
 
@@ -104,69 +105,69 @@ class TestHealthChecker:
     @pytest.mark.asyncio
     async def test_runs_single_healthy_check(self) -> None:
         """Runs single healthy check successfully."""
-        checker = HealthChecker(timeout=10)
+        checker = HealthChecker(timeout=10, application_name="test_app")
         check_func = AsyncMock(return_value=True)
-        checker.register_health_check("database", check_func)
+        registered_name = checker.register_health_check("database", check_func)
 
         result = await checker.check_health()
 
         assert result["status"] == HealthStatus.HEALTHY
-        assert "database" in result["checks"]
-        assert result["checks"]["database"]["status"] == HealthStatus.HEALTHY
-        assert "response_time_ms" in result["checks"]["database"]
+        assert registered_name in result["checks"]
+        assert result["checks"][registered_name]["status"] == HealthStatus.HEALTHY
+        assert "response_time_ms" in result["checks"][registered_name]
         check_func.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_runs_single_unhealthy_check(self) -> None:
         """Runs single unhealthy check."""
-        checker = HealthChecker(timeout=10)
+        checker = HealthChecker(timeout=10, application_name="test_app")
         check_func = AsyncMock(return_value=False)
-        checker.register_health_check("cache", check_func)
+        registered_name = checker.register_health_check("cache", check_func)
 
         result = await checker.check_health()
 
         assert result["status"] == HealthStatus.UNHEALTHY
-        assert result["checks"]["cache"]["status"] == HealthStatus.UNHEALTHY
-        assert result["checks"]["cache"]["error"] == "Health check returned false"
-        assert "response_time_ms" in result["checks"]["cache"]
+        assert result["checks"][registered_name]["status"] == HealthStatus.UNHEALTHY
+        assert result["checks"][registered_name]["error"] == "Health check returned false"
+        assert "response_time_ms" in result["checks"][registered_name]
 
     @pytest.mark.asyncio
     async def test_handles_check_timeout(self) -> None:
         """Handles health check timeout."""
-        checker = HealthChecker(timeout=0.05)  # 50ms timeout
+        checker = HealthChecker(timeout=0.05, application_name="test_app")  # 50ms timeout
 
         async def slow_check() -> bool:
             await asyncio.sleep(0.1)  # 100ms > 50ms timeout
             return True
 
-        checker.register_health_check("slow_service", slow_check)
+        registered_name = checker.register_health_check("slow_service", slow_check)
 
         result = await checker.check_health()
 
         assert result["status"] == HealthStatus.UNHEALTHY
-        assert result["checks"]["slow_service"]["status"] == HealthStatus.UNHEALTHY
-        assert "timed out after 0.05s" in result["checks"]["slow_service"]["error"]
+        assert result["checks"][registered_name]["status"] == HealthStatus.UNHEALTHY
+        assert "timed out after 0.05s" in result["checks"][registered_name]["error"]
 
     @pytest.mark.asyncio
     async def test_handles_check_exception(self) -> None:
         """Handles health check exception."""
-        checker = HealthChecker(timeout=10)
+        checker = HealthChecker(timeout=10, application_name="test_app")
 
         async def failing_check() -> bool:
             raise ValueError("Database connection failed")
 
-        checker.register_health_check("database", failing_check)
+        registered_name = checker.register_health_check("database", failing_check)
 
         result = await checker.check_health()
 
         assert result["status"] == HealthStatus.UNHEALTHY
-        assert result["checks"]["database"]["status"] == HealthStatus.UNHEALTHY
-        assert result["checks"]["database"]["error"] == "Database connection failed"
+        assert result["checks"][registered_name]["status"] == HealthStatus.UNHEALTHY
+        assert result["checks"][registered_name]["error"] == "Database connection failed"
 
     @pytest.mark.asyncio
     async def test_determines_overall_status_all_healthy(self) -> None:
         """Determines overall status when all checks healthy."""
-        checker = HealthChecker(timeout=10)
+        checker = HealthChecker(timeout=10, application_name="test_app")
         checker.register_health_check("database", AsyncMock(return_value=True))
         checker.register_health_check("cache", AsyncMock(return_value=True))
         checker.register_health_check("queue", AsyncMock(return_value=True))
@@ -178,7 +179,7 @@ class TestHealthChecker:
     @pytest.mark.asyncio
     async def test_determines_overall_status_all_unhealthy(self) -> None:
         """Determines overall status when all checks unhealthy."""
-        checker = HealthChecker(timeout=10)
+        checker = HealthChecker(timeout=10, application_name="test_app")
         checker.register_health_check("database", AsyncMock(return_value=False))
         checker.register_health_check("cache", AsyncMock(return_value=False))
 
@@ -189,7 +190,7 @@ class TestHealthChecker:
     @pytest.mark.asyncio
     async def test_determines_overall_status_mixed(self) -> None:
         """Determines overall status when checks are mixed."""
-        checker = HealthChecker(timeout=10)
+        checker = HealthChecker(timeout=10, application_name="test_app")
         checker.register_health_check("database", AsyncMock(return_value=True))
         checker.register_health_check("cache", AsyncMock(return_value=False))
         checker.register_health_check("queue", AsyncMock(return_value=True))
@@ -210,7 +211,7 @@ class TestHealthChecker:
         mock_metrics_instance = MagicMock()
         mock_metrics.return_value = mock_metrics_instance
 
-        checker = HealthChecker(timeout=10)
+        checker = HealthChecker(timeout=10, application_name="test_app")
         checker.register_health_check("database", AsyncMock(return_value=True))
 
         await checker.check_health()
@@ -222,13 +223,17 @@ class TestHealthChecker:
 
         # Verify metrics recording
         mock_metrics_instance.increment_counter.assert_called_with(
-            "health_checks_completed_total", {"status": "healthy"}
+            "health_checks_completed_total", {
+                "status": "healthy",
+                "checks_total": "1", 
+                "checks_healthy": "1"
+            }
         )
 
     @pytest.mark.asyncio
     async def test_includes_timestamp_in_result(self) -> None:
         """Includes timestamp in health check result."""
-        checker = HealthChecker(timeout=10)
+        checker = HealthChecker(timeout=10, application_name="test_app")
 
         result = await checker.check_health()
 

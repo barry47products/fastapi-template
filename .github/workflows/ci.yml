@@ -68,7 +68,7 @@ jobs:
             --cov-report=xml \
             --cov-report=html \
             --cov-report=term-missing \
-            --cov-fail-under=90 \
+            --cov-fail-under=95 \
             -m "not network"
 
       - name: Upload coverage reports
@@ -118,7 +118,7 @@ jobs:
             --cov=config \
             --cov-report=xml \
             --cov-report=term-missing \
-            --cov-fail-under=94 \
+            --cov-fail-under=95 \
             -m "not network"
         env:
           COVERAGE_FILE: .coverage

@@ -60,7 +60,7 @@ class TestMetricsCollector:
 
     def test_creates_collector_with_default_registry(self) -> None:
         """Creates collector with default registry."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
 
         assert collector.registry is not None
         assert collector._counters == {}
@@ -76,123 +76,123 @@ class TestMetricsCollector:
 
     def test_increments_counter_with_labels(self) -> None:
         """Increments counter with labels."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
         labels = {"service": "api", "endpoint": "users"}
 
         collector.increment_counter("requests_total", labels)
 
-        assert "fastapi_template_requests_total" in collector._counters
+        assert "test_app_requests_total" in collector._counters
         # Verify counter was created with correct label names
-        counter = collector._counters["fastapi_template_requests_total"]
-        assert counter._name == "fastapi_template_requests"  # Prometheus client strips _total suffix
+        counter = collector._counters["test_app_requests_total"]
+        assert counter._name == "test_app_requests"  # Prometheus client strips _total suffix
 
     def test_increments_counter_without_labels(self) -> None:
         """Increments counter without labels."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
 
         collector.increment_counter("simple_counter", {})
 
-        assert "simple_counter" in collector._counters
+        assert "test_app_simple_counter" in collector._counters
 
     def test_increments_counter_with_custom_value(self) -> None:
         """Increments counter with custom value."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
 
         collector.increment_counter("batch_counter", {}, value=5.0)
 
-        assert "batch_counter" in collector._counters
+        assert "test_app_batch_counter" in collector._counters
 
     def test_records_gauge_with_labels(self) -> None:
         """Records gauge with labels."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
         labels = {"instance": "server1", "region": "us-east"}
 
         collector.record_gauge("cpu_usage", 75.5, labels)
 
-        assert "cpu_usage" in collector._gauges
-        gauge = collector._gauges["cpu_usage"]
-        assert gauge._name == "cpu_usage"
+        assert "test_app_cpu_usage" in collector._gauges
+        gauge = collector._gauges["test_app_cpu_usage"]
+        assert gauge._name == "test_app_cpu_usage"
 
     def test_records_gauge_without_labels(self) -> None:
         """Records gauge without labels."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
 
         collector.record_gauge("memory_usage", 1024.0, {})
 
-        assert "memory_usage" in collector._gauges
+        assert "test_app_memory_usage" in collector._gauges
 
     def test_records_histogram_with_labels(self) -> None:
         """Records histogram with labels."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
         labels = {"method": "GET", "status": "200"}
 
         collector.record_histogram("request_duration", 0.150, labels)
 
-        assert "request_duration" in collector._histograms
-        histogram = collector._histograms["request_duration"]
-        assert histogram._name == "request_duration"
+        assert "test_app_request_duration" in collector._histograms
+        histogram = collector._histograms["test_app_request_duration"]
+        assert histogram._name == "test_app_request_duration"
 
     def test_records_histogram_without_labels(self) -> None:
         """Records histogram without labels."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
 
         collector.record_histogram("processing_time", 0.025, {})
 
-        assert "processing_time" in collector._histograms
+        assert "test_app_processing_time" in collector._histograms
 
     def test_reuses_existing_counter(self) -> None:
         """Reuses existing counter for same name."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
         labels = {"service": "api"}
 
         collector.increment_counter("test_counter", labels)
-        first_counter = collector._counters["test_counter"]
+        first_counter = collector._counters["test_app_test_counter"]
 
         collector.increment_counter("test_counter", labels)
-        second_counter = collector._counters["test_counter"]
+        second_counter = collector._counters["test_app_test_counter"]
 
         assert first_counter is second_counter
 
     def test_reuses_existing_gauge(self) -> None:
         """Reuses existing gauge for same name."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
         labels = {"instance": "server1"}
 
         collector.record_gauge("test_gauge", 10.0, labels)
-        first_gauge = collector._gauges["test_gauge"]
+        first_gauge = collector._gauges["test_app_test_gauge"]
 
         collector.record_gauge("test_gauge", 20.0, labels)
-        second_gauge = collector._gauges["test_gauge"]
+        second_gauge = collector._gauges["test_app_test_gauge"]
 
         assert first_gauge is second_gauge
 
     def test_reuses_existing_histogram(self) -> None:
         """Reuses existing histogram for same name."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
         labels = {"endpoint": "api"}
 
         collector.record_histogram("test_histogram", 1.0, labels)
-        first_histogram = collector._histograms["test_histogram"]
+        first_histogram = collector._histograms["test_app_test_histogram"]
 
         collector.record_histogram("test_histogram", 2.0, labels)
-        second_histogram = collector._histograms["test_histogram"]
+        second_histogram = collector._histograms["test_app_test_histogram"]
 
         assert first_histogram is second_histogram
 
     def test_time_function_context_manager(self) -> None:
         """Time function context manager works correctly."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
         labels = {"function": "test_func"}
 
         with collector.time_function("function_duration", labels):
             time.sleep(0.01)  # Small delay to measure
 
         # Should have created histogram
-        assert "function_duration" in collector._histograms
+        assert "test_app_function_duration" in collector._histograms
 
     def test_time_function_records_time_on_exception(self) -> None:
         """Time function records time even when exception occurs."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
         labels = {"function": "failing_func"}
 
         with (
@@ -202,11 +202,11 @@ class TestMetricsCollector:
             raise ValueError("Test exception")
 
         # Should still have recorded the timing
-        assert "exception_duration" in collector._histograms
+        assert "test_app_exception_duration" in collector._histograms
 
     def test_get_counter_value_returns_zero_for_nonexistent(self) -> None:
         """Get counter value returns zero for non-existent counter."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
 
         value = collector.get_counter_value("nonexistent", {})
 
@@ -214,7 +214,7 @@ class TestMetricsCollector:
 
     def test_get_counter_value_returns_correct_value(self) -> None:
         """Get counter value returns correct value."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
         labels = {"test": "value"}
 
         collector.increment_counter("test_counter", labels, value=5.0)
@@ -224,7 +224,7 @@ class TestMetricsCollector:
 
     def test_get_gauge_value_returns_zero_for_nonexistent(self) -> None:
         """Get gauge value returns zero for non-existent gauge."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
 
         value = collector.get_gauge_value("nonexistent", {})
 
@@ -232,7 +232,7 @@ class TestMetricsCollector:
 
     def test_get_gauge_value_returns_correct_value(self) -> None:
         """Get gauge value returns correct value."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
         labels = {"test": "gauge"}
 
         collector.record_gauge("test_gauge", 42.5, labels)
@@ -242,7 +242,7 @@ class TestMetricsCollector:
 
     def test_get_all_metrics_returns_empty_dict_initially(self) -> None:
         """Get all metrics returns empty dict initially."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
 
         metrics = collector.get_all_metrics()
 
@@ -250,7 +250,7 @@ class TestMetricsCollector:
 
     def test_get_all_metrics_includes_all_metric_types(self) -> None:
         """Get all metrics includes all metric types."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
 
         collector.increment_counter("test_counter", {})
         collector.record_gauge("test_gauge", 10.0, {})
@@ -258,56 +258,56 @@ class TestMetricsCollector:
 
         metrics = collector.get_all_metrics()
 
-        assert "counter_test_counter" in metrics
-        assert "gauge_test_gauge" in metrics
-        assert "histogram_test_histogram" in metrics
+        assert "counter_test_app_test_counter" in metrics
+        assert "gauge_test_app_test_gauge" in metrics
+        assert "histogram_test_app_test_histogram" in metrics
 
-        assert metrics["counter_test_counter"]["type"] == "counter"
-        assert metrics["gauge_test_gauge"]["type"] == "gauge"
-        assert metrics["histogram_test_histogram"]["type"] == "histogram"
+        assert metrics["counter_test_app_test_counter"]["type"] == "counter"
+        assert metrics["gauge_test_app_test_gauge"]["type"] == "gauge"
+        assert metrics["histogram_test_app_test_histogram"]["type"] == "histogram"
 
     def test_handles_zero_counter_increment(self) -> None:
         """Handles zero counter increment."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
 
         collector.increment_counter("zero_counter", {}, value=0.0)
 
-        assert "zero_counter" in collector._counters
+        assert "test_app_zero_counter" in collector._counters
 
     def test_handles_negative_histogram_values(self) -> None:
         """Handles negative histogram values."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
 
         # Should not raise exception - Prometheus allows negative observations
         collector.record_histogram("negative_histogram", -1.0, {})
 
-        assert "negative_histogram" in collector._histograms
+        assert "test_app_negative_histogram" in collector._histograms
 
     def test_handles_large_values(self) -> None:
         """Handles large metric values."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
 
         large_value = 1e6
         collector.increment_counter("large_counter", {}, value=large_value)
         collector.record_gauge("large_gauge", large_value, {})
         collector.record_histogram("large_histogram", large_value, {})
 
-        assert "large_counter" in collector._counters
-        assert "large_gauge" in collector._gauges
-        assert "large_histogram" in collector._histograms
+        assert "test_app_large_counter" in collector._counters
+        assert "test_app_large_gauge" in collector._gauges
+        assert "test_app_large_histogram" in collector._histograms
 
     def test_handles_empty_label_keys(self) -> None:
         """Handles empty label keys properly."""
-        collector = MetricsCollector()
+        collector = MetricsCollector(application_name="test_app")
 
         # Should work with empty labels
         collector.increment_counter("no_labels_counter", {})
         collector.record_gauge("no_labels_gauge", 5.0, {})
         collector.record_histogram("no_labels_histogram", 1.5, {})
 
-        assert "no_labels_counter" in collector._counters
-        assert "no_labels_gauge" in collector._gauges
-        assert "no_labels_histogram" in collector._histograms
+        assert "test_app_no_labels_counter" in collector._counters
+        assert "test_app_no_labels_gauge" in collector._gauges
+        assert "test_app_no_labels_histogram" in collector._histograms
 
 
 @pytest.mark.unit
