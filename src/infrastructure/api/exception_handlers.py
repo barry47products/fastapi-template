@@ -48,7 +48,7 @@ async def validation_exception_handler(
     metrics = get_metrics_collector()
 
     # Cast to ValidationException for type safety
-    validation_exc = cast(ValidationException, exc)
+    validation_exc = cast("ValidationException", exc)
 
     # Log validation error with context
     logger.warning(
@@ -93,7 +93,7 @@ async def not_found_exception_handler(
     metrics = get_metrics_collector()
 
     # Cast to ApplicationError for type safety
-    approved_exc = cast(ApplicationError, exc)
+    approved_exc = cast("ApplicationError", exc)
 
     # Log not found error
     logger.info(
@@ -132,7 +132,7 @@ async def rate_limit_exception_handler(
     metrics = get_metrics_collector()
 
     # Cast to RateLimitExceededException for type safety
-    rate_limit_exc = cast(RateLimitExceededException, exc)
+    rate_limit_exc = cast("RateLimitExceededException", exc)
 
     # Log rate limit violation
     logger.warning(

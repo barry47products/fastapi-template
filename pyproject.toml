@@ -133,6 +133,7 @@ ignore = [
     "C901",    # Function too complex (acceptable in demo code)
     "PLR0912", # Too many branches (acceptable in demo code)
     "PLR0915", # Too many statements (acceptable in demo code)
+    "PLC0415", # Import outside top-level (lazy loading & circular dependency prevention)
     
     # Template-specific ignores (remove noqa clutter)
     "T20",     # Print statements (useful for debugging)
