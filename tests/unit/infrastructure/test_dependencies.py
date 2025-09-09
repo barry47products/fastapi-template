@@ -10,8 +10,10 @@ from src.infrastructure.dependencies import (
     get_health_checker,
     get_metrics_collector,
     get_notification_service,
+    get_product_repository,
     get_rate_limiter,
     get_repository_provider,
+    get_user_repository,
     get_webhook_verifier,
 )
 
@@ -91,3 +93,21 @@ class TestDependencyProviders:
 
         assert service1 is service2
         assert service1.__class__.__name__ == "SampleNotificationService"
+
+    def test_get_user_repository_returns_repository_instance(self) -> None:
+        """User repository provider returns correct repository instance."""
+        from src.infrastructure.persistence.repositories import InMemoryUserRepository
+
+        repository = get_user_repository()
+
+        assert isinstance(repository, InMemoryUserRepository)
+        assert repository.__class__.__name__ == "InMemoryUserRepository"
+
+    def test_get_product_repository_returns_repository_instance(self) -> None:
+        """Product repository provider returns correct repository instance."""
+        from src.infrastructure.persistence.repositories import InMemoryProductRepository
+
+        repository = get_product_repository()
+
+        assert isinstance(repository, InMemoryProductRepository)
+        assert repository.__class__.__name__ == "InMemoryProductRepository"

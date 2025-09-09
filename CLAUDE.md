@@ -1,8 +1,8 @@
-# Neighbour Approved - Claude Code Configuration
+# FastAPI Template - Claude Code Configuration
 
 ## Project Overview
 
-WhatsApp-based service endorsement platform that captures provider recommendations from neighbourhood groups. Uses Python/FastAPI with clean architecture and flow-based development (WIP = 1).
+Clean architecture FastAPI template with comprehensive testing, observability, and multiple database support. Uses Python/FastAPI with clean architecture and flow-based development (WIP = 1).
 
 ## Tech Stack
 
@@ -111,7 +111,7 @@ def business_function(input_value: str) -> Result:
 Create `.env` for local development (never commit):
 
 ```env
-APP_NAME=neighbour-approved
+APP_NAME=fastapi-template
 ENVIRONMENT=development
 API_HOST=0.0.0.0
 API_PORT=8000

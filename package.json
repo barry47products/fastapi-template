@@ -1,7 +1,7 @@
 {
-  "name": "neighbour-approved-dev-tools",
+  "name": "fastapi-template-dev-tools",
   "version": "1.0.0",
-  "description": "Development tools for Neighbour Approved",
+  "description": "Development tools for FastAPI Template",
   "private": true,
   "scripts": {
     "emulators": "firebase emulators:start",

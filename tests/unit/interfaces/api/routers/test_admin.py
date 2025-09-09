@@ -28,10 +28,21 @@ class TestAdminRouter:
 class TestGetAppInfoEndpoint:
     """Test /admin/info endpoint behavior."""
 
+    @patch("src.interfaces.api.routers.admin.get_settings")
     @patch("src.interfaces.api.routers.admin.datetime")
     @pytest.mark.asyncio
-    async def test_returns_correct_app_info_structure(self, mock_datetime: MagicMock) -> None:
+    async def test_returns_correct_app_info_structure(
+        self, mock_datetime: MagicMock, mock_get_settings: MagicMock
+    ) -> None:
         """Returns application info with correct structure."""
+        # Mock settings
+        from config.settings import Environment
+
+        mock_settings = MagicMock()
+        mock_settings.app_name = "test-app"
+        mock_settings.environment = Environment.DEVELOPMENT
+        mock_get_settings.return_value = mock_settings
+
         # Mock datetime to return consistent timestamp
         mock_now = MagicMock()
         mock_now.isoformat.return_value = "2024-01-01T12:00:00"
@@ -43,7 +54,7 @@ class TestGetAppInfoEndpoint:
 
         # Verify result structure and content
         assert isinstance(result, AdminInfoResponse)
-        assert result.app_name == "neighbour-approved"
+        assert result.app_name == "test-app"
         assert result.version == "1.0.0"
         assert result.environment == "development"
         assert result.build_timestamp == "2024-01-01T12:00:00Z"
@@ -51,9 +62,17 @@ class TestGetAppInfoEndpoint:
             f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
         )
 
+    @patch("src.interfaces.api.routers.admin.get_settings")
     @pytest.mark.asyncio
-    async def test_uses_current_python_version(self) -> None:
+    async def test_uses_current_python_version(self, mock_get_settings: MagicMock) -> None:
         """Uses current Python version in response."""
+        from config.settings import Environment
+
+        mock_settings = MagicMock()
+        mock_settings.app_name = "test-app"
+        mock_settings.environment = Environment.DEVELOPMENT
+        mock_get_settings.return_value = mock_settings
+
         from src.interfaces.api.routers.admin import get_app_info
 
         result = await get_app_info(_="test-key", __="test-limit")
@@ -63,9 +82,19 @@ class TestGetAppInfoEndpoint:
         )
         assert result.python_version == expected_version
 
+    @patch("src.interfaces.api.routers.admin.get_settings")
     @pytest.mark.asyncio
-    async def test_generates_iso_timestamp_with_z_suffix(self) -> None:
+    async def test_generates_iso_timestamp_with_z_suffix(
+        self, mock_get_settings: MagicMock
+    ) -> None:
         """Generates ISO timestamp with Z suffix."""
+        from config.settings import Environment
+
+        mock_settings = MagicMock()
+        mock_settings.app_name = "test-app"
+        mock_settings.environment = Environment.DEVELOPMENT
+        mock_get_settings.return_value = mock_settings
+
         from src.interfaces.api.routers.admin import get_app_info
 
         result = await get_app_info(_="test-key", __="test-limit")
@@ -260,7 +289,11 @@ class TestAdminRouterIntegration:
     ) -> None:
         """Test typical admin workflow accessing all endpoints."""
         # Setup mocks
+        from config.settings import Environment
+
         mock_settings = MagicMock()
+        mock_settings.app_name = "test-app"
+        mock_settings.environment = Environment.DEVELOPMENT
         mock_settings.api.host = "0.0.0.0"
         mock_settings.api.port = 8000
         mock_settings.observability.log_level = "INFO"

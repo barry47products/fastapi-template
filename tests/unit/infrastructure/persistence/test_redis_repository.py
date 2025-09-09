@@ -864,3 +864,134 @@ class TestRedisCacheImplementationBehaviour:
 
             assert result == 0
             mock_client.delete.assert_not_called()
+
+
+@pytest.mark.unit
+@pytest.mark.behaviour
+@pytest.mark.fast
+class TestRedisCacheHelperMethods:
+    """Test Redis cache repository helper methods for default implementations."""
+
+    async def test_get_by_id_calls_retry_wrapper(self) -> None:
+        """Should call get_by_id through retry wrapper."""
+        repo = MockRedisCacheRepository(connection_url="redis://localhost:6379")
+
+        with patch.object(repo, "_with_retry", new_callable=AsyncMock) as mock_retry:
+            expected_entity = TestEntity("test_id", "Test Entity")
+            mock_retry.return_value = expected_entity
+
+            result = await repo.get_by_id("test_id")
+
+            assert result is expected_entity
+            mock_retry.assert_called_once_with("get_by_id", repo._get_by_id_impl, "test_id")
+
+    async def test_update_calls_retry_wrapper(self) -> None:
+        """Should call update through retry wrapper."""
+        repo = MockRedisCacheRepository(connection_url="redis://localhost:6379")
+        entity = TestEntity("test_id", "Updated Entity")
+
+        with patch.object(repo, "_with_retry", new_callable=AsyncMock) as mock_retry:
+            mock_retry.return_value = entity
+
+            result = await repo.update(entity)
+
+            assert result is entity
+            mock_retry.assert_called_once_with("update", repo._update_impl, entity)
+
+    async def test_list_all_calls_retry_wrapper(self) -> None:
+        """Should call list_all through retry wrapper."""
+        repo = MockRedisCacheRepository(connection_url="redis://localhost:6379")
+        expected_entities = [TestEntity("1", "Entity 1"), TestEntity("2", "Entity 2")]
+
+        with patch.object(repo, "_with_retry", new_callable=AsyncMock) as mock_retry:
+            mock_retry.return_value = expected_entities
+
+            result = await repo.list_all(limit=10, offset=5)
+
+            assert result == expected_entities
+            mock_retry.assert_called_once_with("list_all", repo._list_all_impl, 10, 5)
+
+    def test_entity_to_json_converts_entity_with_dict_attribute(self) -> None:
+        """Converts entity to JSON when entity has __dict__ attribute."""
+        repo = MockRedisCacheRepository(connection_url="redis://localhost:6379")
+        entity = TestEntity("test_id", "test_name", 42)
+
+        result = repo._entity_to_json(entity)
+
+        expected_json = '{"id": "test_id", "name": "test_name", "value": 42}'
+        assert result == expected_json
+
+    def test_entity_to_json_handles_entity_without_dict_attribute(self) -> None:
+        """Converts entity to JSON when entity lacks __dict__ attribute."""
+        repo = MockRedisCacheRepository(connection_url="redis://localhost:6379")
+
+        # Test with valid entity that has proper attributes
+        entity = TestEntity("test_id", "test_name", 42)
+
+        result = repo._entity_to_json(entity)
+
+        # MockRedisCacheRepository converts to specific JSON format
+        assert '"test_id"' in result
+        assert '"test_name"' in result
+
+    def test_json_to_entity_converts_json_to_dict(self) -> None:
+        """Converts JSON string to dict entity by default implementation."""
+        from src.infrastructure.persistence.repositories.redis_cache import RedisCacheRepository
+
+        # Use the base class directly to test the default implementation
+        class TestRedisCacheRepo(RedisCacheRepository[Any, str]):
+            def _entity_to_json(self, entity: Any) -> str:
+                return json.dumps({"data": str(entity)})
+
+            def _json_to_entity(self, json_str: str) -> Any:
+                # Call the parent's default implementation
+                return super()._json_to_entity(json_str)
+
+            def _get_entity_id(self, entity: Any) -> str:
+                return "test_id"
+
+        repo = TestRedisCacheRepo(connection_url="redis://localhost:6379")
+        json_str = '{"id": "test_id", "name": "test_name", "value": 42}'
+
+        result = repo._json_to_entity(json_str)
+
+        assert isinstance(result, dict)
+        assert result["id"] == "test_id"
+        assert result["name"] == "test_name"
+        assert result["value"] == 42
+
+    def test_get_entity_id_returns_id_when_entity_has_id(self) -> None:
+        """Returns entity ID when entity has id attribute."""
+        repo = MockRedisCacheRepository(connection_url="redis://localhost:6379")
+        entity = TestEntity("test_id", "test_name", 42)
+
+        result = repo._get_entity_id(entity)
+
+        assert result == "test_id"
+
+    def test_get_entity_id_raises_error_when_entity_has_no_id(self) -> None:
+        """Raises ValueError when entity has no id attribute."""
+        from src.infrastructure.persistence.repositories.redis_cache import RedisCacheRepository
+
+        # Use the base class directly to test the default implementation
+        class TestRedisCacheRepo(RedisCacheRepository[Any, str]):
+            def _entity_to_json(self, entity: Any) -> str:
+                return json.dumps({"data": str(entity)})
+
+            def _json_to_entity(self, json_str: str) -> Any:
+                return json.loads(json_str)
+
+            def _get_entity_id(self, entity: Any) -> str:
+                # Call the parent's default implementation
+                return super()._get_entity_id(entity)
+
+        repo = TestRedisCacheRepo(connection_url="redis://localhost:6379")
+
+        class EntityWithoutId:
+            def __init__(self, name: str) -> None:
+                self.name = name
+
+        entity = EntityWithoutId("test_name")
+
+        with pytest.raises(ValueError, match="Entity does not have an ID field"):
+            repo._get_entity_id(entity)

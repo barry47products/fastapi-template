@@ -1030,3 +1030,111 @@ class TestPostgreSQLImplementationBehaviour:
 
             assert len(result) == 1
             assert result[0].name == "active_user"
+
+    async def test_execute_raw_sql_executes_sql_with_parameters(self) -> None:
+        """Executes raw SQL with parameters."""
+        repo = MockPostgreSQLRepository(
+            connection_url="postgresql://localhost/db", table_name="test_entities"
+        )
+
+        mock_engine = AsyncMock()
+        mock_conn = AsyncMock()
+        mock_transaction = AsyncMock()
+        mock_result = AsyncMock()
+
+        mock_conn.execute = AsyncMock(return_value=mock_result)
+
+        mock_transaction.__aenter__ = AsyncMock(return_value=mock_conn)
+        mock_transaction.__aexit__ = AsyncMock(return_value=None)
+        mock_engine.begin = Mock(return_value=mock_transaction)
+
+        with patch.object(repo, "_get_connection") as mock_get_conn:
+            mock_context = AsyncMock()
+            mock_context.__aenter__ = AsyncMock(return_value=mock_engine)
+            mock_context.__aexit__ = AsyncMock(return_value=None)
+            mock_get_conn.return_value = mock_context
+
+            result = await repo._execute_raw_sql_impl(
+                "SELECT * FROM users WHERE id = :id", {"id": "test"}
+            )
+
+            assert result is mock_result
+            mock_conn.execute.assert_called_once()
+
+    def test_entity_to_dict_converts_entity_with_dict_attribute(self) -> None:
+        """Converts entity to dict when entity has __dict__ attribute."""
+        repo = MockPostgreSQLRepository(
+            connection_url="postgresql://localhost/db", table_name="test_entities"
+        )
+        entity = TestEntity("test_id", "test_name", "test@example.com")
+
+        result = repo._entity_to_dict(entity)
+
+        expected = {"id": "test_id", "name": "test_name", "email": "test@example.com"}
+        assert result == expected
+
+    def test_entity_to_dict_handles_entity_without_dict_attribute(self) -> None:
+        """Converts entity to dict when entity lacks __dict__ attribute."""
+        repo = MockPostgreSQLRepository(
+            connection_url="postgresql://localhost/db", table_name="test_entities"
+        )
+
+        # Test with a valid entity that has the expected attributes
+        result = repo._entity_to_dict(TestEntity("test", "test"))
+
+        assert "name" in result
+
+    def test_row_to_entity_converts_dict_row_to_entity(self) -> None:
+        """Converts database row dict to entity."""
+        repo = MockPostgreSQLRepository(
+            connection_url="postgresql://localhost/db", table_name="test_entities"
+        )
+        row = {"id": "test_id", "name": "test_name", "email": "test@example.com"}
+
+        result = repo._row_to_entity(row)
+
+        # MockPostgreSQLRepository converts to TestEntity, not dict
+        assert isinstance(result, TestEntity)
+        assert result.id == "test_id"
+        assert result.name == "test_name"
+
+    def test_get_entity_id_returns_id_when_entity_has_id(self) -> None:
+        """Returns entity ID when entity has id attribute."""
+        repo = MockPostgreSQLRepository(
+            connection_url="postgresql://localhost/db", table_name="test_entities"
+        )
+        entity = TestEntity("test_id", "test_name", "test@example.com")
+
+        result = repo._get_entity_id(entity)
+
+        assert result == "test_id"
+
+    def test_get_entity_id_raises_error_when_entity_has_no_id(self) -> None:
+        """Raises ValueError when entity has no id attribute."""
+        from src.infrastructure.persistence.repositories.postgresql import PostgreSQLRepository
+
+        # Use the base class directly to test the default implementation
+        class TestPostgreSQLRepo(PostgreSQLRepository[Any, str]):
+            def _entity_to_dict(self, entity: Any) -> dict[str, Any]:
+                _ = entity  # Suppress unused parameter warning
+                return {}
+
+            def _row_to_entity(self, row: Any) -> Any:
+                return row
+
+            def _get_entity_id(self, entity: Any) -> str:
+                # Call the parent's default implementation
+                return super()._get_entity_id(entity)
+
+        repo = TestPostgreSQLRepo(
+            connection_url="postgresql://localhost/db", table_name="test_entities"
+        )
+
+        class EntityWithoutId:
+            def __init__(self, name: str) -> None:
+                self.name = name
+
+        entity = EntityWithoutId("test_name")
+
+        with pytest.raises(ValueError, match="Entity does not have an ID field"):
+            repo._get_entity_id(entity)

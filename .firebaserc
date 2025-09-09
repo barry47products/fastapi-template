@@ -1,9 +1,9 @@
 {
   "projects": {
-    "default": "neighbour-approved-dev",
-    "dev": "neighbour-approved-dev",
-    "staging": "neighbour-approved-staging",
-    "prod": "neighbour-approved-prod"
+    "default": "fastapi-template-dev",
+    "dev": "fastapi-template-dev",
+    "staging": "fastapi-template-staging",
+    "prod": "fastapi-template-prod"
   },
   "targets": {},
   "etags": {}

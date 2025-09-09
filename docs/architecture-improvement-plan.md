@@ -573,7 +573,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 **Tasks**:
 
-1. Remove all references to "Neighbour Approved" specific business
+1. Remove all project-specific business logic references
 2. Genericise examples to be broadly applicable
 3. Create getting started video/tutorial
 4. Add architecture diagrams

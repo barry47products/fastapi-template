@@ -49,7 +49,7 @@ def test_should_return_safe_config_without_secrets(
     expected_response = {
         "status_code": status.HTTP_200_OK,
         "config": {
-            "app_name": "neighbour-approved",
+            "app_name": "fastapi-template",
             "environment": "development",
             "api_host": "0.0.0.0",
             "api_port": 8000,
@@ -70,7 +70,7 @@ def test_should_return_safe_config_without_secrets(
     assert "secrets_excluded" in result
 
     config = result["config"]
-    assert config["app_name"] == "neighbour-approved"
+    assert config["app_name"] == "fastapi-template"
     assert config["environment"] == "development"
     assert config["metrics_enabled"] is True
 
@@ -136,7 +136,7 @@ def test_should_return_application_info(
     expected_response = {
         "status_code": status.HTTP_200_OK,
         "application": {
-            "name": "neighbour-approved",
+            "name": "fastapi-template",
             "version": "1.0.0",
             "environment": "development",
             "build_timestamp": "2025-01-01T10:00:00Z",
@@ -164,7 +164,7 @@ def test_should_return_application_info(
     assert result["status_code"] == status.HTTP_200_OK
 
     app_info = result["application"]
-    assert app_info["name"] == "neighbour-approved"
+    assert app_info["name"] == "fastapi-template"
     assert app_info["version"] == "1.0.0"
     assert app_info["environment"] == "development"
     assert app_info["python_version"] == "3.13.0"

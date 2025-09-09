@@ -27,10 +27,11 @@ async def get_app_info(
     __: str = Depends(check_rate_limit),
 ) -> AdminInfoResponse:
     """Application metadata including version and environment."""
+    settings = get_settings()
     return AdminInfoResponse(
-        app_name="neighbour-approved",
+        app_name=settings.app_name,
         version="1.0.0",
-        environment="development",
+        environment=settings.environment.value,
         build_timestamp=datetime.now().isoformat() + "Z",
         python_version=(
             f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"

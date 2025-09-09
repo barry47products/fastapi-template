@@ -1,3 +1,3 @@
-"""Neighbour Approved"""
+"""FastAPI Template"""
 
 __version__ = "0.1.0"
