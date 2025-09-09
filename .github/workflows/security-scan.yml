@@ -84,9 +84,18 @@ jobs:
       - name: Upload Trivy scan results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         if: always()
+        continue-on-error: true
         with:
           sarif_file: 'trivy-results.sarif'
           category: 'trivy-vulnerabilities'
+
+      - name: Upload Trivy scan results as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-vulnerability-results
+          path: trivy-results.sarif
+          retention-days: 30
 
       - name: Run Trivy scan for summary
         uses: aquasecurity/trivy-action@master
@@ -108,9 +117,18 @@ jobs:
       - name: Upload secrets scan to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         if: always()
+        continue-on-error: true
         with:
           sarif_file: 'trivy-secrets.sarif'
           category: 'trivy-secrets'
+
+      - name: Upload secrets scan results as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-secrets-results
+          path: trivy-secrets.sarif
+          retention-days: 30
 
   image-size-check:
     runs-on: ubuntu-latest
@@ -166,5 +184,14 @@ jobs:
       - name: Upload Hadolint scan results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         if: always()
+        continue-on-error: true
         with:
           sarif_file: hadolint-results.sarif
+
+      - name: Upload Hadolint scan results as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hadolint-results
+          path: hadolint-results.sarif
+          retention-days: 30
