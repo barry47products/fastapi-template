@@ -68,29 +68,37 @@ jobs:
 
       - name: Validate deployment configuration
         run: |
-          echo "🔍 Validating deployment configuration for ${{ inputs.environment }}"
+          echo "🔍 Validating template configuration for ${{ inputs.environment }}"
 
-          # Check docker-compose files exist
-          if [[ ! -f "docker-compose.yml" ]]; then
-            echo "❌ docker-compose.yml not found"
+          # Check core template files exist
+          if [[ ! -f "Dockerfile" ]]; then
+            echo "❌ Dockerfile not found"
             exit 1
           fi
 
-          if [[ ! -f "docker-compose.prod.yml" ]]; then
-            echo "❌ docker-compose.prod.yml not found"
+          if [[ ! -f "pyproject.toml" ]]; then
+            echo "❌ pyproject.toml not found"
             exit 1
           fi
 
-          # Check deployment scripts
-          if [[ ! -f "scripts/deployment/deploy-prod.sh" ]]; then
-            echo "❌ deploy-prod.sh script not found"
+          if [[ ! -f "poetry.lock" ]]; then
+            echo "❌ poetry.lock not found"
             exit 1
           fi
 
-          # Validate docker-compose configuration
-          docker-compose -f docker-compose.prod.yml config > /dev/null
+          # Check GitHub workflows exist
+          if [[ ! -f ".github/workflows/deploy.yml" ]]; then
+            echo "❌ Deploy workflow not found"
+            exit 1
+          fi
 
-          echo "✅ Deployment configuration is valid"
+          if [[ ! -f ".github/workflows/ci.yml" ]]; then
+            echo "❌ CI workflow not found"
+            exit 1
+          fi
+
+          echo "✅ Template configuration is valid"
+          echo "ℹ️ Note: Additional docker-compose files and deployment scripts should be added based on your infrastructure needs"
 
       - name: Generate deployment checklist
         run: |
