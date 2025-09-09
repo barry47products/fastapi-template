@@ -240,7 +240,7 @@ async def update_user(user_id: str, update_request: UpdateUserRequest) -> UserRe
     return UserResponse(**user_data)
 
 
-@router.delete("/users/{user_id}", status_code=204)
+@router.delete("/users/{user_id}", status_code=204, response_model=None)
 async def delete_user(user_id: str) -> None:
     """
     Delete a user.

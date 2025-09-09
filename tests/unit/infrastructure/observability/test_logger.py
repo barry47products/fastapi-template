@@ -5,9 +5,14 @@ from __future__ import annotations
 import logging
 from unittest.mock import MagicMock, patch
 
+import pytest
 import structlog
 
-from src.infrastructure.observability.logger import configure_logging, get_logger
+from src.infrastructure.observability.logger import (
+    add_application_context,
+    configure_logging,
+    get_logger,
+)
 
 
 class TestConfigureLogging:
@@ -302,3 +307,154 @@ class TestGetLogger:
 
         mock_structlog_get.assert_called_once_with(logger_name)
         assert result is mock_bound_logger
+
+
+@pytest.mark.unit
+@pytest.mark.fast
+class TestAddApplicationContext:
+    """Test add_application_context function behavior."""
+
+    def test_adds_application_context_with_settings_available(self) -> None:
+        """Adds application context when settings are available."""
+        # Mock settings
+        mock_settings = MagicMock()
+        mock_settings.app_name = "test-service"
+        mock_settings.environment.value = "testing"
+
+        mock_logger = MagicMock()
+        method_name = "info"
+        event_dict = {"message": "test log message"}
+
+        with patch("config.settings.get_settings", return_value=mock_settings):
+            result = add_application_context(mock_logger, method_name, event_dict)
+
+        # Should add application context from settings
+        assert result["service"] == "test-service"
+        assert result["environment"] == "testing"
+        assert result["component"] == "api"
+        assert result["message"] == "test log message"  # Original data preserved
+
+    def test_preserves_existing_context_fields(self) -> None:
+        """Preserves existing context fields when they exist."""
+        mock_settings = MagicMock()
+        mock_settings.app_name = "test-service"
+        mock_settings.environment.value = "testing"
+
+        mock_logger = MagicMock()
+        method_name = "info"
+        # Event dict already has context fields
+        event_dict = {
+            "message": "test log",
+            "service": "existing-service",  # Should not be overwritten
+            "environment": "existing-env",  # Should not be overwritten
+            "custom_field": "custom_value",  # Should be preserved
+        }
+
+        with patch("config.settings.get_settings", return_value=mock_settings):
+            result = add_application_context(mock_logger, method_name, event_dict)
+
+        # Should preserve existing values using setdefault
+        assert result["service"] == "existing-service"  # Not overwritten
+        assert result["environment"] == "existing-env"  # Not overwritten
+        assert result["component"] == "api"  # Added because not present
+        assert result["custom_field"] == "custom_value"  # Preserved
+        assert result["message"] == "test log"
+
+    def test_uses_fallback_values_when_settings_unavailable(self) -> None:
+        """Uses fallback values when settings are unavailable."""
+        mock_logger = MagicMock()
+        method_name = "error"
+        event_dict = {"error": "something went wrong"}
+
+        # Mock get_settings to raise an exception
+        with patch(
+            "config.settings.get_settings",
+            side_effect=ImportError("Settings not available"),
+        ):
+            result = add_application_context(mock_logger, method_name, event_dict)
+
+        # Should use fallback default values
+        assert result["service"] == "fastapi_template"
+        assert result["environment"] == "unknown"
+        assert result["component"] == "api"
+        assert result["error"] == "something went wrong"  # Original data preserved
+
+    def test_uses_fallback_values_when_settings_exception(self) -> None:
+        """Uses fallback values when settings raise any exception."""
+        mock_logger = MagicMock()
+        method_name = "debug"
+        event_dict = {"debug_info": "debugging data"}
+
+        # Mock get_settings to raise a different exception
+        with patch(
+            "config.settings.get_settings",
+            side_effect=RuntimeError("Configuration error"),
+        ):
+            result = add_application_context(mock_logger, method_name, event_dict)
+
+        # Should use fallback default values for any exception
+        assert result["service"] == "fastapi_template"
+        assert result["environment"] == "unknown"
+        assert result["component"] == "api"
+        assert result["debug_info"] == "debugging data"
+
+    def test_preserves_existing_fields_in_fallback_mode(self) -> None:
+        """Preserves existing fields when using fallback values."""
+        mock_logger = MagicMock()
+        method_name = "warning"
+        event_dict = {
+            "warning": "test warning",
+            "service": "override-service",  # Should be preserved
+            "custom_data": {"key": "value"},
+        }
+
+        with patch(
+            "config.settings.get_settings",
+            side_effect=Exception("Any error"),
+        ):
+            result = add_application_context(mock_logger, method_name, event_dict)
+
+        # Should preserve existing service field using setdefault
+        assert result["service"] == "override-service"  # Not overwritten
+        assert result["environment"] == "unknown"  # Added as fallback
+        assert result["component"] == "api"  # Added as fallback
+        assert result["custom_data"] == {"key": "value"}  # Preserved
+
+    def test_handles_empty_event_dict(self) -> None:
+        """Handles empty event dictionary."""
+        mock_settings = MagicMock()
+        mock_settings.app_name = "empty-test"
+        mock_settings.environment.value = "development"
+
+        mock_logger = MagicMock()
+        method_name = "info"
+        event_dict: dict[str, str] = {}  # Empty dict
+
+        with patch("config.settings.get_settings", return_value=mock_settings):
+            result = add_application_context(mock_logger, method_name, event_dict)
+
+        # Should add all context fields to empty dict
+        assert result["service"] == "empty-test"
+        assert result["environment"] == "development"
+        assert result["component"] == "api"
+        assert len(result) == 3  # Only the three context fields
+
+    def test_returns_modified_event_dict(self) -> None:
+        """Returns the modified event dictionary."""
+        mock_settings = MagicMock()
+        mock_settings.app_name = "return-test"
+        mock_settings.environment.value = "staging"
+
+        mock_logger = MagicMock()
+        method_name = "info"
+        original_event_dict = {"original": "data"}
+
+        with patch("config.settings.get_settings", return_value=mock_settings):
+            result = add_application_context(mock_logger, method_name, original_event_dict)
+
+        # Should return the same dict object, modified
+        assert result is original_event_dict
+        assert "original" in result  # Original data preserved
+        assert "service" in result  # Context added
+        assert "environment" in result
+        assert "component" in result

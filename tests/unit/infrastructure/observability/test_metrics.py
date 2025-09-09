@@ -309,6 +309,74 @@ class TestMetricsCollector:
         assert "test_app_no_labels_gauge" in collector._gauges
         assert "test_app_no_labels_histogram" in collector._histograms
 
+    def test_handles_none_labels_for_counter(self) -> None:
+        """Handles None labels for counter operations."""
+        collector = MetricsCollector(application_name="test_app")
+
+        # Should handle None labels gracefully
+        collector.increment_counter("none_labels_counter", None)
+
+        assert "test_app_none_labels_counter" in collector._counters
+
+    def test_handles_none_labels_for_gauge(self) -> None:
+        """Handles None labels for gauge operations."""
+        collector = MetricsCollector(application_name="test_app")
+
+        # Should handle None labels gracefully
+        collector.record_gauge("none_labels_gauge", 42.0, None)
+
+        assert "test_app_none_labels_gauge" in collector._gauges
+
+    def test_handles_none_labels_for_histogram(self) -> None:
+        """Handles None labels for histogram operations."""
+        collector = MetricsCollector(application_name="test_app")
+
+        # Should handle None labels gracefully
+        collector.record_histogram("none_labels_histogram", 1.5, None)
+
+        assert "test_app_none_labels_histogram" in collector._histograms
+
+    def test_handles_none_labels_for_time_function(self) -> None:
+        """Handles None labels for time function context manager."""
+        collector = MetricsCollector(application_name="test_app")
+
+        # Should handle None labels gracefully
+        with collector.time_function("none_labels_timing", None):
+            pass  # Just test the context manager works
+
+        assert "test_app_none_labels_timing" in collector._histograms
+
+    def test_metric_name_already_prefixed(self) -> None:
+        """Handles metric names that are already prefixed."""
+        collector = MetricsCollector(application_name="test_app")
+
+        # Name already has prefix - should not add another prefix
+        prefixed_name = "test_app_already_prefixed_counter"
+        collector.increment_counter(prefixed_name, {})
+
+        # Should use the name as-is since it's already prefixed
+        assert prefixed_name in collector._counters
+        # Should not create a double-prefixed version
+        assert "test_app_test_app_already_prefixed_counter" not in collector._counters
+
+    def test_get_counter_value_with_none_labels(self) -> None:
+        """Get counter value handles None labels."""
+        collector = MetricsCollector(application_name="test_app")
+
+        collector.increment_counter("test_counter", None, value=3.0)
+
+        value = collector.get_counter_value("test_app_test_counter", None)
+        assert value == 3.0
+
+    def test_get_gauge_value_with_none_labels(self) -> None:
+        """Get gauge value handles None labels."""
+        collector = MetricsCollector(application_name="test_app")
+
+        collector.record_gauge("test_gauge", 15.5, None)
+
+        value = collector.get_gauge_value("test_app_test_gauge", None)
+        assert value == 15.5
+
 
 @pytest.mark.unit
 @pytest.mark.integration
