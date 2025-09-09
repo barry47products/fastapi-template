@@ -51,7 +51,7 @@ live-server --port=8080 --open=index.html
 
 ### Colors
 
-- **Primary**: WhatsApp Green (`#25D366`)
+- **Primary**: Brand Green (`#25D366`)
 - **Secondary**: SA Gold (`#FFB612`)
 - **Accent**: Trust Blue (`#1877F2`)
 - **Text**: Charcoal (`#2C3E50`)
@@ -66,7 +66,7 @@ live-server --port=8080 --open=index.html
 
 ### Components
 
-- **Hero Section**: WhatsApp-style mockup with gradient background
+- **Hero Section**: Messaging-style mockup with gradient background
 - **Problem/Solution**: Two-column comparison
 - **How It Works**: 3-step process cards
 - **Social Proof**: Testimonials + stats
@@ -93,7 +93,7 @@ Edit the CSS `:root` variables:
 
 ```css
 :root {
-  --whatsapp-green: #25d366; /* Primary brand color */
+  --brand-green: #25d366; /* Primary brand color */
   --sa-gold: #ffb612; /* CTA buttons */
   --trust-blue: #1877f2; /* Accent color */
   --charcoal: #2c3e50; /* Text color */
@@ -109,7 +109,7 @@ All text content is in HTML - no build process needed:
 - **Testimonials**: Lines ~250-260
 - **Stats**: Lines ~264-274
 
-### WhatsApp Mockup
+### Messaging Mockup
 
 Customize the chat mockup:
 
@@ -152,7 +152,7 @@ Easy elements to test:
 const headlines = [
   "Find Trusted Local Services Through Your Neighbors",
   "Stop Gambling with Fake Reviews - Ask Your Neighbors",
-  "Your WhatsApp Groups Know the Best Local Services",
+  "Your Community Network Knows the Best Local Services",
 ];
 document.querySelector("h1").textContent =
   headlines[Math.floor(Math.random() * headlines.length)];
@@ -164,11 +164,11 @@ document.querySelector("h1").textContent =
 const ctas = ["Join the Waitlist", "Get Early Access", "Find Trusted Services"];
 ```
 
-### Colors
+### CTA Colors
 
 ```javascript
 // Test different primary colors
-document.documentElement.style.setProperty("--whatsapp-green", "#34D399"); // Different green
+document.documentElement.style.setProperty("--brand-green", "#34D399"); // Different green
 ```
 
 ## 🧪 Testing Checklist
@@ -229,11 +229,11 @@ Update these meta tags for production:
 ### Interactive Elements
 
 - [ ] Video testimonials
-- [ ] Interactive WhatsApp mockup
+- [ ] Interactive messaging mockup
 - [ ] Map showing coverage areas
 - [ ] Real-time waitlist counter
 
-### Performance
+### Future Performance
 
 - [ ] Image optimization and lazy loading
 - [ ] CSS/JS minification

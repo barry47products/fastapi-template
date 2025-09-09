@@ -1,0 +1,34 @@
+graph TB
+    App[FastAPI Application]:::application --> Metrics[Metrics Collection]:::collection
+    App --> Logs[Structured Logging]:::collection
+    App --> Health[Health Checks]:::health
+
+    Metrics --> Prometheus[Prometheus Server]:::storage
+    Prometheus --> Grafana[Grafana Dashboards]:::visualization
+
+    Logs --> Collector[Log Collector]:::storage
+    Collector --> Search[Log Search Engine]:::visualization
+
+    Health --> K8s[Kubernetes Probes]:::orchestration
+    Health --> Monitor[Monitoring Systems]:::monitoring
+
+    subgraph "Metrics Types"
+        Counter[Request Counters]:::metric
+        Histogram[Response Times]:::metric
+        Gauge[Active Connections]:::metric
+        Business[Business Metrics]:::metric
+    end
+
+    Metrics --> Counter
+    Metrics --> Histogram
+    Metrics --> Gauge
+    Metrics --> Business
+
+    classDef application fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef collection fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef health fill:#ffebee,stroke:#d32f2f,stroke-width:2px,color:#000
+    classDef storage fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef visualization fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef orchestration fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef monitoring fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#000
+    classDef metric fill:#f1f8e9,stroke:#689f38,stroke-width:2px,color:#000

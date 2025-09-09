@@ -1,0 +1,29 @@
+graph TB
+    Request[HTTP Request]:::request --> RateLimit[Rate Limiting]:::security
+    RateLimit --> Auth[Authentication]:::security
+    Auth --> Validate[Request Validation]:::validation
+    Validate --> CORS[CORS Headers]:::security
+    CORS --> App[Application Logic]:::application
+
+    App --> Sanitize[Input Sanitization]:::validation
+    Sanitize --> Business[Business Logic]:::business
+    Business --> Response[Response Formation]:::response
+    Response --> Headers[Security Headers]:::security
+    Headers --> Client[Client Response]:::client
+
+    subgraph "Security Layers"
+        RateLimit
+        Auth
+        Validate
+        CORS
+        Sanitize
+        Headers
+    end
+
+    classDef request fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#000
+    classDef security fill:#ffebee,stroke:#d32f2f,stroke-width:2px,color:#000
+    classDef validation fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef application fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef business fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef response fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef client fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000

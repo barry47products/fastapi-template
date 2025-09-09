@@ -4,7 +4,7 @@
 
 ### 🚫 Anti-Pattern: Domain-Infrastructure Coupling
 
-When your domain depends directly on databases, ORMs, payment providers, logging systems, or metrics collectors, every infrastructure change ripples into your business logic. This creates several critical problems:
+When your domain depends directly on databases, ORMs, external services, logging systems, or metrics collectors, every infrastructure change ripples into your business logic. This creates several critical problems:
 
 - **Fragile Architecture**: Upgrading a library, switching a vendor, or changing storage breaks your core domain
 - **Testing Complexity**: Unit testing business logic requires setting up databases, external services, and infrastructure
@@ -15,18 +15,18 @@ When your domain depends directly on databases, ORMs, payment providers, logging
 **Example of Problematic Coupling:**
 
 ```python
-class Provider:
-    def endorse(self, endorser_id: str) -> None:
-        self.endorsement_count += 1
+class User:
+    def add_interaction(self, interaction_type: str) -> None:
+        self.interaction_count += 1
         # ❌ Direct infrastructure coupling
-        metrics_collector.increment_counter("provider_endorsements")
-        logger.info(f"Provider {self.id} endorsed by {endorser_id}")
+        metrics_collector.increment_counter("user_interactions")
+        logger.info(f"User {self.id} had interaction {interaction_type}")
         database.save(self)  # ❌ Direct database dependency
 ```
 
 ### ✅ Recommended Pattern: Hexagonal Architecture (Ports & Adapters)
 
-By introducing interfaces (ports & adapters), your domain stays pure and focused on business rules. Infrastructure becomes just a replaceable detail - swap a database, payment provider, or ORM without touching domain code.
+By introducing interfaces (ports & adapters), your domain stays pure and focused on business rules. Infrastructure becomes just a replaceable detail - swap a database, external service, or ORM without touching domain code.
 
 **Benefits of Decoupling:**
 
@@ -76,15 +76,15 @@ We have **successfully completed** a comprehensive 4-phase architecture refactor
 
 ```python
 # ✅ Clean domain model - zero infrastructure dependencies
-class Provider:
-    def endorse(self, endorser_id: str) -> None:
-        self.endorsement_count += 1
+class User:
+    def add_interaction(self, interaction_type: str) -> None:
+        self.interaction_count += 1
         # ✅ Publish domain event instead of direct infrastructure calls
         DomainEventRegistry.publish(
-            ProviderEndorsementIncremented(
-                provider_id=self.id,
-                endorser_id=endorser_id,
-                new_count=self.endorsement_count
+            UserInteractionIncremented(
+                user_id=self.id,
+                interaction_type=interaction_type,
+                new_count=self.interaction_count
             )
         )
 ```
@@ -94,15 +94,15 @@ class Provider:
 ```python
 # ✅ Infrastructure subscribes to domain events
 class ObservabilityEventPublisher:
-    def handle_provider_endorsement_incremented(
-        self, event: ProviderEndorsementIncremented
+    def handle_user_interaction_incremented(
+        self, event: UserInteractionIncremented
     ) -> None:
         # Infrastructure handles cross-cutting concerns
-        self.metrics_collector.increment_counter("provider_endorsements")
+        self.metrics_collector.increment_counter("user_interactions")
         self.logger.info(
-            "Provider endorsement incremented",
-            provider_id=event.provider_id,
-            endorser_id=event.endorser_id
+            "User interaction incremented",
+            user_id=event.user_id,
+            interaction_type=event.interaction_type
         )
 ```
 
@@ -112,8 +112,8 @@ class ObservabilityEventPublisher:
 
 - `DomainEvent` - Base class for all business events
 - `DomainEventRegistry` - Dependency-free event publishing
-- Domain-specific events: `PhoneNumberValidated`, `ProviderEndorsementIncremented`, etc.
-- Pure domain models: `Provider`, `Endorsement`, `PhoneNumber` with no infrastructure dependencies
+- Domain-specific events: `PhoneNumberValidated`, `UserInteractionIncremented`, etc.
+- Pure domain models: `User`, `Order`, `PhoneNumber` with no infrastructure dependencies
 
 **✅ Infrastructure Layer** (Technical Concerns - COMPLETED):
 
@@ -154,48 +154,48 @@ Now that our architecture foundation is complete, we're applying these same prin
 
 ```python
 # ✅ Domain interface (port) - to be implemented
-class ProviderRepository(Protocol):
-    def save(self, provider: Provider) -> None: ...
-    def find_by_id(self, provider_id: ProviderId) -> Provider | None: ...
+class UserRepository(Protocol):
+    def save(self, user: User) -> None: ...
+    def find_by_id(self, user_id: UserId) -> User | None: ...
 
 # ✅ Infrastructure implementation (adapter) - to be implemented
-class FirestoreProviderRepository:
-    def save(self, provider: Provider) -> None:
-        # Firestore-specific implementation
+class NoSQLUserRepository:
+    def save(self, user: User) -> None:
+        # Database-specific implementation
         # Domain events still handle cross-cutting concerns
-        provider.mark_as_persisted()  # Triggers domain event
+        user.mark_as_persisted()  # Triggers domain event
 ```
 
 #### Persistence Layer Design (Following Our Principles)
 
 - **Domain**: Define repository interfaces and business rules
-- **Infrastructure**: Implement Firestore adapters, handle connection management
-- **Events**: Domain events for persistence operations (`ProviderPersisted`, `EndorsementStored`, etc.)
-- **No Direct Coupling**: Domain never imports Firestore or database concerns
+- **Infrastructure**: Implement database adapters, handle connection management
+- **Events**: Domain events for persistence operations (`UserPersisted`, `InteractionStored`, etc.)
+- **No Direct Coupling**: Domain never imports database or persistence concerns
 
-### Future Phase: WhatsApp Integration Layer
+### Future Phase: External API Integration Layer
 
-After persistence, we'll apply the same principles to **WhatsApp Integration**:
+After persistence, we'll apply the same principles to **External API Integration**:
 
-#### Message Processing with Clean Architecture
+#### API Communication with Clean Architecture
 
 ```python
 # ✅ Domain interface (port) - planned implementation
-class MessageSender(Protocol):
-    def send_message(self, message: str, recipient: GroupId) -> None: ...
+class NotificationSender(Protocol):
+    def send_notification(self, message: str, recipient: str) -> None: ...
 
 # ✅ Infrastructure implementation (adapter) - planned implementation
-class GreenAPIMessageSender:
-    def send_message(self, message: str, recipient: GroupId) -> None:
-        # GREEN-API specific implementation
+class EmailAPINotificationSender:
+    def send_notification(self, message: str, recipient: str) -> None:
+        # API-specific implementation
         # Domain events handle audit, metrics, etc.
 ```
 
-#### WhatsApp Integration Components (Planned)
+#### External API Integration Components (Planned)
 
-1. **GREEN-API Client** - External API adapter following ports & adapters
-2. **Message Processor** - Application service using domain events for cross-cutting concerns
-3. **Response Generator** - Domain logic with infrastructure-independent message creation
+1. **External API Client** - Third-party service adapter following ports & adapters
+2. **Notification Processor** - Application service using domain events for cross-cutting concerns
+3. **Response Generator** - Domain logic with infrastructure-independent response creation
 
 ### Implementation Strategy for New Development
 
@@ -309,15 +309,15 @@ class GreenAPIMessageSender:
 
 ### 🚧 IN PROGRESS (Current Sprint)
 
-- **Persistence Layer**: Repository pattern and Firestore integration
+- **Persistence Layer**: Repository pattern and database integration
   - Repository interfaces design
-  - Firestore adapter implementation
+  - Database adapter implementation
   - Migration system for data structure versioning
 
 ### 📋 PLANNED (Next Sprints)
 
-- **WhatsApp Integration Layer**: GREEN-API client and message processing
-  - GREEN-API client adapter
+- **External API Integration Layer**: Third-party API clients and notification processing
+  - External API client adapters
   - Async message processing pipeline
   - Response generation system
 
@@ -349,7 +349,7 @@ The principle of decoupling domain from infrastructure has been **comprehensivel
 - **Future-Proof Design**: Architecture supports evolving requirements
 
 **🚧 Active Application:**
-This proven foundation now guides our Persistence Layer and WhatsApp Integration development, ensuring consistent architectural discipline as the system grows.
+This proven foundation now guides our Persistence Layer and External API Integration development, ensuring consistent architectural discipline as the system grows.
 
 **📈 Continuous Improvement:**
 Each new module validates and extends these patterns, building on our solid architectural foundation whilst maintaining the same quality standards.

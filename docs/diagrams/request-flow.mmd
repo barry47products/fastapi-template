@@ -1,0 +1,23 @@
+sequenceDiagram
+    participant Client
+    participant API as FastAPI Router
+    participant App as Application Service
+    participant Domain as Domain Model
+    participant Repo as Repository
+    participant DB as Database
+    participant Events as Event System
+    participant Metrics as Metrics Collector
+
+    Client->>API: HTTP Request
+    API->>API: Authentication & Validation
+    API->>App: Execute Command/Query
+    App->>Domain: Business Logic
+    Domain->>Events: Publish Domain Event
+    Events->>Metrics: Record Business Metrics
+    App->>Repo: Persist Changes
+    Repo->>DB: Database Operation
+    DB-->>Repo: Result
+    Repo-->>App: Success/Failure
+    App-->>API: Result
+    API->>API: Serialize Response
+    API-->>Client: HTTP Response

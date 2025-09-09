@@ -1,0 +1,29 @@
+graph TB
+    Domain[Domain Models]:::domain --> Events[Domain Events]:::events
+
+    Events --> Registry[Event Registry]:::registry
+    Registry --> Handler1[Metrics Handler]:::handler
+    Registry --> Handler2[Logging Handler]:::handler
+    Registry --> Handler3[Notification Handler]:::handler
+    Registry --> Handler4[Audit Handler]:::handler
+
+    Handler1 --> Prometheus[Prometheus Metrics]:::metrics
+    Handler2 --> StructLog[Structured Logging]:::logging
+    Handler3 --> Email[Email Service]:::notification
+    Handler4 --> AuditLog[Audit Log]:::audit
+
+    subgraph "Cross-Cutting Concerns"
+        Prometheus
+        StructLog
+        Email
+        AuditLog
+    end
+
+    classDef domain fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef events fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef registry fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef handler fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef metrics fill:#f1f8e9,stroke:#689f38,stroke-width:2px,color:#000
+    classDef logging fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef notification fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#000
+    classDef audit fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#000

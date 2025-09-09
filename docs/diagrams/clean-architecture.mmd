@@ -1,0 +1,47 @@
+graph TB
+    subgraph "Interface Layer"
+        HTTP[HTTP Routes]:::interface
+        CLI[CLI Commands]:::interface
+        Events[Event Handlers]:::interface
+    end
+
+    subgraph "Application Layer"
+        Commands[Command Handlers]:::application
+        Queries[Query Handlers]:::application
+        Services[Application Services]:::application
+    end
+
+    subgraph "Domain Layer"
+        Entities[Domain Entities]:::domain
+        ValueObjects[Value Objects]:::domain
+        DomainServices[Domain Services]:::domain
+        DomainEvents[Domain Events]:::domain
+    end
+
+    subgraph "Infrastructure Layer"
+        Persistence[Data Persistence]:::infrastructure
+        ExternalAPIs[External APIs]:::infrastructure
+        Messaging[Messaging]:::infrastructure
+        Logging[Logging & Metrics]:::infrastructure
+    end
+
+    HTTP --> Commands
+    CLI --> Commands
+    Events --> Commands
+
+    Commands --> Entities
+    Queries --> Entities
+    Services --> Entities
+
+    Commands --> Persistence
+    Services --> ExternalAPIs
+    DomainEvents --> Messaging
+
+    Entities --> ValueObjects
+    Entities --> DomainServices
+    Entities --> DomainEvents
+
+    classDef interface fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef application fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef domain fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef infrastructure fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000

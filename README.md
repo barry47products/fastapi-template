@@ -7,8 +7,8 @@
 [![Poetry](https://img.shields.io/badge/Poetry-package%20manager-blue)](https://python-poetry.org)
 [![Ruff](https://img.shields.io/badge/Code%20style-Ruff-black)](https://github.com/astral-sh/ruff)
 [![MyPy](https://img.shields.io/badge/Type%20checker-MyPy-blue)](https://mypy.readthedocs.io)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=barry47products_fastapi-template&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=barry47products_fastapi-template)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=barry47products_fastapi-template&metric=coverage)](https://sonarcloud.io/summary/new_code?id=barry47products_fastapi-template)
+[![Tests](https://img.shields.io/badge/Tests-Passing-green?logo=github-actions)](https://github.com/your-username/your-project/actions)
+[![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?logo=codecov)](https://codecov.io)
 
 ## Why This Template?
 
@@ -29,7 +29,7 @@
 
 ```bash
 # Clone the template
-git clone https://github.com/barry47products/fastapi-template.git your-project-name
+git clone https://github.com/your-username/fastapi-template.git your-project-name
 cd your-project-name
 
 # Install dependencies
@@ -218,8 +218,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 - 📖 [Documentation](docs/)
-- 🐛 [Issue Tracker](https://github.com/barry47products/fastapi-template/issues)
-- 💬 [Discussions](https://github.com/barry47products/fastapi-template/discussions)
+- 🐛 [Issue Tracker](https://github.com/your-username/your-project/issues)
+- 💬 [Discussions](https://github.com/your-username/your-project/discussions)
 
 ---
 

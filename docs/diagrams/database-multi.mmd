@@ -1,0 +1,20 @@
+graph TB
+    App[FastAPI App]:::application --> Router[Database Router]:::router
+
+    Router --> PG[(PostgreSQL)]:::relational
+    Router --> FS[(Firestore)]:::nosql
+    Router --> Redis[(Redis)]:::cache
+    Router --> Memory[(In-Memory)]:::testing
+
+    PG --> Transactional[Transactional Data]:::dataType
+    FS --> Documents[Document Storage]:::dataType
+    Redis --> Sessions[Session & Cache]:::dataType
+    Memory --> Testing[Testing Only]:::dataType
+
+    classDef application fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef router fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef relational fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef nosql fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef cache fill:#ffebee,stroke:#d32f2f,stroke-width:2px,color:#000
+    classDef testing fill:#f1f8e9,stroke:#689f38,stroke-width:2px,color:#000
+    classDef dataType fill:#fafafa,stroke:#616161,stroke-width:1px,color:#000

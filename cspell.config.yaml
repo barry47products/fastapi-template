@@ -143,6 +143,7 @@ words:
   - constr
   - consts
   - consul
+  - containerapp
   - containerd
   - coro
   - coroutine
@@ -250,6 +251,7 @@ words:
   - ftp
   - func
   - FURB
+  - Genericisation
   - getter
   - github
   - gitignore
@@ -346,6 +348,7 @@ words:
   - mambaforge
   - María
   - mariadb
+  - Marp
   - maven
   - maxmemory
   - md
@@ -375,6 +378,9 @@ words:
   - msgpack
   - msgs
   - mtls
+  - myapi
+  - mydb
+  - mygroup
   - mypy
   - mysql
   - nack
@@ -521,6 +527,7 @@ words:
   - retval
   - rfi
   - rip
+  - rivaling
   - rlimit
   - rollbar
   - rpy

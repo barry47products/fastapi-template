@@ -1,0 +1,37 @@
+graph TB
+    Internet:::external --> LB[Load Balancer]:::loadBalancer
+    LB --> API1[FastAPI Instance 1]:::application
+    LB --> API2[FastAPI Instance 2]:::application
+    LB --> API3[FastAPI Instance 3]:::application
+
+    API1 --> DB[(Primary Database)]:::database
+    API2 --> DB
+    API3 --> DB
+
+    API1 --> Cache[(Redis Cluster)]:::cache
+    API2 --> Cache
+    API3 --> Cache
+
+    subgraph "Monitoring"
+        API1 --> Metrics[Prometheus]:::monitoring
+        API2 --> Metrics
+        API3 --> Metrics
+        Metrics --> Grafana[Grafana Dashboard]:::dashboard
+    end
+
+    subgraph "Logging"
+        API1 --> Logs[Structured Logs]:::logging
+        API2 --> Logs
+        API3 --> Logs
+        Logs --> Search[Log Search]:::search
+    end
+
+    classDef external fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#000
+    classDef loadBalancer fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef application fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#000
+    classDef database fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef cache fill:#ffebee,stroke:#d32f2f,stroke-width:2px,color:#000
+    classDef monitoring fill:#f1f8e9,stroke:#689f38,stroke-width:2px,color:#000
+    classDef dashboard fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef logging fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef search fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000

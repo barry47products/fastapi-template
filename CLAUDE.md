@@ -7,8 +7,8 @@ Clean architecture FastAPI template with comprehensive testing, observability, a
 ## Tech Stack
 
 - **Python 3.13** + **FastAPI** + **Poetry** + **VSCode** + **Claude Code**
-- **Database**: Google Firestore (NoSQL)
-- **WhatsApp**: GREEN-API integration
+- **Database**: PostgreSQL, NoSQL (configurable)
+- **External APIs**: Payment, Email, SMS integrations
 - **Platform**: MacBook Pro (Apple Silicon)
 
 ## Architecture
@@ -17,7 +17,7 @@ Clean architecture FastAPI template with comprehensive testing, observability, a
 src/
 ├── domain/              # Pure business logic (frozen Pydantic models)
 ├── application/         # Commands & queries
-├── infrastructure/      # External integrations (WhatsApp, DB, security, observability)
+├── infrastructure/      # External integrations (APIs, DB, security, observability)
 ├── interfaces/api/      # FastAPI routes
 └── shared/             # Utilities & exceptions
 ```
@@ -76,6 +76,7 @@ make fix                # ruff --unsafe-fixes (aggressive auto-fix)
 **Philosophy**: Focus on critical code quality checks rather than extensive rule sets.
 
 **Core Rules** (9 categories, ~47 lines total):
+
 - **F** - Pyflakes (critical errors, unused imports)
 - **E** - Pycodestyle (formatting consistency)
 - **I** - Import sorting and organisation
@@ -112,15 +113,15 @@ def business_function(input_value: str) -> Result:
 
 **Import Rules**: Use module-level imports only
 
-- ✅ `from src.domain.models import Provider`
-- ❌ `from src.domain.models.provider import Provider`
+- ✅ `from src.domain.models import User`
+- ❌ `from src.domain.models.user import User`
 
 ## Testing Strategy
 
 - **Unit tests**: `tests/unit/` - mirror src structure, mock external dependencies
 - **Integration tests**: `tests/integration/` - test real component interactions
 - **TDD approach**: Write failing test first, then minimal implementation
-- **Placement**: `src/domain/models/provider.py` → `tests/unit/domain/test_models/test_provider.py`
+- **Placement**: `src/domain/models/user.py` → `tests/unit/domain/test_models/test_user.py`
 - **Test Focus**: Test classes should be domain focused. Do not use coverage focussed test classes.
 
 ## Environment Variables
@@ -153,10 +154,10 @@ Focus on business context and reasoning.
 **Good Examples**:
 
 ```bash
-feat: add mention extractor for WhatsApp messages
+feat: add user authentication middleware
 
-Extracts provider references using patterns and phone numbers.
-Part of automated endorsement capture pipeline.
+Implements JWT token validation and user session management.
+Part of secure API access control system.
 ```
 
 **Avoid**:
