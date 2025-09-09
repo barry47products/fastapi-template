@@ -1,0 +1,42 @@
+# Grafana Datasource Configuration for Prometheus
+# Automatically provisions Prometheus as datasource
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+
+    # Basic configuration
+    basicAuth: false
+    withCredentials: false
+
+    # JSON data configuration
+    jsonData:
+      tlsSkipVerify: true
+      timeInterval: "15s"
+      queryTimeout: "60s"
+
+      # HTTP method for queries
+      httpMethod: POST
+
+      # Custom headers (if needed)
+      # httpHeaderName1: 'HeaderName'
+
+    # Secure JSON data for sensitive values
+    # secureJsonData:
+    #   httpHeaderValue1: 'HeaderValue'
+
+    version: 1
+
+    # Database configuration
+    database: ""
+    user: ""
+
+    # Additional settings
+    uid: prometheus
+    orgId: 1

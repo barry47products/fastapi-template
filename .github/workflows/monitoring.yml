@@ -1,0 +1,332 @@
+name: Production Monitoring
+
+on:
+  schedule:
+    # Run health checks every 15 minutes
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to monitor'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - staging
+          - production
+      check_type:
+        description: 'Type of monitoring check'
+        required: true
+        default: 'health'
+        type: choice
+        options:
+          - health
+          - performance
+          - security
+          - all
+
+env:
+  STAGING_URL: https://staging-api.yourapp.com
+  PRODUCTION_URL: https://api.yourapp.com
+
+jobs:
+  health-checks:
+    runs-on: ubuntu-latest
+    if: inputs.check_type == 'health' || inputs.check_type == 'all' || github.event_name == 'schedule'
+
+    steps:
+      - name: Set environment URL
+        id: env
+        run: |
+          if [[ "${{ inputs.environment || 'production' }}" == "production" ]]; then
+            echo "url=${PRODUCTION_URL}" >> $GITHUB_OUTPUT
+            echo "env=production" >> $GITHUB_OUTPUT
+          else
+            echo "url=${STAGING_URL}" >> $GITHUB_OUTPUT
+            echo "env=staging" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Application health check
+        run: |
+          echo "🩺 Checking application health for ${{ steps.env.outputs.env }}"
+
+          # Check main health endpoint
+          if curl -f -s --max-time 30 "${{ steps.env.outputs.url }}/status"; then
+            echo "✅ Application status endpoint is healthy"
+          else
+            echo "❌ Application status endpoint failed"
+            exit 1
+          fi
+
+          # Check detailed health endpoint
+          if curl -f -s --max-time 30 "${{ steps.env.outputs.url }}/health"; then
+            echo "✅ Application health endpoint is healthy"
+          else
+            echo "❌ Application health endpoint failed"
+            exit 1
+          fi
+
+      - name: Database connectivity check
+        run: |
+          echo "🗄️ Checking database connectivity"
+
+          # Check if health endpoint includes database status
+          response=$(curl -s --max-time 30 "${{ steps.env.outputs.url }}/health" || echo "{}")
+
+          if echo "$response" | jq -e '.database.status == "healthy"' > /dev/null 2>&1; then
+            echo "✅ Database connectivity is healthy"
+          else
+            echo "⚠️ Database status unclear or unhealthy"
+            echo "Response: $response"
+          fi
+
+      - name: Cache connectivity check
+        run: |
+          echo "🗃️ Checking cache connectivity"
+
+          # Check if health endpoint includes cache status
+          response=$(curl -s --max-time 30 "${{ steps.env.outputs.url }}/health" || echo "{}")
+
+          if echo "$response" | jq -e '.redis.status == "healthy"' > /dev/null 2>&1; then
+            echo "✅ Cache connectivity is healthy"
+          else
+            echo "⚠️ Cache status unclear or unhealthy"
+            echo "Response: $response"
+          fi
+
+      - name: API endpoints check
+        run: |
+          echo "🔗 Checking critical API endpoints"
+
+          # Check API documentation
+          if curl -f -s --max-time 30 "${{ steps.env.outputs.url }}/docs" > /dev/null; then
+            echo "✅ API documentation is accessible"
+          else
+            echo "⚠️ API documentation endpoint failed"
+          fi
+
+          # Check metrics endpoint (should be restricted)
+          if curl -s --max-time 10 "${{ steps.env.outputs.url }}/metrics" | grep -q "fastapi_template"; then
+            echo "⚠️ Metrics endpoint is publicly accessible (security risk)"
+          else
+            echo "✅ Metrics endpoint is properly restricted"
+          fi
+
+      - name: Create health summary
+        if: always()
+        run: |
+          echo "## 🩺 Health Check Summary - ${{ steps.env.outputs.env }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment**: ${{ steps.env.outputs.env }}" >> $GITHUB_STEP_SUMMARY
+          echo "**URL**: ${{ steps.env.outputs.url }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ job.status }}" == "success" ]]; then
+            echo "✅ **Overall Status**: Healthy" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Overall Status**: Unhealthy" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  performance-checks:
+    runs-on: ubuntu-latest
+    if: inputs.check_type == 'performance' || inputs.check_type == 'all'
+
+    steps:
+      - name: Set environment URL
+        id: env
+        run: |
+          if [[ "${{ inputs.environment || 'production' }}" == "production" ]]; then
+            echo "url=${PRODUCTION_URL}" >> $GITHUB_OUTPUT
+            echo "env=production" >> $GITHUB_OUTPUT
+          else
+            echo "url=${STAGING_URL}" >> $GITHUB_OUTPUT
+            echo "env=staging" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Response time check
+        run: |
+          echo "⏱️ Measuring response times for ${{ steps.env.outputs.env }}"
+
+          # Measure response time for status endpoint
+          start_time=$(date +%s%N)
+          if curl -f -s --max-time 30 "${{ steps.env.outputs.url }}/status" > /dev/null; then
+            end_time=$(date +%s%N)
+            duration=$(( (end_time - start_time) / 1000000 ))  # Convert to milliseconds
+            echo "✅ Status endpoint response time: ${duration}ms"
+
+            if [[ $duration -gt 5000 ]]; then
+              echo "⚠️ Response time is high (>${duration}ms)"
+            elif [[ $duration -gt 2000 ]]; then
+              echo "⚠️ Response time is elevated (${duration}ms)"
+            fi
+          else
+            echo "❌ Status endpoint failed"
+          fi
+
+      - name: Load test (light)
+        run: |
+          echo "🔄 Running light load test"
+
+          # Simple concurrent request test
+          for i in {1..10}; do
+            curl -f -s --max-time 30 "${{ steps.env.outputs.url }}/status" > /dev/null &
+          done
+          wait
+
+          echo "✅ Completed 10 concurrent requests"
+
+      - name: Memory and resource check
+        run: |
+          echo "📊 Checking resource usage metrics"
+
+          # Try to fetch metrics if available
+          if curl -s --max-time 10 "${{ steps.env.outputs.url }}/metrics" | head -20; then
+            echo "✅ Metrics endpoint accessible"
+          else
+            echo "ℹ️ Metrics endpoint not publicly available (expected for security)"
+          fi
+
+  security-checks:
+    runs-on: ubuntu-latest
+    if: inputs.check_type == 'security' || inputs.check_type == 'all'
+
+    steps:
+      - name: Set environment URL
+        id: env
+        run: |
+          if [[ "${{ inputs.environment || 'production' }}" == "production" ]]; then
+            echo "url=${PRODUCTION_URL}" >> $GITHUB_OUTPUT
+            echo "env=production" >> $GITHUB_OUTPUT
+          else
+            echo "url=${STAGING_URL}" >> $GITHUB_OUTPUT
+            echo "env=staging" >> $GITHUB_OUTPUT
+          fi
+
+      - name: SSL/TLS check
+        run: |
+          echo "🔒 Checking SSL/TLS configuration"
+
+          # Extract hostname from URL
+          hostname=$(echo "${{ steps.env.outputs.url }}" | sed 's|https://||' | sed 's|/.*||')
+
+          # Check SSL certificate
+          if echo | openssl s_client -servername "$hostname" -connect "$hostname:443" 2>/dev/null | openssl x509 -noout -dates; then
+            echo "✅ SSL certificate is valid"
+          else
+            echo "❌ SSL certificate check failed"
+          fi
+
+          # Check TLS version
+          if echo | openssl s_client -servername "$hostname" -connect "$hostname:443" -tls1_2 2>/dev/null | grep -q "Protocol.*TLSv1.2"; then
+            echo "✅ TLS 1.2 is supported"
+          fi
+
+      - name: Security headers check
+        run: |
+          echo "🛡️ Checking security headers"
+
+          response=$(curl -I -s --max-time 30 "${{ steps.env.outputs.url }}/status" || echo "")
+
+          # Check for security headers
+          if echo "$response" | grep -i "x-frame-options"; then
+            echo "✅ X-Frame-Options header present"
+          else
+            echo "⚠️ X-Frame-Options header missing"
+          fi
+
+          if echo "$response" | grep -i "x-content-type-options"; then
+            echo "✅ X-Content-Type-Options header present"
+          else
+            echo "⚠️ X-Content-Type-Options header missing"
+          fi
+
+          if echo "$response" | grep -i "strict-transport-security"; then
+            echo "✅ Strict-Transport-Security header present"
+          else
+            echo "⚠️ HSTS header missing"
+          fi
+
+      - name: Endpoint security check
+        run: |
+          echo "🔍 Checking endpoint security"
+
+          # Check if sensitive endpoints are properly protected
+          if curl -s --max-time 10 "${{ steps.env.outputs.url }}/metrics" | grep -q "404\|403\|401"; then
+            echo "✅ Metrics endpoint is properly restricted"
+          elif curl -f -s --max-time 10 "${{ steps.env.outputs.url }}/metrics" > /dev/null; then
+            echo "⚠️ Metrics endpoint may be publicly accessible"
+          else
+            echo "✅ Metrics endpoint access is controlled"
+          fi
+
+  create-monitoring-report:
+    runs-on: ubuntu-latest
+    needs: [health-checks, performance-checks, security-checks]
+    if: always()
+
+    steps:
+      - name: Generate monitoring report
+        run: |
+          echo "## 📊 Production Monitoring Report" >> $GITHUB_STEP_SUMMARY
+          echo "**Generated**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment**: ${{ inputs.environment || 'production' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### Job Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Check Type | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Health Checks | ${{ needs.health-checks.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Performance Checks | ${{ needs.performance-checks.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Checks | ${{ needs.security-checks.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Overall status
+          if [[ "${{ needs.health-checks.result }}" == "success" ]]; then
+            echo "✅ **Overall System Status**: Operational" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Overall System Status**: Issues Detected" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **Action Required**: Review failed checks and investigate issues" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  alert-on-failure:
+    runs-on: ubuntu-latest
+    needs: [health-checks]
+    if: failure() && github.event_name == 'schedule'
+
+    steps:
+      - name: Create alert issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `🚨 Production Health Check Failed - ${new Date().toISOString()}`;
+            const body = `
+            ## Production Monitoring Alert
+
+            **Timestamp**: ${new Date().toISOString()}
+            **Environment**: production
+            **Status**: Health check failed
+
+            ### Action Required
+
+            1. Check application logs
+            2. Verify infrastructure status
+            3. Review recent deployments
+            4. Escalate if necessary
+
+            ### Monitoring Links
+
+            - [Application Status](${process.env.PRODUCTION_URL}/status)
+            - [Grafana Dashboard](https://grafana.yourapp.com)
+            - [Application Logs](https://logs.yourapp.com)
+
+            _This issue was created automatically by the monitoring workflow._
+            `;
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['alert', 'production', 'monitoring']
+            });

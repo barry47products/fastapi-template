@@ -100,5 +100,11 @@ sonar-project.properties
 .sonarqube/
 .scannerwork/
 
+# Security scanning results
+trivy-results.sarif
+trivy-secrets.sarif
+hadolint-results.sarif
+.trivyignore
+
 # Poetry lock file is included for reproducible builds
 # pyproject.toml is included for dependency installation

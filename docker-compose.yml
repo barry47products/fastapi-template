@@ -1,91 +1,120 @@
 services:
-  # FastAPI application service
+  # FastAPI Development Application
   api:
     build:
       context: .
+      target: development
       dockerfile: Dockerfile
-    container_name: fastapi-template-api
+    container_name: fastapi-dev-api
+    restart: unless-stopped
+
+    # Development ports - expose directly
     ports:
       - "${API_PORT:-8000}:8000"
+      - "${METRICS_PORT:-9090}:9090"  # Metrics port
+
+    # Development environment
     environment:
-      # Application configuration
-      - APP_NAME=fastapi-template
+      - APP_NAME=${APP_NAME:-fastapi-template}
       - ENVIRONMENT=development
       - API_HOST=0.0.0.0
       - API_PORT=8000
+      - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
 
-      # Database configuration
-      - DATABASE_URL=postgresql://fastapi_user:fastapi_pass@postgres:5432/fastapi_db
+      # Database
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-fastapi_dev}
       - DATABASE_TYPE=postgresql
 
-      # Redis configuration
-      - REDIS_URL=redis://redis:6379/0
+      # Redis cache
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-redis123}@redis:6379
 
-      # Observability settings
-      - LOG_LEVEL=INFO
+      # Observability
       - METRICS_ENABLED=true
       - METRICS_PORT=9090
+      - TRACING_ENABLED=false
 
-      # Security settings (use secure values in production)
-      - INTERNAL_API_KEYS=dev-key-12345
-      - WEBHOOK_SECRET=dev-webhook-secret-67890
-      - RATE_LIMIT_REQUESTS_PER_MINUTE=100
+      # Security (development)
+      - INTERNAL_API_KEYS=${INTERNAL_API_KEYS:-dev_api_key}
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET:-dev_webhook_secret}
+      - RATE_LIMIT_REQUESTS_PER_MINUTE=300
 
-      # CORS settings for development
-      - CORS_ORIGINS=http://localhost:3000,http://localhost:8080
+      # CORS for development
+      - CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:8080
+      - CORS_CREDENTIALS=true
+
+    # Mount source for hot reload
     volumes:
-      # Mount source code for development (hot reload) - exclude .venv
-      - ./src:/app/src
-      - ./config:/app/config
-      - ./tests:/app/tests
-      - ./pyproject.toml:/app/pyproject.toml
-      - ./poetry.lock:/app/poetry.lock
-    command: ["/app/.venv/bin/python", "-m", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+      - ./src:/app/src:ro
+      - ./config:/app/config:ro
+      - ./tests:/app/tests:ro
+
+    # Basic health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    networks:
+      - development
+
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-    restart: unless-stopped
 
-  # PostgreSQL database
+  # PostgreSQL Database for Development
   postgres:
     image: postgres:17-alpine
-    container_name: fastapi-postgres
+    container_name: fastapi-dev-postgres
+    restart: unless-stopped
+
     environment:
-      POSTGRES_USER: fastapi_user
-      POSTGRES_PASSWORD: fastapi_pass
-      POSTGRES_DB: fastapi_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-fastapi_dev}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
+
     ports:
       - "5432:5432"
+
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./scripts/postgres/init-dev.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U fastapi_user -d fastapi_db"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ${POSTGRES_DB:-fastapi_dev}"]
+      interval: 5s
       timeout: 5s
       retries: 5
 
-  # Redis cache
+    networks:
+      - development
+
+  # Redis Cache for Development
   redis:
     image: redis:7-alpine
-    container_name: fastapi-redis
-    command: redis-server --appendonly yes
+    container_name: fastapi-dev-redis
+    restart: unless-stopped
+
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redis123} --appendonly yes
+
     ports:
       - "6379:6379"
+
     volumes:
-      - redis_data:/data
+      - redis_dev_data:/data
+
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-redis123}", "ping"]
+      interval: 5s
+      timeout: 3s
       retries: 5
+
+    networks:
+      - development
 
   # Google Firestore Emulator
   firestore:
@@ -135,6 +164,12 @@ services:
     profiles:
       - tools
 
+# Development network
+networks:
+  development:
+    driver: bridge
+
+# Development volumes
 volumes:
-  postgres_data:
-  redis_data:
+  postgres_dev_data:
+  redis_dev_data:

@@ -1,0 +1,150 @@
+name: Environment Setup
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to configure'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  setup-environment:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Environment configuration guide
+        run: |
+          echo "## 🛠️ Environment Setup Guide" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "To complete the setup for **${{ inputs.environment }}** environment:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Required GitHub Secrets" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Set these in **Settings → Environments → ${{ inputs.environment }} → Environment Secrets**:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Secret | Description | Example |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------------|---------|" >> $GITHUB_STEP_SUMMARY
+          echo "| \`DATABASE_URL\` | PostgreSQL connection string | \`postgresql://user:pass@host:5432/db\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`REDIS_URL\` | Redis connection string | \`redis://user:pass@host:6379\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`INTERNAL_API_KEYS\` | Comma-separated API keys | \`key1,key2,key3\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`WEBHOOK_SECRET\` | Webhook authentication secret | \`your-secure-webhook-secret\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`POSTGRES_PASSWORD\` | Database password | \`secure-db-password\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`REDIS_PASSWORD\` | Redis password | \`secure-redis-password\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`GRAFANA_PASSWORD\` | Grafana admin password | \`secure-grafana-password\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Environment Protection Rules" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ inputs.environment }}" == "production" ]]; then
+            echo "For **production**, configure these protection rules:" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ **Required reviewers**: At least 1 reviewer" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ **Wait timer**: 5 minutes before deployment" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ **Branch restrictions**: Only \`main\` branch" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "For **staging**, configure these protection rules:" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ **Branch restrictions**: \`main\` and \`develop\` branches" >> $GITHUB_STEP_SUMMARY
+            echo "- ℹ️ **Required reviewers**: Optional but recommended" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployment Infrastructure" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Ensure your deployment infrastructure supports:" >> $GITHUB_STEP_SUMMARY
+          echo "- 🐳 **Docker**: Version 20.10+ with Compose V2" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔐 **Docker Secrets**: For production deployments" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔄 **Health Checks**: HTTP endpoints accessible" >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 **Monitoring**: Prometheus and Grafana (optional)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. Configure the secrets listed above" >> $GITHUB_STEP_SUMMARY
+          echo "2. Set up environment protection rules" >> $GITHUB_STEP_SUMMARY
+          echo "3. Run a test deployment: \`gh workflow run deploy.yml -f environment=${{ inputs.environment }}\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Validate deployment configuration
+        run: |
+          echo "🔍 Validating deployment configuration for ${{ inputs.environment }}"
+
+          # Check docker-compose files exist
+          if [[ ! -f "docker-compose.yml" ]]; then
+            echo "❌ docker-compose.yml not found"
+            exit 1
+          fi
+
+          if [[ ! -f "docker-compose.prod.yml" ]]; then
+            echo "❌ docker-compose.prod.yml not found"
+            exit 1
+          fi
+
+          # Check deployment scripts
+          if [[ ! -f "scripts/deployment/deploy-prod.sh" ]]; then
+            echo "❌ deploy-prod.sh script not found"
+            exit 1
+          fi
+
+          # Validate docker-compose configuration
+          docker-compose -f docker-compose.prod.yml config > /dev/null
+
+          echo "✅ Deployment configuration is valid"
+
+      - name: Generate deployment checklist
+        run: |
+          env_name=$(echo "${{ inputs.environment }}" | sed 's/.*/\u&/')
+          cat > ${{ inputs.environment }}-deployment-checklist.md << EOF
+          # ${env_name} Deployment Checklist
+
+          ## Pre-Deployment
+
+          - [ ] All GitHub environment secrets configured
+          - [ ] Environment protection rules configured
+          - [ ] Infrastructure ready (servers, load balancers, etc.)
+          - [ ] Database backup completed (if applicable)
+          - [ ] Monitoring alerts configured
+
+          ## Deployment
+
+          - [ ] Latest code merged to target branch
+          - [ ] CI pipeline passed (tests, linting, security scans)
+          - [ ] Docker image built and scanned
+          - [ ] Smoke tests passed in staging (for production deployments)
+
+          ## Post-Deployment
+
+          - [ ] Health checks passing
+          - [ ] Application metrics normal
+          - [ ] Error rates within acceptable limits
+          - [ ] Database connections stable
+          - [ ] Cache performance normal
+
+          ## Rollback Plan
+
+          - [ ] Previous image tag identified
+          - [ ] Rollback procedure tested
+          - [ ] Database migration rollback plan (if applicable)
+          - [ ] Team notified of rollback procedure
+
+          ## Monitoring
+
+          - [ ] Application logs reviewed
+          - [ ] Infrastructure metrics checked
+          - [ ] Performance benchmarks verified
+          - [ ] Security scan results reviewed
+
+          EOF
+
+      - name: Upload deployment checklist
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.environment }}-deployment-checklist
+          path: ${{ inputs.environment }}-deployment-checklist.md
+
+      - name: Setup complete
+        run: |
+          echo "✅ Environment setup completed for ${{ inputs.environment }}"
+          echo "📋 Download the deployment checklist from the artifacts"
+          echo "🚀 Ready to deploy using: gh workflow run deploy.yml -f environment=${{ inputs.environment }}"

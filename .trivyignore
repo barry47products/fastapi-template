@@ -1,0 +1,11 @@
+# Trivy security scanner ignore file
+# Suppress known false positives and accepted risks
+
+# Python base image vulnerabilities that are patched or not exploitable in our context
+# Review these regularly and remove when fixes are available
+
+# Example: CVE-2023-12345 - Low severity vulnerability in system library not used by application
+# CVE-2023-12345
+
+# Note: Keep this file minimal - only suppress genuine false positives
+# All other vulnerabilities should be addressed through updates

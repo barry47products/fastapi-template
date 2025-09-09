@@ -47,12 +47,14 @@ words:
   - adoc
   - aggregateroot
   - alembic
+  - allkeys
   - alloc
   - amqp
   - anaconda
   - analyse
   - analysed
   - analysing
+  - anchore
   - ansible
   - anticorruption
   - anyio
@@ -60,7 +62,9 @@ words:
   - api
   - apikey
   - apis
+  - appendfsync
   - appendonly
+  - aquasecurity
   - argocd
   - args
   - arp
@@ -77,7 +81,9 @@ words:
   - authorised
   - authorising
   - authz
+  - autoanalyze
   - autouse
+  - autovacuum
   - autowired
   - avro
   - await
@@ -92,6 +98,7 @@ words:
   - bitbucket
   - boundedcontext
   - buildkite
+  - Buildx
   - callback
   - calloc
   - caplog
@@ -129,6 +136,7 @@ words:
   - conftest
   - conint
   - conlist
+  - conn
   - conset
   - consistency
   - const
@@ -157,6 +165,7 @@ words:
   - datadog
   - datetime
   - datetimez
+  - datname
   - ddos
   - dealloc
   - decodable
@@ -206,12 +215,14 @@ words:
   - enum
   - enums
   - env
+  - epoll
   - err
   - errmsg
   - errno
   - eslintrc
   - eventsourcing
   - eventual
+  - everysec
   - exc
   - faker
   - fastapi
@@ -265,6 +276,7 @@ words:
   - honour
   - honoured
   - honours
+  - HSTS
   - htm
   - html
   - htmlcov
@@ -284,6 +296,7 @@ words:
   - impl
   - indices
   - init
+  - INITDB
   - initialisation
   - initialise
   - initialised
@@ -319,6 +332,7 @@ words:
   - layered
   - ldap
   - less
+  - levelname
   - lfi
   - licence
   - licenced
@@ -333,6 +347,7 @@ words:
   - María
   - mariadb
   - maven
+  - maxmemory
   - md
   - mdx
   - memcached
@@ -372,14 +387,17 @@ words:
   - neighbourhoods
   - neighbours
   - newrelic
+  - nofile
   - nok
   - nomad
   - nonexistent
   - noop
+  - nopush
   - normalisation
   - normalise
   - normalised
   - normalising
+  - nosniff
   - notanemail
   - nox
   - npm
@@ -387,11 +405,13 @@ words:
   - nullptr
   - numprocesses
   - oauth
+  - OCSP
   - offence
   - offences
   - oidc
   - ok
   - onion
+  - opencontainers
   - opensearch
   - opentelemetry
   - optimisation
@@ -408,6 +428,7 @@ words:
   - organisers
   - organising
   - ospf
+  - ossp
   - otel
   - otlp
   - Overengineered
@@ -423,9 +444,12 @@ words:
   - pbac
   - pdm
   - Perflint
+  - perip
   - pgadmin
+  - pgcrypto
   - pipenv
   - pipfile
+  - plpgsql
   - plugin
   - plugins
   - pnpm
@@ -467,6 +491,9 @@ words:
   - pypi
   - pytest
   - pytestmark
+  - PYTHONFAULTHANDLER
+  - PYTHONHASHSEED
+  - PYTHONIOENCODING
   - PYTHONUNBUFFERED
   - pyupgrade
   - pyw
@@ -485,6 +512,7 @@ words:
   - refurb
   - repr
   - req
+  - requirepass
   - reraises
   - res
   - resp
@@ -493,6 +521,7 @@ words:
   - retval
   - rfi
   - rip
+  - rlimit
   - rollbar
   - rpy
   - rst
@@ -504,8 +533,10 @@ words:
   - sanitise
   - sanitised
   - sanitising
+  - sarif
   - sass
   - scannerwork
+  - schemaname
   - scss
   - sëcrët
   - secretstr
@@ -569,6 +600,7 @@ words:
   - tlsv
   - tmp
   - tmpdir
+  - tmpfs
   - todo
   - tokenisation
   - tokenise
@@ -598,6 +630,7 @@ words:
   - USDX
   - usecase
   - usefixtures
+  - usename
   - util
   - utils
   - uuid

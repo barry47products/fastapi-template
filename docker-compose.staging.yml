@@ -1,0 +1,98 @@
+# Staging environment override for docker-compose.yml
+# Use: docker-compose -f docker-compose.yml -f docker-compose.staging.yml up
+
+services:
+  api:
+    build:
+      target: production
+    container_name: fastapi-staging-api
+
+    # Resource limits for staging
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+    environment:
+      - APP_NAME=${APP_NAME:-fastapi-template}
+      - ENVIRONMENT=staging
+      - LOG_LEVEL=INFO
+      - RATE_LIMIT_REQUESTS_PER_MINUTE=120
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://staging.example.com}
+
+    # Remove volume mounts for staging (use built image)
+    volumes: []
+
+    # Enhanced logging for staging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=api,environment=staging"
+
+  postgres:
+    container_name: fastapi-staging-postgres
+
+    # Staging database tuning
+    command: >
+      postgres
+      -c max_connections=100
+      -c shared_buffers=128MB
+      -c effective_cache_size=512MB
+      -c maintenance_work_mem=32MB
+      -c wal_buffers=8MB
+
+    # Enhanced logging for staging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=postgres,environment=staging"
+
+  redis:
+    container_name: fastapi-staging-redis
+
+    # Staging Redis configuration
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:-redis123}
+      --appendonly yes
+      --maxmemory 128mb
+      --maxmemory-policy allkeys-lru
+
+    # Enhanced logging for staging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=redis,environment=staging"
+
+  # Optional: Nginx for staging SSL
+  nginx:
+    image: nginx:alpine
+    container_name: fastapi-staging-nginx
+    restart: unless-stopped
+
+    ports:
+      - "80:80"
+      - "443:443"
+
+    volumes:
+      - ./nginx/nginx.staging.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+
+    depends_on:
+      - api
+
+    networks:
+      - development
+
+    profiles:
+      - nginx

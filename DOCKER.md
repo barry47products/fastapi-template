@@ -1,40 +1,30 @@
 # Docker Deployment Guide
 
-This FastAPI template includes comprehensive Docker support for both development and production deployments.
+Complete guide for deploying the FastAPI Template using Docker containers with production-grade security and observability.
 
 ## Quick Start
 
-### Development with Docker Compose
+### Quick Start Development Environment
 
 ```bash
-# Start all services (API, PostgreSQL, Redis, Firestore)
-docker-compose up
-
-# Start with optional tools (pgAdmin, Redis Commander)
-docker-compose --profile tools up
-
-# Start in background
+# Start development stack
 docker-compose up -d
 
 # View logs
 docker-compose logs -f api
 
-# Stop services
+# Stop stack
 docker-compose down
 ```
 
-### Production Docker Build
+### Production Environment
 
 ```bash
-# Build production image
-docker build -t fastapi-template .
+# Deploy to production
+./scripts/deployment/deploy-prod.sh
 
-# Run production container
-docker run -p 8000:8000 \
-  -e APP_NAME=fastapi-template \
-  -e ENVIRONMENT=production \
-  -e DATABASE_URL=postgresql://user:pass@host:5432/db \
-  fastapi-template
+# Monitor deployment
+docker-compose -f docker-compose.prod.yml ps
 ```
 
 ## Docker Architecture

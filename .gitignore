@@ -101,3 +101,41 @@ sonar-project.properties
 run-sonar.sh
 
 node_modules/
+
+# Docker & Deployment
+# Keep compose files and Dockerfile - they're infrastructure as code
+# But exclude sensitive data, logs, and runtime artifacts
+
+# SSL certificates and keys (sensitive)
+nginx/ssl/*.key
+nginx/ssl/*.pem
+nginx/ssl/*.crt
+nginx/ssl/*.p12
+nginx/ssl/*.pfx
+
+# Docker volumes data (runtime)
+postgres_data/
+postgres_dev_data/
+redis_data/
+redis_dev_data/
+nginx_cache/
+nginx_logs/
+prometheus_data/
+grafana_data/
+
+# Docker secrets (sensitive)
+secrets/
+*.secret
+
+# Container logs (runtime)
+container-logs/
+docker-logs/
+
+# Local Docker overrides (environment-specific)
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Kubernetes secrets (sensitive)
+k8s/secrets/
+k8s/*-secret.yaml
+k8s/*-secrets.yaml
