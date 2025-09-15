@@ -28,7 +28,7 @@ mypy = "^1.13.0"
 pre-commit = "^4.0.0"
 pytest-watch = "^4.2.0"
 httpx = "^0.28.1"
-types-pyyaml = "^6.0.12.20250822"
+types-pyyaml = "^6.0.12.20250915"
 pytest-xdist = "^3.8.0"
 
 # Database dependencies for development and testing
