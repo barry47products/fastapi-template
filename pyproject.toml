@@ -9,7 +9,7 @@ packages = [{include = "src"}, {include = "config"}]
 
 [tool.poetry.dependencies]
 python = "^3.13"
-pydantic = "^2.10.0"
+pydantic = "^2.11.9"
 pydantic-settings = "^2.6.0"
 fastapi = "^0.116.1"
 uvicorn = "^0.35.0"
