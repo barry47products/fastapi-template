@@ -50,7 +50,7 @@ optional = true
 
 [tool.poetry.group.firestore.dependencies]
 # google-cloud-firestore is included as main dependency above
-grpcio = "^1.68.1"
+grpcio = "^1.75.1"
 
 [build-system]
 requires = ["poetry-core"]
