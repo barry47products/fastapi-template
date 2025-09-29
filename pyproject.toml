@@ -14,7 +14,7 @@ pydantic-settings = "^2.6.0"
 fastapi = "^0.117.1"
 uvicorn = "^0.36.0"
 structlog = "^25.4.0"
-prometheus-client = "^0.22.1"
+prometheus-client = "^0.23.1"
 sqlalchemy = {extras = ["asyncio"], version = "^2.0.36"}
 redis = {extras = ["hiredis"], version = "^6.4.0"}
 google-cloud-firestore = "^2.19.0"
