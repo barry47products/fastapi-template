@@ -37,7 +37,7 @@ optional = true
 
 [tool.poetry.group.postgres.dependencies]
 asyncpg = "^0.30.0"
-alembic = "^1.14.0"
+alembic = "^1.17.0"
 
 [tool.poetry.group.redis]
 optional = true
