@@ -2,14 +2,14 @@
 
 [[package]]
 name = "alembic"
-version = "1.16.5"
+version = "1.17.0"
 description = "A database migration tool for SQLAlchemy."
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["postgres"]
 files = [
-    {file = "alembic-1.16.5-py3-none-any.whl", hash = "sha256:e845dfe090c5ffa7b92593ae6687c5cb1a101e91fa53868497dbd79847f9dbe3"},
-    {file = "alembic-1.16.5.tar.gz", hash = "sha256:a88bb7f6e513bd4301ecf4c7f2206fe93f9913f9b48dac3b78babde2d6fe765e"},
+    {file = "alembic-1.17.0-py3-none-any.whl", hash = "sha256:80523bc437d41b35c5db7e525ad9d908f79de65c27d6a5a5eab6df348a352d99"},
+    {file = "alembic-1.17.0.tar.gz", hash = "sha256:4652a0b3e19616b57d652b82bfa5e38bf5dbea0813eed971612671cb9e90c0fe"},
 ]
 
 [package.dependencies]
@@ -1995,4 +1995,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.13"
-content-hash = "5c5694b7c02ba59542e5d558039d1c0a1b04fa41574ebe2ff03d64e2de7b19e7"
+content-hash = "5175d556ab2b9c17b3b43daf0db483b78c126c16a37713c4dafc36551a2bf6d1"
