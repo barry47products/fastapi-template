@@ -13,7 +13,7 @@ pydantic = "^2.12.3"
 pydantic-settings = "^2.11.0"
 fastapi = "^0.120.4"
 uvicorn = "^0.38.0"
-structlog = "^25.4.0"
+structlog = "^25.5.0"
 prometheus-client = "^0.23.1"
 sqlalchemy = {extras = ["asyncio"], version = "^2.0.44"}
 redis = {extras = ["hiredis"], version = "^6.4.0"}
