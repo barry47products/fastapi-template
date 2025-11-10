@@ -9,9 +9,9 @@ packages = [{include = "src"}, {include = "config"}]
 
 [tool.poetry.dependencies]
 python = "^3.13"
-pydantic = "^2.12.3"
+pydantic = "^2.12.4"
 pydantic-settings = "^2.11.0"
-fastapi = "^0.120.4"
+fastapi = "^0.121.1"
 uvicorn = "^0.38.0"
 structlog = "^25.5.0"
 prometheus-client = "^0.23.1"
