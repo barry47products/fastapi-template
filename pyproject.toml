@@ -17,7 +17,7 @@ structlog = "^25.5.0"
 prometheus-client = "^0.23.1"
 sqlalchemy = {extras = ["asyncio"], version = "^2.0.44"}
 redis = {extras = ["hiredis"], version = "^6.4.0"}
-google-cloud-firestore = "^2.19.0"
+google-cloud-firestore = "^2.22.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.0"
