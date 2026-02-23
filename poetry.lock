@@ -1760,23 +1760,26 @@ files = [
 
 [[package]]
 name = "redis"
-version = "6.4.0"
+version = "7.2.0"
 description = "Python client for Redis database and key-value store"
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "redis-6.4.0-py3-none-any.whl", hash = "sha256:f0544fa9604264e9464cdf4814e7d4830f74b165d52f2a330a760a88dd248b7f"},
-    {file = "redis-6.4.0.tar.gz", hash = "sha256:b01bc7282b8444e28ec36b261df5375183bb47a07eb9c603f284e89cbc5ef010"},
+    {file = "redis-7.2.0-py3-none-any.whl", hash = "sha256:01f591f8598e483f1842d429e8ae3a820804566f1c73dca1b80e23af9fba0497"},
+    {file = "redis-7.2.0.tar.gz", hash = "sha256:4dd5bf4bd4ae80510267f14185a15cba2a38666b941aff68cccf0256b51c1f26"},
 ]
 
 [package.dependencies]
 hiredis = {version = ">=3.2.0", optional = true, markers = "extra == \"hiredis\""}
 
 [package.extras]
+circuit-breaker = ["pybreaker (>=1.4.0)"]
 hiredis = ["hiredis (>=3.2.0)"]
 jwt = ["pyjwt (>=2.9.0)"]
 ocsp = ["cryptography (>=36.0.1)", "pyopenssl (>=20.0.1)", "requests (>=2.31.0)"]
+otel = ["opentelemetry-api (>=1.39.1)", "opentelemetry-exporter-otlp-proto-http (>=1.39.1)", "opentelemetry-sdk (>=1.39.1)"]
+xxhash = ["xxhash (>=3.6.0,<3.7.0)"]
 
 [[package]]
 name = "requests"
@@ -2124,4 +2127,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.13"
-content-hash = "d8cba7ecc323e47cf6d45f4a68ae03ed7ab5eb0b98c069b6cfd10626bbb93027"
+content-hash = "7b7191e069576991b63ab6e27ec91e6d78db66f1d651107bc4d7ecc219cda0ee"
