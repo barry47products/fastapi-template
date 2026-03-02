@@ -10,9 +10,9 @@ packages = [{include = "src"}, {include = "config"}]
 [tool.poetry.dependencies]
 python = "^3.13"
 pydantic = "^2.12.5"
-pydantic-settings = "^2.13.0"
-fastapi = "^0.129.0"
-uvicorn = "^0.40.0"
+pydantic-settings = "^2.13.1"
+fastapi = "^0.135.1"
+uvicorn = "^0.41.0"
 structlog = "^25.5.0"
 prometheus-client = "^0.24.1"
 sqlalchemy = {extras = ["asyncio"], version = "^2.0.44"}
